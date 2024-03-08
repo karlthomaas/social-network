@@ -4,8 +4,11 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"runtime/debug"
 )
+
+var InfoLog = log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 
 var errorLog *log.Logger
 
@@ -21,5 +24,5 @@ func ClientError(w http.ResponseWriter, status int) {
 }
 
 func NotFound(w http.ResponseWriter) {
-	ClientError(w , http.StatusBadRequest)
+	ClientError(w, http.StatusBadRequest)
 }
