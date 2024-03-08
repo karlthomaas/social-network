@@ -8,7 +8,6 @@ ENV PROJECT_DIR=/app \
 WORKDIR /app
 COPY . .
 
-
 RUN go mod download -x
 
 # Get CompileDaemon
