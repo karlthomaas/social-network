@@ -1,26 +1,18 @@
-# Start from the latest golang base image
 FROM golang:latest
 
-# Add Maintainer Info
-LABEL maintainer="Your Name <youremail@example.com>"
+# Environment variables which CompileDaemon requires to run
+ENV PROJECT_DIR=/app \
+    GO111MODULE=on \
+    CGO_ENABLED=0
 
-# Set the Current Working Directory inside the container
 WORKDIR /app
-
-# Copy go mod and sum files
-COPY go.mod go.sum ./
-
-# Download all dependencies. Dependencies will be cached if the go.mod and go.sum files are not changed
-RUN go mod download
-
-# Copy the source from the current directory to the Working Directory inside the container
 COPY . .
 
-# Build the Go app
-RUN go build -o main .
 
-# Expose port 8080 to the outside world
-EXPOSE 8080
+RUN go mod download -x
 
-# Command to run the executable
-CMD ["./main"]
+# Get CompileDaemon
+RUN go get github.com/githubnemo/CompileDaemon
+RUN go install github.com/githubnemo/CompileDaemon
+
+ENTRYPOINT CompileDaemon --build="go build -o main cmd/web/main.go" --command="./main"

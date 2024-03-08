@@ -1,14 +1,26 @@
 version: '3.8'
 services:
-  frontend:
-    image: social-network-fe
+  backend:
     build:
-      context: frontend/
+      context: ./
+      dockerfile: Dockerfile-backend
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./:/app
+
+  frontend:
+    build:
+      context: ./frontend
       target: dev
       dockerfile: Dockerfile-frontend
     volumes:
-        - ./frontend:/app
-        - /app/node_modules
-        - /app/.next
+      - ./frontend:/app
     ports:
       - "3000:3000"
+
+  database:
+    image: alpine:latest
+    volumes:
+      - ./internal/db/sqlite:/data
+    command: sh -c "apk --no-cache add sqlite && cp /data/initial-db.sqlite /data/db.sqlite && sqlite3 /data/db.sqlite < /data/init.sql && tail -f /dev/null"
