@@ -1,14 +1,15 @@
 package routes
 
 import (
-    "net/http"
-    "social-network/internal/handlers"
+	"social-network/internal/middleware"
+	"net/http"
+	"social-network/internal/handlers"
 )
 
 func Routes() http.Handler {
     router := http.NewServeMux()
 
-    router.HandleFunc("/", handlers.HomeHandler)
+    router.HandleFunc("GET /", handlers.HomeHandler)
 
-    return router
+    return middleware.RecoverPanic(middleware.SecureHeaders(middleware.LogRequest(router)))
 }
