@@ -4,10 +4,9 @@ import (
 	"flag"
 	"log"
 	"net/http"
-	"os"
+	"social-network/internal/helpers"
 	"social-network/internal/routes"
 )
-
 
 func main() {
 
@@ -15,13 +14,11 @@ func main() {
 
 	flag.Parse()
 
-	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
-
-	srv := &http.Server {
-		Addr: *addr,
+	srv := &http.Server{
+		Addr:    *addr,
 		Handler: routes.Routes(),
 	}
 
-	infoLog.Printf("Starting server on %s\n", *addr)
+	helpers.InfoLog.Printf("Starting server on %s\n", *addr)  
 	log.Fatal(srv.ListenAndServe())
 }
