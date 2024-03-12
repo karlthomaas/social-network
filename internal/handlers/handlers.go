@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"social-network/internal/helpers"
+	"social-network/internal/session"
 )
 
 // TEST
@@ -13,8 +14,10 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
 
+    session.CreateJwtCookie("tere", w)
+
     w.Header().Set("Content-Type", "application/json")
-    jsonData, err := json.Marshal("teree")
+    jsonData, err := json.Marshal("teree hommikust")
     if err != nil {
         helpers.ServerError(w, err)
         return

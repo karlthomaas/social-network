@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"social-network/internal/helpers"
+	"social-network/internal/session"
 )
 
 func SecureHeaders(next http.Handler) http.Handler {
@@ -34,6 +35,17 @@ func RecoverPanic(next http.Handler) http.Handler {
 				helpers.ServerError(w, fmt.Errorf("%s", err))
 			}
 		}()
+		next.ServeHTTP(w, r)
+	})
+}
+
+func ValidateJwt(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		err := session.DecodeAndValidateJwt(w, r)
+		if err != nil {
+			helpers.ClientError(w, http.StatusUnauthorized)
+			return
+		}
 		next.ServeHTTP(w, r)
 	})
 }

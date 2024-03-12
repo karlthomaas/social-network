@@ -19,6 +19,6 @@ func main() {
 		Handler: routes.Routes(),
 	}
 
-	helpers.InfoLog.Printf("Starting server on %s\n", *addr)  
+	helpers.InfoLog.Printf("Starting server on %s\n", *addr)
 	log.Fatal(srv.ListenAndServe())
 }
