@@ -1,0 +1,19 @@
+FROM golang:latest
+
+# Environment variables which CompileDaemon requires to run
+ENV PROJECT_DIR=/app \
+    GO111MODULE=on \
+    CGO_ENABLED=0
+
+WORKDIR /app
+COPY . .
+
+RUN go mod download -x
+
+RUN mkdir /appbin
+
+# Get CompileDaemon
+RUN go get github.com/githubnemo/CompileDaemon
+RUN go install github.com/githubnemo/CompileDaemon
+
+ENTRYPOINT CompileDaemon --build="go build -o /appbin/main cmd/web/main.go" --command="/appbin/main"
