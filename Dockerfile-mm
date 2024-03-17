@@ -1,0 +1,7 @@
+FROM golang:latest
+
+WORKDIR /app
+
+RUN go install -tags 'sqlite3' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+
+CMD migrate create -ext sql -dir . --seq $CMD

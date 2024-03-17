@@ -19,6 +19,9 @@ services:
     ports:
       - "3000:3000"
 
+    depends_on:
+      - database
+
   database:
     image: alpine:latest
     volumes:

@@ -4,6 +4,7 @@ import (
 	"flag"
 	"log"
 	"net/http"
+	"social-network/internal/db"
 	"social-network/internal/helpers"
 	"social-network/internal/routes"
 )
@@ -18,7 +19,7 @@ func main() {
 		Addr:    *addr,
 		Handler: routes.Routes(),
 	}
-
-	helpers.InfoLog.Printf("Starting server on %s\n", *addr)  
+	db.MigrateUp()
+	helpers.InfoLog.Printf("Starting server on %s\n", *addr)
 	log.Fatal(srv.ListenAndServe())
 }
