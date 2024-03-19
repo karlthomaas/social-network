@@ -3,7 +3,6 @@ cmd = makemigration
 steps ?= 1
 
 build:
-	docker build -t make-migrations -f Dockerfile-mm .
 	docker build -t migrations -f Dockerfile-migrations .
 
 makemigration:
