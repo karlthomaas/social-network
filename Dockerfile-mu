@@ -1,7 +1,0 @@
-FROM golang:latest
-
-WORKDIR /app
-
-RUN go install -tags 'sqlite3' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
-
-CMD migrate -path /migrations -database sqlite3://social-network-database-1/db/databse.db up
