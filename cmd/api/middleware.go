@@ -1,37 +1,36 @@
-package middleware
+package main
 
 import (
 	"fmt"
 	"net/http"
-	"social-network/internal/helpers"
 )
 
-func SecureHeaders(next http.Handler) http.Handler {
+func (app *application) SecureHeaders(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Security-Policy",
-		"default-src 'self'; style-src 'self' fonts.googleapis.com; font-src fonts.gstatic.com")
+			"default-src 'self'; style-src 'self' fonts.googleapis.com; font-src fonts.gstatic.com")
 		w.Header().Set("Referrer-Policy", "origin-when-cross-origin")
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 		w.Header().Set("X-Frame-Options", "deny")
 		w.Header().Set("X-XSS-Protection", "0")
 
 		next.ServeHTTP(w, r)
-	}) 
+	})
 }
 
-func LogRequest(next http.Handler) http.Handler {
+func (app *application) LogRequest(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		helpers.InfoLog.Printf("%s - %s %s %s", r.RemoteAddr, r.Proto, r.Method, r.URL.RequestURI())
+		app.logger.Printf("%s - %s %s %s", r.RemoteAddr, r.Proto, r.Method, r.URL.RequestURI())
 		next.ServeHTTP(w, r)
 	})
 }
 
-func RecoverPanic(next http.Handler) http.Handler {
+func (app *application) RecoverPanic(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if err := recover(); err != nil {
 				w.Header().Set("Connection", "close")
-				helpers.ServerError(w, fmt.Errorf("%s", err))
+				app.serverErrorResponse(w, r, fmt.Errorf("%s", err))
 			}
 		}()
 		next.ServeHTTP(w, r)
