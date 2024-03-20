@@ -9,7 +9,6 @@ import (
 	"os"
 	"social-network/internal/data"
 	"time"
-
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -48,7 +47,7 @@ func main() {
 }
 
 func OpenDB() (*sql.DB, error) {
-	db, err := sql.Open("sqlite", "dbname")
+	db, err := sql.Open("sqlite3", "internal/db/database.db")
 	if err != nil {
 		return nil, err
 	}

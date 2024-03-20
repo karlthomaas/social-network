@@ -18,12 +18,3 @@ services:
       - ./frontend:/app
     ports:
       - "3000:3000"
-
-    depends_on:
-      - database
-
-  database:
-    image: alpine:latest
-    volumes:
-      - ./internal/db/sqlite:/data
-    command: sh -c "apk --no-cache add sqlite && if [ ! -f /data/database.db ]; then touch /data/database.db; fi && tail -f /dev/null"
