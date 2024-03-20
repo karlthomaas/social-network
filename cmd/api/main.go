@@ -5,10 +5,12 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"social-network/internal/data"
 )
 
 type application struct {
 	logger *log.Logger
+	models data.Models
 }
 
 func main() {
@@ -20,6 +22,7 @@ func main() {
 
 	app := &application{
 		logger: logger,
+		//models: data.NewModels(db) After making connection to db
 	}
 
 	srv := &http.Server{
