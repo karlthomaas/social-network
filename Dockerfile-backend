@@ -15,4 +15,4 @@ RUN mkdir /appbin
 RUN go get github.com/githubnemo/CompileDaemon
 RUN go install github.com/githubnemo/CompileDaemon
 
-ENTRYPOINT CompileDaemon --build="go build -o /appbin/main cmd/web/main.go" --command="/appbin/main"
+ENTRYPOINT CompileDaemon --build="go build -o /appbin/main ./cmd/api" --command="/appbin/main"

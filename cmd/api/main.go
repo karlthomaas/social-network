@@ -14,14 +14,14 @@ type application struct {
 func main() {
 
 	addr := flag.String("addr", ":4000", "HTTP network address")
-	
+
 	flag.Parse()
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
-	
+
 	app := &application{
 		logger: logger,
 	}
-	
+
 	srv := &http.Server{
 		Addr:    *addr,
 		Handler: app.routes(),
