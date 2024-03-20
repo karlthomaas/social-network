@@ -2,8 +2,7 @@ FROM golang:latest
 
 # Environment variables which CompileDaemon requires to run
 ENV PROJECT_DIR=/app \
-    GO111MODULE=on \
-    CGO_ENABLED=0
+    GO111MODULE=on
 
 WORKDIR /app
 COPY . .
