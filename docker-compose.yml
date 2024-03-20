@@ -26,4 +26,4 @@ services:
     image: alpine:latest
     volumes:
       - ./internal/db/sqlite:/data
-    command: sh -c "apk --no-cache add sqlite && cp /data/initial-database.db /data/database.db && sqlite3 /data/database.db < /data/init.sql && tail -f /dev/null"
+    command: sh -c "apk --no-cache add sqlite && if [ ! -f /data/database.db ]; then touch /data/database.db; fi && tail -f /dev/null"
