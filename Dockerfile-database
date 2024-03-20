@@ -6,8 +6,8 @@ RUN apk --no-cache add sqlite
 WORKDIR /db
 
 # Copy your SQLite database file into the container
-COPY internal/db/sqlite/initial-db.sqlite .
+COPY internal/db/sqlite/initial-database.db .
 # Expose the port if needed
-# EXPOSE 1433
+# EXPOSE 5432
 # Command to run when the container starts
-CMD ["sqlite3", "/data/initial-db.sqlite"]
+CMD ["sqlite3", "/data/initial-database.db"]
