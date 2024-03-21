@@ -9,17 +9,24 @@ import (
 
 func (app *application) createUserHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
-		Password    string    `json:"password"`
-		FirstName   string    `json:"first_name"`
-		LastName    string    `json:"last_name"`
-		DateOfBirth time.Time `json:"date_of_birth"`
-		Image       []byte    `json:"image"`
-		Nickname    string    `json:"nickname"`
-		AboutMe     string    `json:"about_me"`
-		Privacy     string    `json:"privacy"`
+		Email       string `json:"email"`
+		Password    string `json:"password"`
+		FirstName   string `json:"first_name"`
+		LastName    string `json:"last_name"`
+		DateOfBirth string `json:"date_of_birth"`
+		Image       []byte `json:"image"`
+		Nickname    string `json:"nickname"`
+		AboutMe     string `json:"about_me"`
+		//Privacy     string `json:"privacy"`
 	}
 
 	err := app.readJSON(w, r, &input)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	dateOfBirth, err := time.Parse("2006-01-02", input.DateOfBirth)
 	if err != nil {
 		app.badRequestResponse(w, r, err)
 		return
@@ -32,14 +39,15 @@ func (app *application) createUserHandler(w http.ResponseWriter, r *http.Request
 
 	user := &data.User{
 		ID:          id,
+		Email:       input.Email,
 		Password:    input.Password,
 		FirstName:   input.FirstName,
 		LastName:    input.LastName,
-		DateOfBirth: input.DateOfBirth,
+		DateOfBirth: dateOfBirth,
 		Image:       input.Image,
 		Nickname:    input.Nickname,
 		AboutMe:     input.AboutMe,
-		Privacy:     input.Privacy,
+		Privacy:     "public",
 	}
 
 	err = app.models.Users.Insert(user)
