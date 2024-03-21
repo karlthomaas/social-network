@@ -1,4 +1,6 @@
-FROM golang:latest
+FROM golang:1.22
+
+ENV GOFLAGS="-buildvcs=false"
 
 # Environment variables which CompileDaemon requires to run
 ENV PROJECT_DIR=/app \
