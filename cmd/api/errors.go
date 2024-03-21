@@ -21,6 +21,7 @@ func (app *application) errorResponse(w http.ResponseWriter, r *http.Request, st
 
 func (app *application) serverErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
 	app.logError(r, err)
+	fmt.Println(err)
 
 	message := "the server encountered a problem and could not proccess your request"
 
@@ -42,3 +43,5 @@ func (app *application) methodNotAllowedResponse(w http.ResponseWriter, r *http.
 func (app *application) badRequestResponse(w http.ResponseWriter, r *http.Request, err error) {
 	app.errorResponse(w, r, http.StatusBadRequest, err.Error())
 }
+
+

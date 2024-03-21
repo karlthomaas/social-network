@@ -7,6 +7,8 @@ import (
 	"io"
 	"net/http"
 	"strings"
+
+	"github.com/gofrs/uuid"
 )
 
 type envelope map[string]interface{}
@@ -82,4 +84,26 @@ func (app *application) readJSON(w http.ResponseWriter, r *http.Request, dst int
 	}
 
 	return nil
+}
+
+func (app *application) generateUUID() (string, error) {
+	uuid, err := uuid.NewV4()
+	if err != nil {
+		return "", err
+	}
+
+	return uuid.String(), nil
+}
+
+func (app *application) readIDParam(r *http.Request) (string, error) {
+	id := r.PathValue("id")
+	if id == "" {
+		return "", errors.New("invalid id parameter")
+	}
+
+	_ , err := uuid.FromString(id)
+	if err != nil {
+		return "", errors.New("invalid id parameter")
+	}
+	return id, nil
 }
