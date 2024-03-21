@@ -1,10 +1,15 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Poppins } from 'next/font/google';
 import './globals.css';
 
 import { TanstackProvider } from '@/providers/tanstack-provider';
 
-const inter = Inter({ subsets: ['latin'] });
+const poppins = Poppins({
+  weight: ['400', '500', '600'],
+  subsets: ['latin'],
+  variable: '--font-poppins',
+});
+
 
 export const metadata: Metadata = {
   title: 'Create Next App',
@@ -18,7 +23,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang='en'>
-      <body className={inter.className}>
+      <body className={poppins.className}>
         <TanstackProvider>{children}</TanstackProvider>
       </body>
     </html>
