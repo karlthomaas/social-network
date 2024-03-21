@@ -11,15 +11,15 @@ type UserModel struct {
 }
 
 func (u *UserModel) Insert(user *User) error {
-	query := `INSERT INTO Users (id, password, first_name, last_name, date_of_birth, image, nickname, about_me, privacy) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)`
+	query := `INSERT INTO Users (id, email, password, first_name, last_name, date_of_birth, image, nickname, about_me, privacy) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
-	_, err := u.DB.Exec(query, user.ID, user.Password, user.FirstName, user.LastName, user.DateOfBirth, user.Image, user.Nickname, user.AboutMe, user.Privacy)
+	_, err := u.DB.Exec(query, user.ID, user.Email, user.Password, user.FirstName, user.LastName, user.DateOfBirth, user.Image, user.Nickname, user.AboutMe, user.Privacy)
 
 	return err
 }
 
 func (u *UserModel) Get(id string) (*User, error) {
-	query := `SELECT id, password, first_name, last_name, date_of_birth, image, nickname, about_me, created_at, privacy
+	query := `SELECT id, email, password, first_name, last_name, date_of_birth, image, nickname, about_me, created_at, privacy
 	FROM users
 	WHERE id=?`
 
@@ -27,6 +27,7 @@ func (u *UserModel) Get(id string) (*User, error) {
 
 	err := u.DB.QueryRow(query, id).Scan(
 		&user.ID,
+		&user.Email,
 		&user.Password,
 		&user.FirstName,
 		&user.LastName,
@@ -60,6 +61,7 @@ func (u *UserModel) Delete(id string) error {
 
 type User struct {
 	ID          string    `json:"id"`
+	Email       string    `json:"email"`
 	Password    string    `json:"password"`
 	FirstName   string    `json:"first_name"`
 	LastName    string    `json:"last_name"`
