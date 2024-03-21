@@ -1,5 +1,6 @@
 CREATE TABLE users (
   id TEXT PRIMARY KEY,
+  email TEXT NOT NULL,
   password TEXT NOT NULL,
   first_name TEXT NOT NULL,
   last_name TEXT NOT NULL,
@@ -8,7 +9,7 @@ CREATE TABLE users (
   nickname TEXT,
   about_me TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  privacy TEXT NOT NULL CHECK(privacy IN ('private', 'public'))
+  privacy TEXT NOT NULL DEFAULT 'public' CHECK(privacy IN ('private', 'public'))
 );
 
 CREATE TABLE reactions (
