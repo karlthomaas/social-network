@@ -45,3 +45,14 @@ func (app *application) RecoverPanic(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
+
+// func ValidateJwt(next http.Handler) http.Handler {
+// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+// 		err := session.DecodeAndValidateJwt(w, r)
+// 		if err != nil {
+// 			helpers.ClientError(w, http.StatusUnauthorized)
+// 			return
+// 		}
+// 		next.ServeHTTP(w, r)
+// 	})
+// }
