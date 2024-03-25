@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"os"
 	"social-network/internal/data"
-	"social-network/internal/db/models"
 	"strings"
 	"time"
 )
@@ -25,7 +24,7 @@ type Payload struct {
 	Exp    int64  `json:"exp"`
 }
 
-func (app *application) CreateJWT(userId string, w http.ResponseWriter, r *http.Request) {
+func (app *application) CreateJWT(userId string) (string, error) {
 	header := &Header{
 		Alg: "HS256",
 		Typ: "JWT",
@@ -38,14 +37,12 @@ func (app *application) CreateJWT(userId string, w http.ResponseWriter, r *http.
 
 	headerBytes, err := json.Marshal(header)
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
-		return
+		return "", err
 	}
 
 	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
-		return
+		return "", err
 	}
 
 	signature := app.createHmacSha256(strings.Join([]string{base64.RawURLEncoding.EncodeToString(headerBytes), base64.RawURLEncoding.EncodeToString(payloadBytes)}, "."), os.Getenv("JWT_SECRET"))
@@ -56,7 +53,7 @@ func (app *application) CreateJWT(userId string, w http.ResponseWriter, r *http.
 		signature,
 	}, ".")
 
-	app.writeJSON(w, http.StatusOK, envelope{"token": token}, nil)
+	return token, nil
 }
 
 func (app *application) DecodeAndValidateJwt(w http.ResponseWriter, r *http.Request) error {
@@ -107,9 +104,8 @@ func (app *application) createHmacSha256(data string, secret string) string {
 	return base64.RawURLEncoding.EncodeToString(h.Sum(nil))
 }
 
-func (app *application) createRefreshToken(u *models.User) string {
+func (app *application) createRefreshToken(userId string) string {
 
-	// create variable that is uuid
 	token, err := app.generateUUID()
 	if err != nil {
 		return ""
@@ -117,10 +113,12 @@ func (app *application) createRefreshToken(u *models.User) string {
 
 	refreshToken := &data.RefreshToken{
 		Token:  token,
-		UserId: u.Id,
+		UserId: userId,
 		Expiry: time.Now().Add(72 * time.Hour),
 	}
 
+	// ensure that the user has only one refresh token
+	app.models.Tokens.Delete(userId)
 	app.models.Tokens.Insert(refreshToken)
 
 	return token

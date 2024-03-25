@@ -11,7 +11,7 @@ const axiosInstance = axios.create({
 export default axiosInstance;
 
 
-export const fetcherWithOptions = ({ url, method, body }: { url: string, method:string, body: any}) => {
+export const fetcherWithOptions = ({ url, method, body, headers }: { url: string, method:string, body: any, headers?: any}) => {
 
     // const env = process.env.NODE_ENV;
     // const token = Cookies.get('csrftoken');
@@ -25,7 +25,12 @@ export const fetcherWithOptions = ({ url, method, body }: { url: string, method:
 
     //         : {};
 
-    const config = {};
+    const config = {
+        headers: {
+            ...headers,
+        }
+    };
+    
     switch (method) {
         case 'OPTIONS': {
             return axiosInstance.options(url).then((res) => res.data);

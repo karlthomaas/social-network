@@ -22,16 +22,11 @@ export const LoginForm = () => {
 
   const mutation = useMutation({
     mutationFn: (values: z.infer<typeof formSchema>) => {
-      return fetcherWithOptions({
-        url: '/api/auth',
-        method: 'POST',
-        body: values,
-      });
+      return fetcherWithOptions({ url: '/api/login', method: 'POST', body:{}, headers: { "Authorization": "Basic " + btoa(`${values.email}:${values.password}`)}})
     },
   });
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    console.log(values);
     mutation.mutate(values);
   };
 
