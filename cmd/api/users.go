@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"social-network/internal/data"
+	"social-network/internal/validator"
 	"time"
 )
 
@@ -17,7 +18,6 @@ func (app *application) createUserHandler(w http.ResponseWriter, r *http.Request
 		Image       []byte `json:"image"`
 		Nickname    string `json:"nickname"`
 		AboutMe     string `json:"about_me"`
-		//Privacy     string `json:"privacy"`
 	}
 
 	err := app.readJSON(w, r, &input)
@@ -48,6 +48,13 @@ func (app *application) createUserHandler(w http.ResponseWriter, r *http.Request
 		Nickname:    input.Nickname,
 		AboutMe:     input.AboutMe,
 		Privacy:     "public",
+	}
+
+	v := validator.New()
+
+	if data.ValidateUser(v, user); !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
 	}
 
 	err = app.models.Users.Insert(user)

@@ -7,8 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useMutation } from '@tanstack/react-query';
-import axios from 'axios';
 import { fetcherWithOptions } from '@/lib/fetchers';
+import Link from 'next/link';
 
 const formSchema = z.object({
     email: z.string().email(),
@@ -137,6 +137,9 @@ export const RegisterForm = () => {
             </FormItem>
           )}
         />
+        <FormDescription className='text-sm'>
+          Already have an account? <Link href="/login" className='text-primary'>Log in</Link>
+        </FormDescription>
         <Button type="submit">
             Sign Up
         </Button>

@@ -3,6 +3,7 @@ package data
 import (
 	"database/sql"
 	"errors"
+	"social-network/internal/validator"
 	"time"
 )
 
@@ -71,4 +72,25 @@ type User struct {
 	AboutMe     string    `json:"about_me"`
 	CreatedAt   time.Time `json:"created_at"`
 	Privacy     string    `json:"privacy"`
+}
+
+func ValidateEmail(v *validator.Validator, email string) {
+	v.Check(email != "", "email", "must be provided")
+	v.Check(validator.Matches(email, *validator.EmailRX), "email", "must be a valid email address")
+}
+
+func ValidatePassword(v *validator.Validator, password string) {
+	v.Check(password != "", "password", "must be procided")
+	// TODO:CHANGE PASSWORD LENGTH
+	v.Check(len(password) >= 2, "password", "must be at least 8 character long")
+	v.Check(len(password) <= 72, "password", "must not me more than 72 characters long")
+}
+
+func ValidateUser(v *validator.Validator, user *User) {
+	v.Check(user.FirstName != "", "first_name", "must be provided")
+	v.Check(user.LastName != "", "last_name", "must be provided")
+	v.Check(user.Privacy != "", "privacy", "must be provided")
+
+	ValidateEmail(v, user.Email)
+	ValidatePassword(v, user.Password)
 }
