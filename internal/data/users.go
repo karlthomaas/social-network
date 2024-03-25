@@ -1,10 +1,13 @@
 package data
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"social-network/internal/validator"
 	"time"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserModel struct {
@@ -60,6 +63,65 @@ func (u *UserModel) Delete(id string) error {
 	return nil
 }
 
+func (u *UserModel) GetByEmail(email string) (*User, error) {
+	query := `SELECT id, email, password, first_name, last_name, date_of_birth, image, nickname, about_me, created_at, privacy
+	FROM users
+	WHERE email=?`
+
+	var user User
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := u.DB.QueryRowContext(ctx, query, email).Scan(
+		&user.ID,
+		&user.Email,
+		&user.Password,
+		&user.FirstName,
+		&user.LastName,
+		&user.DateOfBirth,
+		&user.Image,
+		&user.Nickname,
+		&user.AboutMe,
+		&user.CreatedAt,
+		&user.Privacy,
+	)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ErrRecordNotFound
+		default:
+			return nil, err
+
+		}
+	}
+
+	return &user, nil
+}
+
+func (u *UserModel) Set(password string) ([]byte, error) {
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), 12)
+	if err != nil {
+		return nil, err
+	}
+
+	return hash, nil
+}
+
+func (u *User) Matches(plainTextPassword string) (bool, error) {
+	err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(plainTextPassword))
+	if err != nil {
+		switch {
+		case errors.Is(err, bcrypt.ErrMismatchedHashAndPassword):
+			return false, nil
+		default:
+			return false, err
+		}
+	}
+
+	return true, nil
+}
+
 type User struct {
 	ID          string    `json:"id"`
 	Email       string    `json:"email"`
@@ -94,3 +156,5 @@ func ValidateUser(v *validator.Validator, user *User) {
 	ValidateEmail(v, user.Email)
 	ValidatePassword(v, user.Password)
 }
+
+// TODO VALIDATE DATE OF BIRTH - (Cannot be in future)
