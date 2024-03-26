@@ -32,7 +32,7 @@ func (app *application) CreateJWT(userId string) (string, error) {
 
 	payload := &Payload{
 		UserId: userId,
-		Exp:    time.Now().Add(1 * time.Hour).Unix(),
+		Exp:    time.Now().Add(5 * time.Minute).Unix(),
 	}
 
 	headerBytes, err := json.Marshal(header)
@@ -56,17 +56,20 @@ func (app *application) CreateJWT(userId string) (string, error) {
 	return token, nil
 }
 
-func (app *application) DecodeAndValidateJwt(w http.ResponseWriter, r *http.Request) error {
-	header := r.Header.Get("Authorization")
-	var headerValues []string = strings.Split(header, " ")
-
-	if len(headerValues) != 2 {
-		return errors.New("invalid token")
+func (app *application) DecodeAndValidateJwt(w http.ResponseWriter, r *http.Request) (string, error) {
+	cookie, err := r.Cookie("token")
+	fmt.Println(r.Cookies())
+	fmt.Println("😀", cookie)
+	if err != nil {
+		if err == http.ErrNoCookie {
+			return "", errors.New("no token cookie")
+		}
+		return "", err
 	}
 
-	var parts []string = strings.Split(headerValues[1], ".")
+	var parts []string = strings.Split(cookie.Value, ".")
 	if len(parts) != 3 {
-		return errors.New("invalid token")
+		return "", errors.New("invalid token")
 	}
 
 	signature := app.createHmacSha256(strings.Join([]string{
@@ -76,26 +79,26 @@ func (app *application) DecodeAndValidateJwt(w http.ResponseWriter, r *http.Requ
 
 	if signature != parts[2] {
 		err := errors.New("invalid secret")
-		return err
+		return "", err
 	}
 
 	payloadBytes, err := base64.RawURLEncoding.DecodeString(parts[1])
 	if err != nil {
 		fmt.Println(err)
-		return err
+		return "", err
 	}
 
 	var payload Payload
 
 	if err := json.Unmarshal(payloadBytes, &payload); err != nil {
-		return err
+		return "", err
 	}
 
 	if time.Now().Unix() > payload.Exp {
-		return errors.New("token expired")
+		return "", errors.New("token expired")
 	}
 
-	return nil
+	return payload.UserId, nil
 }
 
 func (app *application) createHmacSha256(data string, secret string) string {

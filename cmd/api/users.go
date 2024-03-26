@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"social-network/internal/data"
 	"social-network/internal/validator"
@@ -131,7 +132,63 @@ func (app *application) authenticateUser(w http.ResponseWriter, r *http.Request)
 
 	refreshToken := app.createRefreshToken(user.ID)
 
-	err = app.writeJSON(w, http.StatusOK, envelope{"token": token, "refresh_tokens": refreshToken}, nil)
+	jwtToken := http.Cookie{
+		Name:     "token",
+		Value:    token,
+		Path:     "/",
+		Expires:  time.Now().Add(15 * time.Minute),
+		HttpOnly: false,
+		Secure:   false,
+		SameSite: http.SameSiteLaxMode,
+	}
+	refreshTokenCookie := http.Cookie{
+		Name:     "Refresh-Token",
+		Value:    refreshToken,
+		Path:     "/",
+		Expires:  time.Now().Add(720 * time.Hour), // 30 days
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
+	}
+
+	http.SetCookie(w, &refreshTokenCookie)
+	http.SetCookie(w, &jwtToken)
+
+	err = app.writeJSON(w, http.StatusOK, envelope{"token": token}, nil)
+
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+}
+
+func (app *application) getUserForToken(w http.ResponseWriter, r *http.Request) {
+	userID, err := app.DecodeAndValidateJwt(w, r)
+	if err != nil {
+		fmt.Println("🧠", userID)
+		app.invalidAuthenticationTokenResponse(w, r)
+	}
+
+	user, err := app.models.Users.Get(userID)
+	fmt.Println("🍀", user)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	var userResponse = &data.User{
+		ID:          user.ID,
+		Email:       user.Email,
+		FirstName:   user.FirstName,
+		LastName:    user.LastName,
+		DateOfBirth: user.DateOfBirth,
+		Nickname:    user.Nickname,
+		AboutMe:     user.AboutMe,
+		CreatedAt:   user.CreatedAt,
+		Privacy:     user.Privacy,
+	}
+
+	err = app.writeJSON(w, http.StatusOK, envelope{"user": userResponse}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return

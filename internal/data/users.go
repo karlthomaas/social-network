@@ -24,6 +24,10 @@ func (u *UserModel) Insert(user *User) error {
 	return err
 }
 
+func (u *UserModel) GetUserForToken(jwt string) {
+
+}
+
 func (u *UserModel) Get(id string) (*User, error) {
 	query := `SELECT id, email, password, first_name, last_name, date_of_birth, image, nickname, about_me, created_at, privacy
 	FROM users
@@ -37,7 +41,7 @@ func (u *UserModel) Get(id string) (*User, error) {
 	err := u.DB.QueryRowContext(ctx, query, id).Scan(
 		&user.ID,
 		&user.Email,
-		&user.Password,
+		&user.Password.hash,
 		&user.FirstName,
 		&user.LastName,
 		&user.DateOfBirth,
@@ -81,7 +85,7 @@ func (u *UserModel) GetByEmail(email string) (*User, error) {
 	err := u.DB.QueryRowContext(ctx, query, email).Scan(
 		&user.ID,
 		&user.Email,
-		&user.Password,
+		&user.Password.hash,
 		&user.FirstName,
 		&user.LastName,
 		&user.DateOfBirth,

@@ -11,6 +11,7 @@ func (app *application) routes() http.Handler {
 	router.HandleFunc("POST /api/users", app.createUserHandler)
 	router.HandleFunc("GET /users/{id}", app.showUserHandler)
 	router.HandleFunc("POST /api/login", app.authenticateUser)
+	router.HandleFunc("GET /api/authenticate", app.getUserForToken)
 
-	return app.RecoverPanic(app.SecureHeaders(app.LogRequest(router)))
+	return app.RecoverPanic(app.rateLimit(app.SecureHeaders(app.LogRequest(router))))
 }
