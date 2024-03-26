@@ -37,15 +37,9 @@ func (app *application) createUserHandler(w http.ResponseWriter, r *http.Request
 		app.serverErrorResponse(w, r, err)
 	}
 
-	passwordHash, err := app.models.Users.Set(input.Password)
-	if err != nil {
-		app.serverErrorResponse(w, r, err)
-	}
-	// TODO: change password type to type password {plaintext, hash}
 	user := &data.User{
 		ID:          id,
 		Email:       input.Email,
-		Password:    string(passwordHash),
 		FirstName:   input.FirstName,
 		LastName:    input.LastName,
 		DateOfBirth: dateOfBirth,
@@ -53,6 +47,11 @@ func (app *application) createUserHandler(w http.ResponseWriter, r *http.Request
 		Nickname:    input.Nickname,
 		AboutMe:     input.AboutMe,
 		Privacy:     "public",
+	}
+
+	err = user.Password.Set(input.Password)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
 	}
 
 	v := validator.New()
@@ -112,7 +111,7 @@ func (app *application) authenticateUser(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	match, err := user.Matches(password)
+	match, err := user.Password.Matches(password)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return

@@ -16,8 +16,10 @@ type UserModel struct {
 
 func (u *UserModel) Insert(user *User) error {
 	query := `INSERT INTO Users (id, email, password, first_name, last_name, date_of_birth, image, nickname, about_me, privacy) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
 
-	_, err := u.DB.Exec(query, user.ID, user.Email, user.Password, user.FirstName, user.LastName, user.DateOfBirth, user.Image, user.Nickname, user.AboutMe, user.Privacy)
+	_, err := u.DB.ExecContext(ctx, query, user.ID, user.Email, user.Password.hash, user.FirstName, user.LastName, user.DateOfBirth, user.Image, user.Nickname, user.AboutMe, user.Privacy)
 
 	return err
 }
@@ -29,7 +31,10 @@ func (u *UserModel) Get(id string) (*User, error) {
 
 	var user User
 
-	err := u.DB.QueryRow(query, id).Scan(
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := u.DB.QueryRowContext(ctx, query, id).Scan(
 		&user.ID,
 		&user.Email,
 		&user.Password,
@@ -99,17 +104,20 @@ func (u *UserModel) GetByEmail(email string) (*User, error) {
 	return &user, nil
 }
 
-func (u *UserModel) Set(password string) ([]byte, error) {
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), 12)
+func (p *password) Set(plainTextPassword string) error {
+	hash, err := bcrypt.GenerateFromPassword([]byte(plainTextPassword), 12)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return hash, nil
+	p.plainText = &plainTextPassword
+	p.hash = hash
+
+	return nil
 }
 
-func (u *User) Matches(plainTextPassword string) (bool, error) {
-	err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(plainTextPassword))
+func (p *password) Matches(plainTextPassword string) (bool, error) {
+	err := bcrypt.CompareHashAndPassword([]byte(p.hash), []byte(plainTextPassword))
 	if err != nil {
 		switch {
 		case errors.Is(err, bcrypt.ErrMismatchedHashAndPassword):
@@ -122,10 +130,15 @@ func (u *User) Matches(plainTextPassword string) (bool, error) {
 	return true, nil
 }
 
+type password struct {
+	plainText *string
+	hash      []byte
+}
+
 type User struct {
 	ID          string    `json:"id"`
 	Email       string    `json:"email"`
-	Password    string    `json:"password"`
+	Password    password  `json:"password"`
 	FirstName   string    `json:"first_name"`
 	LastName    string    `json:"last_name"`
 	DateOfBirth time.Time `json:"date_of_birth"`
@@ -152,9 +165,12 @@ func ValidateUser(v *validator.Validator, user *User) {
 	v.Check(user.FirstName != "", "first_name", "must be provided")
 	v.Check(user.LastName != "", "last_name", "must be provided")
 	v.Check(user.Privacy != "", "privacy", "must be provided")
+	v.Check(user.DateOfBirth.Before(time.Now()), "date_of_birth", "must not be in the future")
 
 	ValidateEmail(v, user.Email)
-	ValidatePassword(v, user.Password)
-}
+	ValidatePassword(v, *user.Password.plainText)
 
-// TODO VALIDATE DATE OF BIRTH - (Cannot be in future)
+	if user.Password.hash == nil {
+		panic("missing password hash for user")
+	}
+}

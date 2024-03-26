@@ -1,8 +1,8 @@
 package data
 
 import (
+	"context"
 	"database/sql"
-	"fmt"
 	"log"
 	"time"
 )
@@ -24,14 +24,10 @@ type (
 func (t *TokenModel) Insert(token *RefreshToken) error {
 	query := `INSERT INTO refresh_tokens (token, user_id, expiry_date) VALUES (?, ?, ?)`
 
-	stmt, err := t.DB.Prepare(query)
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
-	defer stmt.Close()
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
 
-	_, err = stmt.Exec(token.Token, token.UserId, token.Expiry)
+	_, err := t.DB.ExecContext(ctx, query, token.Token, token.UserId, token.Expiry)
 	if err != nil {
 		return err
 	}
@@ -44,7 +40,10 @@ func (t *TokenModel) Get(token string) (*RefreshToken, error) {
 
 	var rt RefreshToken
 
-	row := t.DB.QueryRow(query, token)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	row := t.DB.QueryRowContext(ctx, query, token)
 	err := row.Scan(&rt.Token, &rt.UserId, &rt.Expiry)
 	if err != nil {
 		return nil, err
@@ -56,13 +55,10 @@ func (t *TokenModel) Get(token string) (*RefreshToken, error) {
 func (t *TokenModel) Delete(user_id string) error {
 	query := `DELETE FROM refresh_tokens WHERE user_id = ?`
 
-	stmt, err := t.DB.Prepare(query)
-	if err != nil {
-		return err
-	}
-	defer stmt.Close()
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
 
-	_, err = stmt.Exec(user_id)
+	_, err := t.DB.ExecContext(ctx, query, user_id)
 	if err != nil {
 		return err
 	}
