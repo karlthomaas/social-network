@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"social-network/internal/data"
 	"social-network/internal/validator"
@@ -123,22 +122,27 @@ func (app *application) authenticateUser(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	token, err := app.CreateJWT(user.ID)
+	token, err := app.createJWT(user.ID)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 
 	}
 
-	refreshToken := app.createRefreshToken(user.ID)
+	refreshToken, err  := app.createRefreshToken(user.ID)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
 
+	// todo make jwtCookie and refreshTokenCookie a function or global variable
 	jwtToken := http.Cookie{
-		Name:     "token",
+		Name:     "Token",
 		Value:    token,
 		Path:     "/",
-		Expires:  time.Now().Add(15 * time.Minute),
-		HttpOnly: false,
-		Secure:   false,
+		Expires:  time.Now().Add(720 * time.Hour), // real expiry is in jwt payload
+		HttpOnly: true,
+		Secure:   true,
 		SameSite: http.SameSiteLaxMode,
 	}
 	refreshTokenCookie := http.Cookie{
@@ -165,12 +169,35 @@ func (app *application) authenticateUser(w http.ResponseWriter, r *http.Request)
 func (app *application) getUserForToken(w http.ResponseWriter, r *http.Request) {
 	userID, err := app.DecodeAndValidateJwt(w, r)
 	if err != nil {
-		fmt.Println("🧠", userID)
-		app.invalidAuthenticationTokenResponse(w, r)
-	}
+		if err.Error() == "token expired" {
+			refreshToken, err := app.validateRefreshToken(w, r)
+			if err != nil {
+				app.invalidAuthenticationTokenResponse(w, r)
+				return
+			}
+			jwt, err := app.createJWT(refreshToken.UserId)
+			if err != nil {
+				app.serverErrorResponse(w, r, err)
+				return
+			}
+			jwtToken := http.Cookie{
+				Name:     "Token",
+				Value:    jwt,
+				Path:     "/",
+				Expires:  time.Now().Add(720 * time.Hour),
+				HttpOnly: true,
+				Secure:   true,
+				SameSite: http.SameSiteLaxMode,
+			}
+			http.SetCookie(w, &jwtToken)
+			userID = refreshToken.UserId
 
+		} else {
+			app.invalidAuthenticationTokenResponse(w, r)
+			return
+		}
+	}
 	user, err := app.models.Users.Get(userID)
-	fmt.Println("🍀", user)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return

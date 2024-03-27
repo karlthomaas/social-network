@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"log"
 	"time"
+	"fmt"
 )
 
 type (
@@ -36,8 +37,7 @@ func (t *TokenModel) Insert(token *RefreshToken) error {
 }
 
 func (t *TokenModel) Get(token string) (*RefreshToken, error) {
-	query := `SELECT token, user_id, expiry FROM refresh_tokens WHERE token = ?`
-
+	query := `SELECT token, user_id, expiry_date FROM refresh_tokens WHERE token = ?`
 	var rt RefreshToken
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -45,10 +45,12 @@ func (t *TokenModel) Get(token string) (*RefreshToken, error) {
 
 	row := t.DB.QueryRowContext(ctx, query, token)
 	err := row.Scan(&rt.Token, &rt.UserId, &rt.Expiry)
+	if err == sql.ErrNoRows {
+		return nil, fmt.Errorf("no refresh token found")
+	}
 	if err != nil {
 		return nil, err
 	}
-
 	return &rt, nil
 }
 

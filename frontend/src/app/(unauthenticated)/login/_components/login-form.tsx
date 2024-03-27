@@ -18,6 +18,10 @@ const formSchema = z.object({
 export const LoginForm = () => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    }
   });
 
   const mutation = useMutation({

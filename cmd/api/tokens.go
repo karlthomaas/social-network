@@ -6,12 +6,12 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"os"
 	"social-network/internal/data"
 	"strings"
 	"time"
+	"github.com/gofrs/uuid"
 )
 
 type Header struct {
@@ -24,7 +24,7 @@ type Payload struct {
 	Exp    int64  `json:"exp"`
 }
 
-func (app *application) CreateJWT(userId string) (string, error) {
+func (app *application) createJWT(userId string) (string, error) {
 	header := &Header{
 		Alg: "HS256",
 		Typ: "JWT",
@@ -32,7 +32,7 @@ func (app *application) CreateJWT(userId string) (string, error) {
 
 	payload := &Payload{
 		UserId: userId,
-		Exp:    time.Now().Add(5 * time.Minute).Unix(),
+		Exp:    time.Now().Add(1 * time.Minute).Unix(),
 	}
 
 	headerBytes, err := json.Marshal(header)
@@ -57,17 +57,16 @@ func (app *application) CreateJWT(userId string) (string, error) {
 }
 
 func (app *application) DecodeAndValidateJwt(w http.ResponseWriter, r *http.Request) (string, error) {
-	cookie, err := r.Cookie("token")
-	fmt.Println(r.Cookies())
-	fmt.Println("😀", cookie)
-	if err != nil {
-		if err == http.ErrNoCookie {
-			return "", errors.New("no token cookie")
-		}
-		return "", err
-	}
+	authHeader := r.Header.Get("Authorization")
 
-	var parts []string = strings.Split(cookie.Value, ".")
+	if authHeader == "" {
+		return "", errors.New("missing auth header")
+	}
+	bearerToken := strings.Split(authHeader, " ")
+	if len(bearerToken) != 2 {
+		return "", errors.New("invalid authorization header format")
+	}
+	var parts []string = strings.Split(bearerToken[1], ".")
 	if len(parts) != 3 {
 		return "", errors.New("invalid token")
 	}
@@ -84,7 +83,6 @@ func (app *application) DecodeAndValidateJwt(w http.ResponseWriter, r *http.Requ
 
 	payloadBytes, err := base64.RawURLEncoding.DecodeString(parts[1])
 	if err != nil {
-		fmt.Println(err)
 		return "", err
 	}
 
@@ -101,30 +99,61 @@ func (app *application) DecodeAndValidateJwt(w http.ResponseWriter, r *http.Requ
 	return payload.UserId, nil
 }
 
+func (app *application) validateRefreshToken(w http.ResponseWriter, r *http.Request) (*data.RefreshToken, error) {
+	cookie, err := r.Cookie("Refresh-Token")
+	if err != nil {
+		if err == http.ErrNoCookie {
+			return nil, errors.New("no refresh token cookie")
+		}
+		return nil, err
+	}
+
+	_, err = uuid.FromString(cookie.Value)
+	if err != nil {
+		return nil, errors.New("invalid refresh token")
+	}
+	refreshToken, err := app.models.Tokens.Get(cookie.Value)
+	if err != nil {
+		return nil, errors.New("invalid refresh token")
+	}
+
+	if time.Now().After(refreshToken.Expiry) {
+		return nil, errors.New("refresh token expired")
+	}
+	return refreshToken, err
+}
+
 func (app *application) createHmacSha256(data string, secret string) string {
 	h := hmac.New(sha256.New, []byte(secret))
 	h.Write([]byte(data))
 	return base64.RawURLEncoding.EncodeToString(h.Sum(nil))
 }
 
-func (app *application) createRefreshToken(userId string) string {
+func (app *application) createRefreshToken(userId string) (string, error) {
 
 	token, err := app.generateUUID()
 	if err != nil {
-		return ""
+		return "", err
 	}
 
 	refreshToken := &data.RefreshToken{
 		Token:  token,
 		UserId: userId,
-		Expiry: time.Now().Add(72 * time.Hour),
+		Expiry: time.Now().Add(720 * time.Hour),
 	}
 
 	// ensure that the user has only one refresh token
-	app.models.Tokens.Delete(userId)
-	app.models.Tokens.Insert(refreshToken)
+	err = app.models.Tokens.Delete(userId)
+	if err != nil {
+		return "", err
+	}
+	
+	err = app.models.Tokens.Insert(refreshToken)
+	if err != nil {
+		return "", err
+	}
 
-	return token
+	return token, nil
 }
 
 // func (app *application) RefreshToken(w http.ResponseWriter, r *http.Request) {

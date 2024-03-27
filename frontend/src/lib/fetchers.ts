@@ -32,6 +32,9 @@ export const fetcherWithOptions = ({ url, method, body, headers }: { url: string
     };
     
     switch (method) {
+        case 'GET': {
+            return axiosInstance.get(url, { ...config }).then((res) => res.data);
+        }
         case 'OPTIONS': {
             return axiosInstance.options(url).then((res) => res.data);
         }

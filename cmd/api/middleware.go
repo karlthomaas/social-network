@@ -55,6 +55,7 @@ func (app *application) RecoverPanic(next http.Handler) http.Handler {
 func (app *application) ValidateJwt(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		_, err := app.DecodeAndValidateJwt(w, r)
+
 		if err != nil {
 			app.invalidAuthenticationTokenResponse(w, r)
 			return
