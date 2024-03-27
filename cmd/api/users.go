@@ -107,7 +107,7 @@ func (app *application) authenticateUser(w http.ResponseWriter, r *http.Request)
 
 	user, err := app.models.Users.GetByEmail(email)
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		app.invalidCredentialsResponse(w, r)
 		return
 	}
 
@@ -118,7 +118,7 @@ func (app *application) authenticateUser(w http.ResponseWriter, r *http.Request)
 	}
 
 	if !match {
-		app.serverErrorResponse(w, r, err)
+		app.invalidCredentialsResponse(w, r)
 		return
 	}
 
@@ -129,7 +129,7 @@ func (app *application) authenticateUser(w http.ResponseWriter, r *http.Request)
 
 	}
 
-	refreshToken, err  := app.createRefreshToken(user.ID)
+	refreshToken, err := app.createRefreshToken(user.ID)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
