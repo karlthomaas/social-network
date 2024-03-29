@@ -29,7 +29,9 @@
     "tailwind-merge": "^2.2.2",
     "tailwindcss-animate": "^1.0.7",
     "zod": "^3.22.4",
-    "zustand": "^4.5.2"
+    "zustand": "^4.5.2",
+    "react-loader-spinner": "^6.1.6",
+    "jsonwebtoken": "^9.0.2"
   },
   "devDependencies": {
     "@types/node": "^20",
