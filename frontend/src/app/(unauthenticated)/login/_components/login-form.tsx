@@ -1,32 +1,52 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
+import Link from 'next/link';
 import { z } from 'zod';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { useMutation } from '@tanstack/react-query';
 import { fetcherWithOptions } from '@/lib/fetchers';
-import Link from 'next/link';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 
 const formSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(2),
+  password: z.string().min(10),
 });
 
 export const LoginForm = () => {
+  const router = useRouter();
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       email: '',
       password: '',
-    }
+    },
   });
-
   const mutation = useMutation({
     mutationFn: (values: z.infer<typeof formSchema>) => {
-      return fetcherWithOptions({ url: '/api/login', method: 'POST', body:{}, headers: { "Authorization": "Basic " + btoa(`${values.email}:${values.password}`)}})
+      return fetcherWithOptions({
+        url: '/api/login',
+        method: 'POST',
+        body: {},
+        headers: { Authorization: 'Basic ' + btoa(`${values.email}:${values.password}`) },
+      });
+    },
+    onError: (error: any) => {
+      if (error.response.status === 401) {
+        form.setError('password', {
+          type: 'manual',
+          message: 'Invalid email or password',
+        });
+        form.setError('email', { type: 'manual' });
+      }
+    },
+    onSuccess: (data: any) => {
+      router.push('/home');
     },
   });
 
@@ -66,9 +86,14 @@ export const LoginForm = () => {
         />
         <FormDescription className=' text-sm'>
           {' '}
-          Don't have an account? <Link className="text-primary" href='/register'>Sign up</Link>
+          Don't have an account?{' '}
+          <Link className='text-primary' href='/register'>
+            Sign up
+          </Link>
         </FormDescription>
-        <Button type='submit'>Log in</Button>
+        <Button type='submit' disabled={mutation.isPending || mutation.isSuccess}>
+          {mutation.isPending ? 'Loading...' : 'Log in'}
+        </Button>
       </form>
     </Form>
   );
