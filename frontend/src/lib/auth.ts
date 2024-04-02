@@ -9,12 +9,26 @@ const getJwtSecretKey = () => {
   return secret;
 };
 
-export const refreshSession = async (token: string, refreshToken: string): Promise<string | null> => {
+const getBackendUrl = () => {
+  const url = process.env.BACKEND_URL;
+
+  if (!url || url.length === 0) {
+    throw new Error('BACKEND_URL not defined');
+  }
+  return url;
+}
+
+/**
+ * Refreshes the user session using the provided refresh token.
+ * @param refreshToken - The refresh token used to authenticate the user.
+ * @returns A Promise that resolves to a string representing the updated session cookie, or null if an error occurs.
+ */
+export const refreshSession = async (refreshToken: string): Promise<string | null> => {
+  const baseUrl = getBackendUrl()
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/authenticate`, {
-      method: 'GET',
+    const res = await fetch(`${baseUrl}/api/refresh_session`, {
+      method: 'POST',
       headers: {
-        Authorization: `Bearer ${token}`,
         Cookie: `Refresh-Token=${refreshToken};`,
         'Content-Type': 'application/json',
       },
@@ -25,6 +39,12 @@ export const refreshSession = async (token: string, refreshToken: string): Promi
   }
 };
 
+/**
+ * Verifies the authenticity of a JWT token.
+ * 
+ * @param token - The JWT token to be verified.
+ * @returns The payload of the verified token.
+ */
 export const verifyAuth = async (token: string) => {
   const verified = await jwtVerify(token, new TextEncoder().encode(getJwtSecretKey()));
   return verified.payload;
