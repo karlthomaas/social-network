@@ -11,7 +11,7 @@ const getJwtSecretKey = () => {
 
 export const refreshSession = async (token: string, refreshToken: string): Promise<string | null> => {
   try {
-    const res = await fetch('http://backend:4000/api/authenticate', {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/authenticate`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
