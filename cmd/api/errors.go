@@ -26,9 +26,8 @@ func (app *application) errorResponse(w http.ResponseWriter, r *http.Request, st
 }
 
 func (app *application) invalidAuthenticationTokenResponse(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("WWW-Authenticate", "Basic")
+	// w.Header().Set("WWW-Authenticate", "Basic")
 	message := "invalid or missing authentication token"
-
 	app.errorResponse(w, r, http.StatusUnauthorized, message)
 }
 
