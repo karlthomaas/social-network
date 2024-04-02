@@ -158,7 +158,7 @@ func (app *application) authenticateUser(w http.ResponseWriter, r *http.Request)
 	http.SetCookie(w, &refreshTokenCookie)
 	http.SetCookie(w, &jwtToken)
 
-	err = app.writeJSON(w, http.StatusOK, envelope{"token": token}, nil)
+	err = app.writeJSON(w, http.StatusOK, envelope{"message": "successfully logged in"}, nil)
 
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
@@ -180,9 +180,24 @@ func (app *application) getUserForToken(w http.ResponseWriter, r *http.Request) 
 				app.serverErrorResponse(w, r, err)
 				return
 			}
+			newRefreshToken, err := app.createRefreshToken(userID)
+			if err != nil {
+				app.serverErrorResponse(w, r, err)
+				return
+			}
+
 			jwtToken := http.Cookie{
 				Name:     "Token",
 				Value:    jwt,
+				Path:     "/",
+				Expires:  time.Now().Add(5 * time.Minute),
+				HttpOnly: true,
+				Secure:   true,
+				SameSite: http.SameSiteLaxMode,
+			}
+			refreshTokenCookie := http.Cookie{
+				Name:     "Refresh-Token",
+				Value:    newRefreshToken,
 				Path:     "/",
 				Expires:  time.Now().Add(720 * time.Hour),
 				HttpOnly: true,
@@ -190,6 +205,7 @@ func (app *application) getUserForToken(w http.ResponseWriter, r *http.Request) 
 				SameSite: http.SameSiteLaxMode,
 			}
 			http.SetCookie(w, &jwtToken)
+			http.SetCookie(w, &refreshTokenCookie)
 			userID = refreshToken.UserId
 
 		} else {

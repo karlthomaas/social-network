@@ -11,12 +11,13 @@ import (
 	"social-network/internal/data"
 	"strings"
 	"time"
+
 	"github.com/gofrs/uuid"
 )
 
 type Header struct {
-	Alg string
-	Typ string
+	Alg string `json:"alg"`
+	Typ string `json:"typ"`
 }
 
 type Payload struct {
@@ -44,7 +45,6 @@ func (app *application) createJWT(userId string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
 	signature := app.createHmacSha256(strings.Join([]string{base64.RawURLEncoding.EncodeToString(headerBytes), base64.RawURLEncoding.EncodeToString(payloadBytes)}, "."), os.Getenv("JWT_SECRET"))
 
 	token := strings.Join([]string{
@@ -52,21 +52,17 @@ func (app *application) createJWT(userId string) (string, error) {
 		base64.RawURLEncoding.EncodeToString(payloadBytes),
 		signature,
 	}, ".")
-
 	return token, nil
 }
 
 func (app *application) DecodeAndValidateJwt(w http.ResponseWriter, r *http.Request) (string, error) {
-	authHeader := r.Header.Get("Authorization")
+	token, err := r.Cookie("Token")
 
-	if authHeader == "" {
-		return "", errors.New("missing auth header")
+	if err != nil {
+		return "", errors.New("Missing JWT token")
 	}
-	bearerToken := strings.Split(authHeader, " ")
-	if len(bearerToken) != 2 {
-		return "", errors.New("invalid authorization header format")
-	}
-	var parts []string = strings.Split(bearerToken[1], ".")
+
+	var parts []string = strings.Split(token.Value, ".")
 	if len(parts) != 3 {
 		return "", errors.New("invalid token")
 	}
@@ -93,7 +89,7 @@ func (app *application) DecodeAndValidateJwt(w http.ResponseWriter, r *http.Requ
 	}
 
 	if time.Now().Unix() > payload.Exp {
-		return "", errors.New("token expired")
+		return payload.UserId, errors.New("token expired")
 	}
 
 	return payload.UserId, nil
@@ -107,7 +103,6 @@ func (app *application) validateRefreshToken(w http.ResponseWriter, r *http.Requ
 		}
 		return nil, err
 	}
-
 	_, err = uuid.FromString(cookie.Value)
 	if err != nil {
 		return nil, errors.New("invalid refresh token")
@@ -147,7 +142,6 @@ func (app *application) createRefreshToken(userId string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	
 	err = app.models.Tokens.Insert(refreshToken)
 	if err != nil {
 		return "", err
@@ -156,17 +150,47 @@ func (app *application) createRefreshToken(userId string) (string, error) {
 	return token, nil
 }
 
-// func (app *application) RefreshToken(w http.ResponseWriter, r *http.Request) {
-// 	cookie, err := r.Cookie("Refresh-Token")
+func (app *application) refreshSession(w http.ResponseWriter, r *http.Request) {
+	refreshToken, err := app.validateRefreshToken(w, r)
 
-// 	if err != nil {
-// 		// Generate new token
-// 		return
-// 	}
+	if err != nil {
+		app.invalidAuthenticationTokenResponse(w, r)
+		return
+	}
+	jwt, err := app.createJWT(refreshToken.UserId)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+	newRefreshToken, err := app.createRefreshToken(refreshToken.UserId)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+	jwtToken := http.Cookie{
+		Name:     "Token",
+		Value:    jwt,
+		Path:     "/",
+		Expires:  time.Now().Add(5 * time.Minute),
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
+	}
+	refreshTokenCookie := http.Cookie{
+		Name:     "Refresh-Token",
+		Value:    newRefreshToken,
+		Path:     "/",
+		Expires:  time.Now().Add(720 * time.Hour),
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
+	}
+	http.SetCookie(w, &jwtToken)
+	http.SetCookie(w, &refreshTokenCookie)
 
-// 	//todo  Decode token
-
-// 	//todo  Validate token
-
-// 	//todo  Generate new token
-// }
+	err = app.writeJSON(w, http.StatusOK, envelope{"message": "success"}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+}
