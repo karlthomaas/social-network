@@ -1,5 +1,6 @@
 CREATE TABLE users (
   id TEXT PRIMARY KEY,
+  email TEXT NOT NULL,
   password TEXT NOT NULL,
   first_name TEXT NOT NULL,
   last_name TEXT NOT NULL,
@@ -8,7 +9,7 @@ CREATE TABLE users (
   nickname TEXT,
   about_me TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  privacy TEXT NOT NULL CHECK(privacy IN ('private', 'public'))
+  privacy TEXT NOT NULL DEFAULT 'public' CHECK(privacy IN ('private', 'public'))
 );
 
 CREATE TABLE reactions (
@@ -51,6 +52,7 @@ CREATE TABLE follow_requests (
 CREATE TABLE posts (
   id TEXT PRIMARY KEY,
   user_id TEXT,
+  title TEXT,
   content TEXT,
   image BLOB,
   privacy TEXT NOT NULL CHECK(privacy IN ('private', 'public', 'almost_private')),
@@ -101,6 +103,13 @@ CREATE TABLE sessions (
   token TEXT PRIMARY KEY,
   data BLOB NOT NULL,
   expiry TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS refresh_tokens (
+    token TEXT UNIQUE NOT NULL,
+    user_id INTEGER NOT NULL,
+    expiry_date TIMESTAMP NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
 CREATE INDEX sessions_index_0 ON sessions (expiry);
