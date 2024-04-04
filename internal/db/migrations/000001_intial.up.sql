@@ -52,6 +52,7 @@ CREATE TABLE follow_requests (
 CREATE TABLE posts (
   id TEXT PRIMARY KEY,
   user_id TEXT,
+  title TEXT,
   content TEXT,
   image BLOB,
   privacy TEXT NOT NULL CHECK(privacy IN ('private', 'public', 'almost_private')),
@@ -102,6 +103,13 @@ CREATE TABLE sessions (
   token TEXT PRIMARY KEY,
   data BLOB NOT NULL,
   expiry TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS refresh_tokens (
+    token TEXT UNIQUE NOT NULL,
+    user_id INTEGER NOT NULL,
+    expiry_date TIMESTAMP NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
 CREATE INDEX sessions_index_0 ON sessions (expiry);
