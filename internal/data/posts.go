@@ -3,6 +3,7 @@ package data
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"time"
 )
 
@@ -19,6 +20,40 @@ type Post struct {
 	Privacy   string    `json:"-"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+}
+
+func (m *PostModel) Get(id string) (*Post, error) {
+	query := `
+	SELECT id, title, user_id, content, image, privacy, created_at, updated_at 
+	FROM posts
+	WHERE id = ?`
+
+	var post Post
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := m.DB.QueryRowContext(ctx, query, id).Scan(
+		&post.ID,
+		&post.Title,
+		&post.UserID,
+		&post.Content,
+		&post.Image,
+		&post.Privacy,
+		&post.CreatedAt,
+		&post.UpdatedAt,
+	)
+
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ErrRecordNotFound
+		default:
+			return nil, err
+		}
+	}
+
+	return &post, nil
 }
 
 func (m *PostModel) Insert(post *Post) error {
@@ -63,6 +98,30 @@ func (m *PostModel) Update(post *Post) error {
 
 	_, err := m.DB.ExecContext(ctx, query, args...)
 	return err
+}
+
+func (m *PostModel) Delete(id string) error {
+	query := `
+	DELETE FROM posts
+	WHERE id = ?`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	result, err := m.DB.ExecContext(ctx, query, id)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return ErrRecordNotFound
+	}
+	return nil
 }
 
 func (m *PostModel) GetAllForUser(userID string) ([]*Post, error) {
