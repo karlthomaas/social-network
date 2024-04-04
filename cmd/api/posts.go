@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"social-network/internal/data"
+	"social-network/internal/validator"
 	"strings"
 	"time"
 )
@@ -17,13 +18,13 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 		Privacy string `json:"privacy"`
 	}
 
-	user := app.contextGetUser(r)
-
 	err := app.readJSON(w, r, &input)
 	if err != nil {
 		app.badRequestResponse(w, r, err)
 		return
 	}
+
+	user := app.contextGetUser(r)
 
 	postID, err := app.generateUUID()
 	if err != nil {
@@ -39,6 +40,13 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 		Image:     input.Image,
 		Privacy:   input.Privacy,
 		UpdatedAt: time.Now().Truncate(time.Second),
+	}
+
+	v := validator.New()
+	
+	if data.ValidatePost(v, post); !v.Valid() {
+		app.failedValidationResponse(w,r, v.Errors)
+		return
 	}
 
 	err = app.models.Posts.Insert(post)
@@ -125,14 +133,14 @@ func (app *application) showPostHandler(w http.ResponseWriter, r *http.Request) 
 		case errors.Is(err, data.ErrRecordNotFound):
 			app.notFoundResponse(w, r)
 		default:
-			app.serverErrorResponse(w,r,err)
+			app.serverErrorResponse(w, r, err)
 		}
 		return
 	}
 
 	err = app.writeJSON(w, http.StatusOK, envelope{"post": post}, nil)
 	if err != nil {
-		app.serverErrorResponse(w,r,err)
+		app.serverErrorResponse(w, r, err)
 	}
 
 }
