@@ -67,8 +67,9 @@ func (app *application) createUserHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	headers := make(http.Header)
+	app.createSession(w, r, user.ID)
 
+	headers := make(http.Header)
 	err = app.writeJSON(w, http.StatusCreated, envelope{"user": user.ID}, headers)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
@@ -122,42 +123,7 @@ func (app *application) authenticateUser(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	token, err := app.createJWT(user.ID)
-	if err != nil {
-		app.serverErrorResponse(w, r, err)
-		return
-
-	}
-
-	refreshToken, err := app.createRefreshToken(user.ID)
-	if err != nil {
-		app.serverErrorResponse(w, r, err)
-		return
-	}
-
-	// todo make jwtCookie and refreshTokenCookie a function or global variable
-	jwtToken := http.Cookie{
-		Name:     "Token",
-		Value:    token,
-		Path:     "/",
-		Expires:  time.Now().Add(720 * time.Hour), // real expiry is in jwt payload
-		HttpOnly: true,
-		Secure:   true,
-		SameSite: http.SameSiteLaxMode,
-	}
-	refreshTokenCookie := http.Cookie{
-		Name:     "Refresh-Token",
-		Value:    refreshToken,
-		Path:     "/",
-		Expires:  time.Now().Add(720 * time.Hour), // 30 days
-		HttpOnly: true,
-		Secure:   true,
-		SameSite: http.SameSiteLaxMode,
-	}
-
-	http.SetCookie(w, &refreshTokenCookie)
-	http.SetCookie(w, &jwtToken)
-
+	app.createSession(w, r, user.ID)
 	err = app.writeJSON(w, http.StatusOK, envelope{"message": "successfully logged in"}, nil)
 
 	if err != nil {
@@ -175,38 +141,8 @@ func (app *application) getUserForToken(w http.ResponseWriter, r *http.Request) 
 				app.invalidAuthenticationTokenResponse(w, r)
 				return
 			}
-			jwt, err := app.createJWT(refreshToken.UserId)
-			if err != nil {
-				app.serverErrorResponse(w, r, err)
-				return
-			}
-			newRefreshToken, err := app.createRefreshToken(userID)
-			if err != nil {
-				app.serverErrorResponse(w, r, err)
-				return
-			}
-
-			jwtToken := http.Cookie{
-				Name:     "Token",
-				Value:    jwt,
-				Path:     "/",
-				Expires:  time.Now().Add(5 * time.Minute),
-				HttpOnly: true,
-				Secure:   true,
-				SameSite: http.SameSiteLaxMode,
-			}
-			refreshTokenCookie := http.Cookie{
-				Name:     "Refresh-Token",
-				Value:    newRefreshToken,
-				Path:     "/",
-				Expires:  time.Now().Add(720 * time.Hour),
-				HttpOnly: true,
-				Secure:   true,
-				SameSite: http.SameSiteLaxMode,
-			}
-			http.SetCookie(w, &jwtToken)
-			http.SetCookie(w, &refreshTokenCookie)
 			userID = refreshToken.UserId
+			app.createSession(w, r, userID)
 
 		} else {
 			app.invalidAuthenticationTokenResponse(w, r)
@@ -236,4 +172,39 @@ func (app *application) getUserForToken(w http.ResponseWriter, r *http.Request) 
 		app.serverErrorResponse(w, r, err)
 		return
 	}
+}
+
+func (app *application) createSession(w http.ResponseWriter, r *http.Request, userId string) {
+	// Create a new JWT for the user.
+	token, err := app.createJWT((userId))
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+	// Create a new refresh token for the user.
+	refreshToken, err := app.createRefreshToken((userId))
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+	jwtToken := http.Cookie{
+		Name:     "Token",
+		Value:    token,
+		Path:     "/",
+		Expires:  time.Now().Add(5 * time.Minute),
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
+	}
+	refreshTokenCookie := http.Cookie{
+		Name:     "Refresh-Token",
+		Value:    refreshToken,
+		Path:     "/",
+		Expires:  time.Now().Add(720 * time.Hour),
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
+	}
+	http.SetCookie(w, &jwtToken)
+	http.SetCookie(w, &refreshTokenCookie)
 }

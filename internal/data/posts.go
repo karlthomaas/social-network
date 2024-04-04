@@ -12,10 +12,11 @@ type PostModel struct {
 
 type Post struct {
 	ID        string    `json:"id"`
-	UserID    string    `json: "user_id"`
-	Content   string    `json: "content"`
-	Image     []byte    `json: "image"`
-	Privacy   string    `json: "-"`
+	Title     string    `json:"title"`
+	UserID    string    `json:"user_id"`
+	Content   string    `json:"content"`
+	Image     []byte    `json:"image"`
+	Privacy   string    `json:"-"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
@@ -29,22 +30,34 @@ func (m *PostModel) Insert(post *Post) error {
 	defer cancel()
 
 	args := []interface{}{
-		post.ID, 
-		post.UserID, 
-		post.Content, 
-		post.Image, 
+		post.ID,
+		post.UserID,
+		post.Content,
+		post.Image,
 		post.Privacy,
 	}
 
 	return m.DB.QueryRowContext(ctx, query, args...).Scan(&post.ID, &post.UserID, &post.CreatedAt)
 }
 
-// func (m *PostModel) Update(post *Post) {
-// 	query := `
-// 		UPDATE posts
-// 		SET content = ?, image = ?
-// 		WHERE user_id = ? AND id = ?
-// 	`
+func (m *PostModel) Update(post *Post) error {
+	query := `
+		UPDATE posts
+		SET title = ? content = ?, image = ?
+		WHERE user_id = ? AND id = ?
+	`
 
-// 	ctx, cancel := context.W
-// }
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	args := []interface{}{
+		post.Title,
+		post.Content,
+		post.Image,
+		post.UserID,
+		post.ID,
+	}
+
+	_, err := m.DB.ExecContext(ctx, query, args...)
+	return err
+}

@@ -142,7 +142,7 @@ type password struct {
 type User struct {
 	ID          string    `json:"id"`
 	Email       string    `json:"email"`
-	Password    password  `json:"password"`
+	Password    password  `json:"-"`
 	FirstName   string    `json:"first_name"`
 	LastName    string    `json:"last_name"`
 	DateOfBirth time.Time `json:"date_of_birth"`

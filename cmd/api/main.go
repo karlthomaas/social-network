@@ -4,12 +4,12 @@ import (
 	"context"
 	"database/sql"
 	"flag"
+	_ "github.com/mattn/go-sqlite3"
 	"log"
 	"net/http"
 	"os"
 	"social-network/internal/data"
 	"time"
-	_ "github.com/mattn/go-sqlite3"
 )
 
 type application struct {
@@ -41,6 +41,9 @@ func main() {
 		Addr:    *addr,
 		Handler: app.routes(),
 	}
+
+	// hide it
+	os.Setenv("JWT_SECRET", "c4fc4d2a47ae3cbcdbc8817feab1577095a97a10a7dddf87577f5d972b0a09f8")
 
 	logger.Printf("Starting server on %s\n", *addr)
 	log.Fatal(srv.ListenAndServe())

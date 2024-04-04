@@ -1,9 +1,11 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
+	"social-network/internal/data"
 	"sync"
 	"time"
 
@@ -52,14 +54,27 @@ func (app *application) RecoverPanic(next http.Handler) http.Handler {
 	})
 }
 
-func (app *application) ValidateJwt(next http.Handler) http.Handler {
+func (app *application) ValidateJwt(next http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		_, err := app.DecodeAndValidateJwt(w, r)
-
+		userID, err := app.DecodeAndValidateJwt(w, r)
 		if err != nil {
 			app.invalidAuthenticationTokenResponse(w, r)
 			return
 		}
+
+		user, err := app.models.Users.Get(userID)
+		if err != nil {
+			switch {
+			case errors.Is(err, data.ErrRecordNotFound):
+				app.notFoundResponse(w, r)
+			default:
+				app.serverErrorResponse(w, r, err)
+			}
+			return
+		}
+
+		r = app.contextSetUser(r, user)
+
 		next.ServeHTTP(w, r)
 	})
 }
