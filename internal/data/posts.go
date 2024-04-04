@@ -4,12 +4,18 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"social-network/internal/validator"
+	"slices"
 	"time"
 )
 
 type PostModel struct {
 	DB *sql.DB
 }
+
+var (
+	permissions = []string{"public", "private", "almost_private"}
+)
 
 type Post struct {
 	ID        string    `json:"id"`
@@ -166,4 +172,17 @@ func (m *PostModel) GetAllForUser(userID string) ([]*Post, error) {
 	}
 
 	return posts, nil
+}
+
+func ValidatePost(v *validator.Validator, post *Post) {
+	v.Check(post.Title != "", "title", "must not be empty")
+	v.Check(len(post.Title) <= 500, "title", "must not be more than 500 characters long")
+
+	v.Check(post.Content != "", "content", "must not be empty")
+	v.Check(len(post.Content) <= 2000, "content", "must not be more than 2000 characters long")
+
+	v.Check(post.Privacy != "", "privacy", "must not be empty")
+	v.Check(slices.Contains(permissions, post.Privacy), "privacy", `must be one of these types: "public", "private", "almost_private"`)
+
+	v.Check(post.UserID != "", "user_id", "must not be empty")
 }
