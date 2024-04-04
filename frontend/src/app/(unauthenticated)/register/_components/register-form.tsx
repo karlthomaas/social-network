@@ -9,6 +9,8 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { useMutation } from '@tanstack/react-query';
 import { fetcherWithOptions } from '@/lib/fetchers';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useToast } from '@/components/ui/use-toast';
 
 const formSchema = z.object({
     email: z.string().email(),
@@ -26,12 +28,21 @@ const formSchema = z.object({
 export const RegisterForm = () => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: '',
+      first_name: '',
+      last_name: '',
+      date_of_birth: '',
+      password: '',
+      confirmPassword: '',
+    }
   });
 
+  const router = useRouter();
+  const { toast } = useToast();
   
   const mutation = useMutation({
     mutationFn: (values: z.infer<typeof formSchema>) => {
-      // deinclude confirmPassword from values
       const { confirmPassword, ...newValues } = values;
       
       return fetcherWithOptions({
@@ -39,6 +50,14 @@ export const RegisterForm = () => {
         method: 'POST',
         body: newValues,
       });
+    }, onSuccess: (data: any) => {
+      router.push('/home')
+    }, onError: (error: any) => {
+      toast({
+        title: 'Something web wrong!',
+        description: error.message,
+        variant: 'destructive',
+      })
     }
   })
  

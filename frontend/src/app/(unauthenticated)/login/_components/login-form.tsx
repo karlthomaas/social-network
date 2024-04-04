@@ -14,7 +14,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 
 const formSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(10),
+  password: z.string().min(10, { message: 'Password must be at least 10 characters' }),
 });
 
 export const LoginForm = () => {
