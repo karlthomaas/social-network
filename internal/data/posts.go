@@ -37,7 +37,8 @@ func (m *PostModel) Insert(post *Post) error {
 		post.Privacy,
 	}
 
-	return m.DB.QueryRowContext(ctx, query, args...).Scan(&post.ID, &post.UserID, &post.CreatedAt)
+	_, err := m.DB.ExecContext(ctx, query, args...)
+	return err
 }
 
 func (m *PostModel) Update(post *Post) error {
