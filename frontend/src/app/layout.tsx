@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
 import { Poppins } from 'next/font/google';
+import { Toaster } from '@/components/ui/toaster';
 import './globals.css';
 
-import { TanstackProvider } from '@/providers/tanstack-provider';
 import Navbar from '@/components/navbar';
+import { TanstackProvider } from '@/providers/tanstack-provider';
 
 const poppins = Poppins({
   weight: ['400', '500', '600'],
@@ -25,8 +26,9 @@ export default function RootLayout({
   return (
     <html lang='en'>
       <body className={poppins.className}>
-        <Navbar />
-        <TanstackProvider>{children}</TanstackProvider>
+          <Navbar />
+          <TanstackProvider>{children}</TanstackProvider>
+          <Toaster />
       </body>
     </html>
   );
