@@ -72,6 +72,42 @@ func (u *UserModel) Delete(id string) error {
 	return nil
 }
 
+func (u *UserModel) GetByName(firstName, lastName string) (*User, error) {
+	 query := `SELECT id, email, password, first_name, last_name, date_of_birth, image, nickname, about_me, created_at, privacy
+	FROM users
+	WHERE first_name=? AND last_name=?`
+
+	var user User
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := u.DB.QueryRowContext(ctx, query, firstName, lastName).Scan(
+		&user.ID,
+		&user.Email,
+		&user.Password.hash,
+		&user.FirstName,
+		&user.LastName,
+		&user.DateOfBirth,
+		&user.Image,
+		&user.Nickname,
+		&user.AboutMe,
+		&user.CreatedAt,
+		&user.Privacy,
+	)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ErrRecordNotFound
+		default:
+			return nil, err
+
+		}
+	}
+
+	return &user, nil
+}
+
 func (u *UserModel) GetByEmail(email string) (*User, error) {
 	query := `SELECT id, email, password, first_name, last_name, date_of_birth, image, nickname, about_me, created_at, privacy
 	FROM users
