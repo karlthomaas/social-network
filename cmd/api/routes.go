@@ -23,6 +23,10 @@ func (app *application) routes() http.Handler {
 		app.refreshSession)
 	router.HandleFunc("POST /api/posts",
 		app.ValidateJwt(app.createPostHandler))
+	router.HandleFunc("DELETE /api/posts/{id}",
+		app.deletePostHandler)
+	router.HandleFunc("GET /api/posts/{id}",
+		app.showPostHandler)
 
 	return app.RecoverPanic(app.rateLimit(app.SecureHeaders(app.LogRequest(router))))
 }
