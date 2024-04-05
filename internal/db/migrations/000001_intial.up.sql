@@ -14,9 +14,9 @@ CREATE TABLE users (
 
 CREATE TABLE reactions (
   id TEXT PRIMARY KEY,
-  reply_id TEXT,
-  user_id TEXT,
-  post_id TEXT,
+  reply_id TEXT NOT NULL,
+  user_id TEXT NOT NULL,
+  post_id TEXT NOT NULL,
   type TEXT NOT NULL CHECK(type IN ('like', 'dislike')),
   FOREIGN KEY (reply_id) REFERENCES replies(id),
   FOREIGN KEY (user_id) REFERENCES users(id),
@@ -25,8 +25,8 @@ CREATE TABLE reactions (
 
 CREATE TABLE replies (
   id TEXT PRIMARY KEY,
-  user_id TEXT,
-  post_id TEXT,
+  user_id TEXT NOT NULL,
+  post_id TEXT NOT NULL,
   title TEXT NOT NULL,
   content TEXT NOT NULL,
   FOREIGN KEY (user_id) REFERENCES users(id),
@@ -34,16 +34,16 @@ CREATE TABLE replies (
 );
 
 CREATE TABLE followers (
-  user_id TEXT,
-  follower_id TEXT,
+  user_id TEXT NOT NULL,
+  follower_id TEXT NOT NULL,
   PRIMARY KEY(user_id, follower_id),
   FOREIGN KEY (user_id) REFERENCES users(id),
   FOREIGN KEY (follower_id) REFERENCES users(id)
 );
 
 CREATE TABLE follow_requests (
-  user_id TEXT,
-  follower_id TEXT,
+  user_id TEXT NOT NULL,
+  follower_id TEXT NOT NULL,
   PRIMARY KEY(user_id, follower_id),
   FOREIGN KEY (user_id) REFERENCES users(id),
   FOREIGN KEY (follower_id) REFERENCES users(id)
@@ -51,13 +51,13 @@ CREATE TABLE follow_requests (
 
 CREATE TABLE posts (
   id TEXT PRIMARY KEY,
-  user_id TEXT,
-  title TEXT,
-  content TEXT,
+  user_id TEXT NOT NULL,
+  title TEXT NOT NULL,
+  content TEXT NOT NULL,
   image BLOB,
   privacy TEXT NOT NULL CHECK(privacy IN ('private', 'public', 'almost_private')),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL,
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
@@ -68,18 +68,18 @@ CREATE TABLE groups (
 );
 
 CREATE TABLE group_invitations (
-  group_id TEXT,
-  user_id TEXT,
+  group_id TEXT NOT NULL,
+  user_id TEXT NOT NULL,
   FOREIGN KEY (group_id) REFERENCES groups(id),
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
 CREATE TABLE group_events (
   id TEXT PRIMARY KEY,
-  title TEXT,
-  description TEXT,
+  title TEXT NOT NULL,
+  description TEXT NOT NULL,
   date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  group_id TEXT,
+  group_id TEXT NOT NULL,
   FOREIGN KEY (group_id) REFERENCES groups(id)
 );
 
@@ -92,8 +92,8 @@ CREATE TABLE group_event_members (
 );
 
 CREATE TABLE group_members (
-  group_id TEXT,
-  user_id TEXT,
+  group_id TEXT NOT NULL,
+  user_id TEXT NOT NULL,
   PRIMARY KEY(group_id, user_id),
   FOREIGN KEY (group_id) REFERENCES groups(id),
   FOREIGN KEY (user_id) REFERENCES users(id)
