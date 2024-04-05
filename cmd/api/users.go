@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"social-network/internal/data"
 	"social-network/internal/validator"
@@ -207,4 +208,25 @@ func (app *application) createSession(w http.ResponseWriter, r *http.Request, us
 	}
 	http.SetCookie(w, &jwtToken)
 	http.SetCookie(w, &refreshTokenCookie)
+}
+
+func (app *application) getSessionUserHandler(w http.ResponseWriter, r *http.Request) {
+	/* Returns the session user object */
+	userId, err := app.DecodeAndValidateJwt(w, r)
+	if err != nil {
+		app.invalidAuthenticationTokenResponse(w, r)
+		return
+	}
+	user, err := app.models.Users.Get(userId)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	fmt.Println(user)
+	err = app.writeJSON(w, http.StatusOK, envelope{"user": user}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
 }

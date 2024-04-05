@@ -4,8 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"social-network/internal/validator"
 	"slices"
+	"social-network/internal/validator"
 	"time"
 )
 
@@ -87,7 +87,7 @@ func (m *PostModel) Insert(post *Post) error {
 func (m *PostModel) Update(post *Post) error {
 	query := `
 		UPDATE posts
-		SET title = ?, content = ?, image = ?
+		SET title = ?, content = ?, image = ?, created_at = ?
 		WHERE user_id = ? AND id = ?
 	`
 
@@ -98,11 +98,20 @@ func (m *PostModel) Update(post *Post) error {
 		post.Title,
 		post.Content,
 		post.Image,
+		post.CreatedAt,
 		post.UserID,
 		post.ID,
 	}
 
 	_, err := m.DB.ExecContext(ctx, query, args...)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return ErrRecordNotFound
+		default:
+			return err
+		}
+	}
 	return err
 }
 

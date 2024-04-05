@@ -59,7 +59,7 @@ func (app *application) DecodeAndValidateJwt(w http.ResponseWriter, r *http.Requ
 	token, err := r.Cookie("Token")
 
 	if err != nil {
-		return "", errors.New("Missing JWT token")
+		return "", errors.New("missing JWT token")
 	}
 
 	var parts []string = strings.Split(token.Value, ".")
