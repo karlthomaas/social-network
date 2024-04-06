@@ -95,7 +95,7 @@ func (app *application) DecodeAndValidateJwt(w http.ResponseWriter, r *http.Requ
 	return payload.UserId, nil
 }
 
-func (app *application) validateRefreshToken(w http.ResponseWriter, r *http.Request) (*data.RefreshToken, error) {
+func (app *application) validateRefreshToken(r *http.Request) (*data.RefreshToken, error) {
 	cookie, err := r.Cookie("Refresh-Token")
 	if err != nil {
 		if err == http.ErrNoCookie {
@@ -151,7 +151,7 @@ func (app *application) createRefreshToken(userId string) (string, error) {
 }
 
 func (app *application) refreshSession(w http.ResponseWriter, r *http.Request) {
-	refreshToken, err := app.validateRefreshToken(w, r)
+	refreshToken, err := app.validateRefreshToken(r)
 
 	if err != nil {
 		app.invalidAuthenticationTokenResponse(w, r)

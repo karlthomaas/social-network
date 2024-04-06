@@ -52,7 +52,6 @@ CREATE TABLE follow_requests (
 CREATE TABLE posts (
   id TEXT PRIMARY KEY,
   user_id TEXT NOT NULL,
-  title TEXT NOT NULL,
   content TEXT NOT NULL,
   image BLOB,
   privacy TEXT NOT NULL CHECK(privacy IN ('private', 'public', 'almost_private')),
@@ -61,10 +60,17 @@ CREATE TABLE posts (
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
+CREATE TABLE post_visibilities (
+  post_id TEXT NOT NULL,
+  visible_to TEXT NOT NULL,
+  PRIMARY KEY (post_id),
+  FOREIGN KEY (post_id) REFERENCES posts(id)
+);
+
 CREATE TABLE groups (
   id TEXT PRIMARY KEY,
   title TEXT NOT NULL,
-  description TEXT NOT NULL
+  description TEXT NOT NULL 
 );
 
 CREATE TABLE group_invitations (

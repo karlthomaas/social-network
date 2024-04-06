@@ -7,12 +7,17 @@ import (
 func (app *application) routes() http.Handler {
 	router := http.NewServeMux()
 
+	router.HandleFunc("GET /api/healthcheck",
+		app.healthCheckHandler)
+
 	router.Handle("GET /",
 		app.ValidateJwt(app.HomeHandler))
 	router.HandleFunc("GET /api/users/me",
 		app.ValidateJwt(app.getSessionUserHandler))
 	router.HandleFunc("GET /api/users/{id}",
 		app.ValidateJwt(app.showUserHandler))
+	router.HandleFunc("POST /api/logout",
+		app.ValidateJwt(app.deleteSession))
 
 	router.HandleFunc("GET /api/users/{username}/posts",
 		app.ValidateJwt(app.getUserPostsHandler))

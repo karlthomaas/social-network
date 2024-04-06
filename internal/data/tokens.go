@@ -3,9 +3,10 @@ package data
 import (
 	"context"
 	"database/sql"
+	"errors"
+	"fmt"
 	"log"
 	"time"
-	"fmt"
 )
 
 type (
@@ -62,7 +63,12 @@ func (t *TokenModel) Delete(user_id string) error {
 
 	_, err := t.DB.ExecContext(ctx, query, user_id)
 	if err != nil {
-		return err
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return ErrRecordNotFound
+		default:
+			return err
+		}
 	}
 
 	return nil

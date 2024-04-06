@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"social-network/internal/data"
 	"social-network/internal/validator"
@@ -36,6 +35,7 @@ func (app *application) createUserHandler(w http.ResponseWriter, r *http.Request
 	id, err := app.generateUUID()
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
+		return
 	}
 
 	user := &data.User{
@@ -53,6 +53,7 @@ func (app *application) createUserHandler(w http.ResponseWriter, r *http.Request
 	err = user.Password.Set(input.Password)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
+		return
 	}
 
 	v := validator.New()
@@ -68,12 +69,17 @@ func (app *application) createUserHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	app.createSession(w, r, user.ID)
+	err = app.createSession(w, user.ID)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
 
 	headers := make(http.Header)
 	err = app.writeJSON(w, http.StatusCreated, envelope{"user": user.ID}, headers)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
+		return
 	}
 }
 
@@ -105,6 +111,7 @@ func (app *application) authenticateUser(w http.ResponseWriter, r *http.Request)
 	email, password, ok := r.BasicAuth()
 	if !ok {
 		app.serverErrorResponse(w, r, errors.New("invalid authentication header"))
+		return
 	}
 
 	user, err := app.models.Users.GetByEmail(email)
@@ -124,8 +131,15 @@ func (app *application) authenticateUser(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	app.createSession(w, r, user.ID)
+	err = app.createSession(w, user.ID)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
 	err = app.writeJSON(w, http.StatusOK, envelope{"message": "successfully logged in"}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
 
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
@@ -137,13 +151,17 @@ func (app *application) getUserForToken(w http.ResponseWriter, r *http.Request) 
 	userID, err := app.DecodeAndValidateJwt(w, r)
 	if err != nil {
 		if err.Error() == "token expired" {
-			refreshToken, err := app.validateRefreshToken(w, r)
+			refreshToken, err := app.validateRefreshToken(r)
 			if err != nil {
 				app.invalidAuthenticationTokenResponse(w, r)
 				return
 			}
 			userID = refreshToken.UserId
-			app.createSession(w, r, userID)
+			err = app.createSession(w, userID)
+			if err != nil {
+				app.serverErrorResponse(w, r, err)
+				return
+			}
 
 		} else {
 			app.invalidAuthenticationTokenResponse(w, r)
@@ -175,18 +193,16 @@ func (app *application) getUserForToken(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
-func (app *application) createSession(w http.ResponseWriter, r *http.Request, userId string) {
+func (app *application) createSession(w http.ResponseWriter, userId string) error {
 	// Create a new JWT for the user.
 	token, err := app.createJWT((userId))
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
-		return
+		return err
 	}
 	// Create a new refresh token for the user.
 	refreshToken, err := app.createRefreshToken((userId))
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
-		return
+		return err
 	}
 	jwtToken := http.Cookie{
 		Name:     "Token",
@@ -208,23 +224,54 @@ func (app *application) createSession(w http.ResponseWriter, r *http.Request, us
 	}
 	http.SetCookie(w, &jwtToken)
 	http.SetCookie(w, &refreshTokenCookie)
+
+	return nil
 }
 
 func (app *application) getSessionUserHandler(w http.ResponseWriter, r *http.Request) {
 	/* Returns the session user object */
-	userId, err := app.DecodeAndValidateJwt(w, r)
-	if err != nil {
-		app.invalidAuthenticationTokenResponse(w, r)
-		return
-	}
-	user, err := app.models.Users.Get(userId)
+	user := app.contextGetUser(r)
+
+	err := app.writeJSON(w, http.StatusOK, envelope{"user": user}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
+}
 
-	fmt.Println(user)
-	err = app.writeJSON(w, http.StatusOK, envelope{"user": user}, nil)
+func (app *application) deleteSession(w http.ResponseWriter, r *http.Request) {
+	user := app.contextGetUser(r)
+
+	jwtToken := http.Cookie{
+		Name:     "Token",
+		Path:     "/",
+		MaxAge:   -1,
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
+	}
+	refreshTokenCookie := http.Cookie{
+		Name:     "Refresh-Token",
+		Path:     "/",
+		MaxAge:   -1,
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
+	}
+	http.SetCookie(w, &jwtToken)
+	http.SetCookie(w, &refreshTokenCookie)
+
+	err := app.models.Tokens.Delete(user.ID)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+	err = app.writeJSON(w, http.StatusOK, envelope{"user": "user succesfully logged out"}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return

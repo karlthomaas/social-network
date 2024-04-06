@@ -12,10 +12,11 @@ import (
 
 func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
-		Title   string `json:"title"`
-		Content string `json:"content"`
-		Image   []byte `json:"image"`
-		Privacy string `json:"privacy"`
+		Title     string   `json:"title"`
+		Content   string   `json:"content"`
+		Image     []byte   `json:"image"`
+		Privacy   string   `json:"privacy"`
+		VisibleTo []string `json:"visible_to"`
 	}
 
 	err := app.readJSON(w, r, &input)
@@ -47,6 +48,18 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 	if data.ValidatePost(v, post); !v.Valid() {
 		app.failedValidationResponse(w, r, v.Errors)
 		return
+	}
+
+	if post.Privacy == "almost_private" && len(input.VisibleTo) > 0 {
+		postVisibilities := &data.PostVisibilities{
+			PostID:    post.ID,
+			VisibleTo: strings.Join(input.VisibleTo, ","),
+		}
+		err := app.models.PostVisibilities.AddPostVisibilities(postVisibilities)
+		if err != nil {
+			app.serverErrorResponse(w, r, err)
+			return
+		}
 	}
 
 	err = app.models.Posts.Insert(post)
@@ -165,13 +178,13 @@ func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request
 	var input struct {
 		Title   *string `json:"title"`
 		Content *string `json:"content"`
-		Image *[]byte `json:"image"`
+		Image   *[]byte `json:"image"`
 		Privacy *string `json:"privacy"`
 	}
 
-	err = app.readJSON(w,r, &input)
+	err = app.readJSON(w, r, &input)
 	if err != nil {
-		app.badRequestResponse(w,r, err)
+		app.badRequestResponse(w, r, err)
 		return
 	}
 
@@ -195,7 +208,7 @@ func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request
 
 	v := validator.New()
 	if data.ValidatePost(v, post); !v.Valid() {
-		app.failedValidationResponse(w,r,v.Errors)
+		app.failedValidationResponse(w, r, v.Errors)
 		return
 	}
 
@@ -203,9 +216,9 @@ func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
-			app.notFoundResponse(w,r)
+			app.notFoundResponse(w, r)
 		default:
-			app.serverErrorResponse(w,r,err)
+			app.serverErrorResponse(w, r, err)
 		}
 	}
 }
