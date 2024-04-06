@@ -5,22 +5,30 @@ import (
 	"database/sql"
 	"flag"
 	"log"
-	"net/http"
 	"os"
 	"social-network/internal/data"
+	"sync"
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
+type config struct {
+	port int
+}
+
 type application struct {
+	config config
 	logger *log.Logger
 	models data.Models
+	wg     sync.WaitGroup
 }
 
 func main() {
 
-	addr := flag.String("addr", ":4000", "HTTP network address")
+	var cfg config
+
+	flag.IntVar(&cfg.port, "port", 4000, "API server port")
 
 	flag.Parse()
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
@@ -34,17 +42,16 @@ func main() {
 	logger.Printf("database connection pool established")
 
 	app := &application{
+		config: cfg,
 		logger: logger,
 		models: data.NewModels(db),
 	}
 
-	srv := &http.Server{
-		Addr:    *addr,
-		Handler: app.routes(),
+	err = app.serve()
+	if err != nil {
+		logger.Fatal(err, nil)
 	}
 
-	logger.Printf("Starting server on %s\n", *addr)
-	log.Fatal(srv.ListenAndServe())
 }
 
 func OpenDB() (*sql.DB, error) {
