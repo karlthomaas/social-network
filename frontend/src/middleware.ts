@@ -9,7 +9,6 @@ const redirectToLogin = async (req: NextRequest) => {
 export default async function middleware(req: NextRequest) {
   const token = req.cookies.get('Token');
   const refreshToken = req.cookies.get('Refresh-Token');
-
   if (!token && !refreshToken) {
     return redirectToLogin(req);
   }
@@ -38,5 +37,5 @@ export default async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/home'],
+  matcher: ['/home']
 };

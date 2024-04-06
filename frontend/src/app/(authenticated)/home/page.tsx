@@ -1,7 +1,9 @@
+import { CreatePost } from "./_components/create-post";
+
 export default function Home(){
     return(
         <div>
-            Home, sweet home. AUTHENTICATED ONLY
+            <CreatePost />
         </div>
     )
 }
