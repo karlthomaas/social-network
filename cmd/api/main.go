@@ -62,6 +62,11 @@ func OpenDB() (*sql.DB, error) {
 		return nil, err
 	}
 
+	_, err = db.Exec("PRAGMA foreign_keys = ON;")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	db.SetMaxOpenConns(25)
 	db.SetMaxIdleConns(25)
 	db.SetConnMaxIdleTime(time.Minute * 15)
