@@ -13,7 +13,6 @@ type Models struct {
 	Users            UserModel
 	Tokens           TokenModel
 	Posts            PostModel
-	PostVisibilities PostVisibilityModel
 }
 
 func NewModels(db *sql.DB) Models {
@@ -21,6 +20,5 @@ func NewModels(db *sql.DB) Models {
 		Users:            UserModel{DB: db},
 		Tokens:           TokenModel{DB: db},
 		Posts:            PostModel{DB: db},
-		PostVisibilities: PostVisibilityModel{DB: db},
 	}
 }
