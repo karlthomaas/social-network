@@ -12,7 +12,6 @@ import (
 
 func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
-		Title     string   `json:"title"`
 		Content   string   `json:"content"`
 		Image     []byte   `json:"image"`
 		Privacy   string   `json:"privacy"`
@@ -36,7 +35,6 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 	post := &data.Post{
 		ID:        postID,
 		UserID:    user.ID,
-		Title:     input.Title,
 		Content:   input.Content,
 		Image:     input.Image,
 		Privacy:   input.Privacy,
@@ -50,22 +48,19 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if post.Privacy == "almost_private" && len(input.VisibleTo) > 0 {
-		postVisibilities := &data.PostVisibilities{
-			PostID:    post.ID,
-			VisibleTo: strings.Join(input.VisibleTo, ","),
-		}
-		err := app.models.PostVisibilities.AddPostVisibilities(postVisibilities)
-		if err != nil {
-			app.serverErrorResponse(w, r, err)
-			return
-		}
-	}
-
 	err = app.models.Posts.Insert(post)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
+	}
+
+	if post.Privacy == "almost_private" && len(input.VisibleTo) > 0 {
+		err := app.models.Posts.AddPostVisibilities(postID, input.VisibleTo)
+		if err != nil {
+			app.serverErrorResponse(w, r, err)
+			return
+		}
+
 	}
 
 	err = app.writeJSON(w, http.StatusCreated, envelope{"post": post}, nil)
@@ -176,20 +171,16 @@ func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	var input struct {
-		Title   *string `json:"title"`
-		Content *string `json:"content"`
-		Image   *[]byte `json:"image"`
-		Privacy *string `json:"privacy"`
+		Content   *string  `json:"content"`
+		Image     *[]byte  `json:"image"`
+		Privacy   *string  `json:"privacy"`
+		VisibleTo []string `json:"visible_to"`
 	}
 
 	err = app.readJSON(w, r, &input)
 	if err != nil {
 		app.badRequestResponse(w, r, err)
 		return
-	}
-
-	if input.Title != nil {
-		post.Title = *input.Title
 	}
 
 	if input.Content != nil {
@@ -220,5 +211,33 @@ func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request
 		default:
 			app.serverErrorResponse(w, r, err)
 		}
+	}
+
+	if post.Privacy == "almost_private" && len(input.VisibleTo) > 0 {
+		currentUserIDs, err := app.models.Posts.GetPostVisibilities(post.ID)
+		if err != nil {
+			app.serverErrorResponse(w, r, err)
+			return
+		}
+
+		if len(currentUserIDs) > 0 {
+			err = app.models.Posts.UpdatePostVisibilities(post.ID, input.VisibleTo, currentUserIDs)
+			if err != nil {
+				app.serverErrorResponse(w, r, err)
+				return
+			}
+		} else {
+			app.models.Posts.AddPostVisibilities(post.ID, input.VisibleTo)
+			if err != nil {
+				app.serverErrorResponse(w, r, err)
+				return
+			}
+		}
+	}
+
+	err = app.writeJSON(w, http.StatusOK, envelope{"post": post}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
 	}
 }
