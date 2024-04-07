@@ -7,6 +7,7 @@ import (
 	"slices"
 	"social-network/internal/validator"
 	"time"
+	"github.com/gofrs/uuid"
 )
 
 type PostModel struct {
@@ -19,7 +20,6 @@ var (
 
 type Post struct {
 	ID        string    `json:"id"`
-	Title     string    `json:"title"`
 	UserID    string    `json:"user_id"`
 	Content   string    `json:"content"`
 	Image     []byte    `json:"image"`
@@ -28,9 +28,15 @@ type Post struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
+type PostVisibility struct {
+	ID     string `json:"-"`
+	PostID string `json:"user_id"`
+	UserID string `json:"visible_to"`
+}
+
 func (m *PostModel) Get(id string) (*Post, error) {
 	query := `
-	SELECT id, title, user_id, content, image, privacy, created_at, updated_at 
+	SELECT id, user_id, content, image, privacy, created_at, updated_at 
 	FROM posts
 	WHERE id = ?`
 
@@ -41,7 +47,6 @@ func (m *PostModel) Get(id string) (*Post, error) {
 
 	err := m.DB.QueryRowContext(ctx, query, id).Scan(
 		&post.ID,
-		&post.Title,
 		&post.UserID,
 		&post.Content,
 		&post.Image,
@@ -64,15 +69,14 @@ func (m *PostModel) Get(id string) (*Post, error) {
 
 func (m *PostModel) Insert(post *Post) error {
 	query := `
-		INSERT INTO posts (id, title, user_id, content, image, privacy, updated_at)
-		VALUES (?,?,?,?,?,?,?)`
+		INSERT INTO posts (id, user_id, content, image, privacy, updated_at)
+		VALUES (?,?,?,?,?,?)`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
 	args := []interface{}{
 		post.ID,
-		post.Title,
 		post.UserID,
 		post.Content,
 		post.Image,
@@ -87,7 +91,7 @@ func (m *PostModel) Insert(post *Post) error {
 func (m *PostModel) Update(post *Post) error {
 	query := `
 		UPDATE posts
-		SET title = ?, content = ?, image = ?, created_at = ?
+		SET content = ?, image = ?, created_at = ?, privacy = ?
 		WHERE user_id = ? AND id = ?
 	`
 
@@ -95,10 +99,10 @@ func (m *PostModel) Update(post *Post) error {
 	defer cancel()
 
 	args := []interface{}{
-		post.Title,
 		post.Content,
 		post.Image,
 		post.CreatedAt,
+		post.Privacy,
 		post.UserID,
 		post.ID,
 	}
@@ -141,7 +145,7 @@ func (m *PostModel) Delete(id string) error {
 
 func (m *PostModel) GetAllForUser(userID string) ([]*Post, error) {
 	query := `
-		SELECT id, title, user_id, content, image, privacy, created_at, updated_at
+		SELECT id, user_id, content, image, privacy, created_at, updated_at
 		FROM posts
 		WHERE user_id = ?`
 
@@ -160,7 +164,6 @@ func (m *PostModel) GetAllForUser(userID string) ([]*Post, error) {
 
 		err := rows.Scan(
 			&post.ID,
-			&post.Title,
 			&post.UserID,
 			&post.Content,
 			&post.Image,
@@ -183,10 +186,132 @@ func (m *PostModel) GetAllForUser(userID string) ([]*Post, error) {
 	return posts, nil
 }
 
-func ValidatePost(v *validator.Validator, post *Post) {
-	v.Check(post.Title != "", "title", "must not be empty")
-	v.Check(len(post.Title) <= 500, "title", "must not be more than 500 characters long")
+func (m *PostModel) AddPostVisibilities(postID string, users []string) error {
+	query := "INSERT INTO post_visibilities (id, post_id, user_id) VALUES"
+	var values []interface{}
 
+	for index, userID := range users {
+		id, err := uuid.NewV4()
+		if err != nil {
+			return err
+		}
+		query += "(?, ?, ?)"
+		values = append(values, id, postID, userID)
+		if index < len(users)-1 {
+			query += ","
+		}
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	_, err := m.DB.ExecContext(ctx, query, values...)
+
+	return err
+}
+
+func (m *PostModel) GetPostVisibilities(postID string) ([]string, error) {
+	query := `SELECT user_id FROM post_visibilities
+	WHERE post_id = ?`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	rows, err := m.DB.QueryContext(ctx, query, postID)
+	if err != nil {
+		return nil, err
+	}
+
+	userIDs := []string{}
+
+	for rows.Next() {
+		var userID string
+
+		err := rows.Scan(&userID)
+		if err != nil {
+			return nil, err
+		}
+
+		userIDs = append(userIDs, userID)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return userIDs, nil
+}
+
+func (m *PostModel) RemovePostVisibilities(postID string, userIDs []string) error {
+    query := `DELETE FROM post_visibilities WHERE post_id = ? AND user_id IN (`
+    var args []interface{}
+    args = append(args, postID)
+
+    for i, userID := range userIDs {
+        if i > 0 {
+            query += ", "
+        }
+        query += "?"
+        args = append(args, userID)
+    }
+
+    query += ")"
+
+    ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+    defer cancel()
+
+    _, err := m.DB.ExecContext(ctx, query, args...)
+    if err != nil {
+        switch {
+        case errors.Is(err, sql.ErrNoRows):
+            return ErrRecordNotFound
+        default:
+            return err
+        }
+    }
+    return nil
+}
+
+func (m *PostModel) UpdatePostVisibilities(postID string, newUserIDs, currentUserIDs[]string) error {
+	currentUserIDMap := make(map[string]bool)
+	for _, userID := range currentUserIDs {
+		currentUserIDMap[userID] = true
+	}
+
+	newUserIDMap := make(map[string]bool)
+	for _, userID := range newUserIDs {
+		newUserIDMap[userID] = true
+	}
+	
+	var userIDsToRemove, userIDsToAdd []string
+	for userID := range currentUserIDMap {
+		if !newUserIDMap[userID] {
+			userIDsToRemove = append(userIDsToRemove, userID)
+		}
+	}
+
+	for userID := range newUserIDMap {
+		if !currentUserIDMap[userID] {
+            userIDsToAdd = append(userIDsToAdd, userID) 
+        }
+	}
+
+	if len(userIDsToRemove) > 0 {
+        err := m.RemovePostVisibilities(postID, userIDsToRemove)
+        if err != nil {
+            return err
+        }
+    }
+    if len(userIDsToAdd) > 0 {
+        err := m.AddPostVisibilities(postID, userIDsToAdd)
+        if err != nil {
+            return err
+        }
+    }
+	return nil
+}
+
+func ValidatePost(v *validator.Validator, post *Post) {
 	v.Check(post.Content != "", "content", "must not be empty")
 	v.Check(len(post.Content) <= 2000, "content", "must not be more than 2000 characters long")
 
