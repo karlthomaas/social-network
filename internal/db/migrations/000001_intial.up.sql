@@ -61,10 +61,10 @@ CREATE TABLE posts (
 );
 
 CREATE TABLE post_visibilities (
+  id TEXT NOT NULL,
   post_id TEXT NOT NULL,
-  visible_to TEXT NOT NULL,
-  PRIMARY KEY (post_id),
-  FOREIGN KEY (post_id) REFERENCES posts(id)
+  user_id TEXT NOT NULL,
+  FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
 );
 
 CREATE TABLE groups (
