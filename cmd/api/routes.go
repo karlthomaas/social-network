@@ -39,5 +39,8 @@ func (app *application) routes() http.Handler {
 	router.HandleFunc("POST /api/refresh_session",
 		app.refreshSession)
 
+	router.HandleFunc("POST /api/users/{id}/follow",
+		app.ValidateJwt(app.addFollowerHandler))
+
 	return app.RecoverPanic(app.rateLimit(app.SecureHeaders(app.LogRequest(router))))
 }

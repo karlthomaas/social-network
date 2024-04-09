@@ -7,6 +7,7 @@ import (
 	"slices"
 	"social-network/internal/validator"
 	"time"
+
 	"github.com/gofrs/uuid"
 )
 
@@ -23,9 +24,10 @@ type Post struct {
 	UserID    string    `json:"user_id"`
 	Content   string    `json:"content"`
 	Image     []byte    `json:"image"`
-	Privacy   string    `json:"-"`
+	Privacy   string    `json:"public"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+	User      User      `json:"user"`
 }
 
 type PostVisibility struct {
@@ -36,9 +38,10 @@ type PostVisibility struct {
 
 func (m *PostModel) Get(id string) (*Post, error) {
 	query := `
-	SELECT id, user_id, content, image, privacy, created_at, updated_at 
-	FROM posts
-	WHERE id = ?`
+	SELECT p.id, p.user_id, p.content, p.image, p.privacy, p.created_at, p.updated_at, u.first_name, u.last_name
+	FROM posts p 
+	JOIN users u ON p.user_id = u.id
+	WHERE p.id = ?`
 
 	var post Post
 
@@ -53,6 +56,8 @@ func (m *PostModel) Get(id string) (*Post, error) {
 		&post.Privacy,
 		&post.CreatedAt,
 		&post.UpdatedAt,
+		&post.User.FirstName,
+		&post.User.LastName,
 	)
 
 	if err != nil {
@@ -145,9 +150,10 @@ func (m *PostModel) Delete(id string) error {
 
 func (m *PostModel) GetAllForUser(userID string) ([]*Post, error) {
 	query := `
-		SELECT id, user_id, content, image, privacy, created_at, updated_at
-		FROM posts
-		WHERE user_id = ?`
+	SELECT p.id, p.user_id, p.content, p.image, p.privacy, p.created_at, p.updated_at, u.first_name, u.last_name
+	FROM posts p 
+	JOIN users u ON p.user_id = u.id
+	WHERE p.user_id = ?`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -170,6 +176,8 @@ func (m *PostModel) GetAllForUser(userID string) ([]*Post, error) {
 			&post.Privacy,
 			&post.CreatedAt,
 			&post.UpdatedAt,
+			&post.User.FirstName,
+			&post.User.LastName,
 		)
 
 		if err != nil {
@@ -243,36 +251,36 @@ func (m *PostModel) GetPostVisibilities(postID string) ([]string, error) {
 }
 
 func (m *PostModel) RemovePostVisibilities(postID string, userIDs []string) error {
-    query := `DELETE FROM post_visibilities WHERE post_id = ? AND user_id IN (`
-    var args []interface{}
-    args = append(args, postID)
+	query := `DELETE FROM post_visibilities WHERE post_id = ? AND user_id IN (`
+	var args []interface{}
+	args = append(args, postID)
 
-    for i, userID := range userIDs {
-        if i > 0 {
-            query += ", "
-        }
-        query += "?"
-        args = append(args, userID)
-    }
+	for i, userID := range userIDs {
+		if i > 0 {
+			query += ", "
+		}
+		query += "?"
+		args = append(args, userID)
+	}
 
-    query += ")"
+	query += ")"
 
-    ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-    defer cancel()
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
 
-    _, err := m.DB.ExecContext(ctx, query, args...)
-    if err != nil {
-        switch {
-        case errors.Is(err, sql.ErrNoRows):
-            return ErrRecordNotFound
-        default:
-            return err
-        }
-    }
-    return nil
+	_, err := m.DB.ExecContext(ctx, query, args...)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return ErrRecordNotFound
+		default:
+			return err
+		}
+	}
+	return nil
 }
 
-func (m *PostModel) UpdatePostVisibilities(postID string, newUserIDs, currentUserIDs[]string) error {
+func (m *PostModel) UpdatePostVisibilities(postID string, newUserIDs, currentUserIDs []string) error {
 	currentUserIDMap := make(map[string]bool)
 	for _, userID := range currentUserIDs {
 		currentUserIDMap[userID] = true
@@ -282,7 +290,7 @@ func (m *PostModel) UpdatePostVisibilities(postID string, newUserIDs, currentUse
 	for _, userID := range newUserIDs {
 		newUserIDMap[userID] = true
 	}
-	
+
 	var userIDsToRemove, userIDsToAdd []string
 	for userID := range currentUserIDMap {
 		if !newUserIDMap[userID] {
@@ -292,22 +300,22 @@ func (m *PostModel) UpdatePostVisibilities(postID string, newUserIDs, currentUse
 
 	for userID := range newUserIDMap {
 		if !currentUserIDMap[userID] {
-            userIDsToAdd = append(userIDsToAdd, userID) 
-        }
+			userIDsToAdd = append(userIDsToAdd, userID)
+		}
 	}
 
 	if len(userIDsToRemove) > 0 {
-        err := m.RemovePostVisibilities(postID, userIDsToRemove)
-        if err != nil {
-            return err
-        }
-    }
-    if len(userIDsToAdd) > 0 {
-        err := m.AddPostVisibilities(postID, userIDsToAdd)
-        if err != nil {
-            return err
-        }
-    }
+		err := m.RemovePostVisibilities(postID, userIDsToRemove)
+		if err != nil {
+			return err
+		}
+	}
+	if len(userIDsToAdd) > 0 {
+		err := m.AddPostVisibilities(postID, userIDsToAdd)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

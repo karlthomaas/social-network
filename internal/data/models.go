@@ -10,15 +10,17 @@ var (
 )
 
 type Models struct {
-	Users            UserModel
-	Tokens           TokenModel
-	Posts            PostModel
+	Users     UserModel
+	Tokens    TokenModel
+	Posts     PostModel
+	Followers FollowerModel
 }
 
 func NewModels(db *sql.DB) Models {
 	return Models{
-		Users:            UserModel{DB: db},
-		Tokens:           TokenModel{DB: db},
-		Posts:            PostModel{DB: db},
+		Users:     UserModel{DB: db},
+		Tokens:    TokenModel{DB: db},
+		Posts:     PostModel{DB: db},
+		Followers: FollowerModel{DB: db},
 	}
 }

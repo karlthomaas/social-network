@@ -36,14 +36,16 @@ CREATE TABLE replies (
 CREATE TABLE followers (
   user_id TEXT NOT NULL,
   follower_id TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY(user_id, follower_id),
-  FOREIGN KEY (user_id) REFERENCES users(id),
-  FOREIGN KEY (follower_id) REFERENCES users(id)
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (follower_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE follow_requests (
   user_id TEXT NOT NULL,
   follower_id TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY(user_id, follower_id),
   FOREIGN KEY (user_id) REFERENCES users(id),
   FOREIGN KEY (follower_id) REFERENCES users(id)

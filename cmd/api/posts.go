@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"social-network/internal/data"
 	"social-network/internal/validator"
@@ -72,10 +71,8 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 
 func (app *application) getUserPostsHandler(w http.ResponseWriter, r *http.Request) {
 	userName := r.PathValue("username")
-	fmt.Println(userName)
 
 	parts := strings.Split(userName, ".")
-	fmt.Println(parts)
 	firstName := parts[0]
 	lastName := parts[1]
 
