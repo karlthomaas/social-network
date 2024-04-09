@@ -10,12 +10,14 @@ import { SubmitView } from './submit-view';
 import { PrivacyView } from './privacy-view';
 import { AlmostPrivateView } from './almost-private';
 import { privacyStore } from './privacy-view';
+import { useMutation } from '@tanstack/react-query';
+import { fetcherWithOptions } from '@/lib/fetchers';
 
 export const postStore = create((set) => ({
   view: 0,
   postText: '',
   privacy: 'public',
-  reset: () => set({ privacy: 'public', view: 0, postText: ''}),
+  reset: () => set({ privacy: 'public', view: 0, postText: '' }),
   increment: () => set((state: any) => ({ view: state.view + 1 })),
   deincrement: () => set((state: any) => ({ view: state.view - 1 })),
 }));
@@ -23,12 +25,28 @@ export const postStore = create((set) => ({
 export const CreatePost = () => {
   const view = postStore((state: any) => state.view);
   const reset = postStore((state: any) => state.reset);
+  const privacy = postStore((state: any) => state.privacy);
+  const postText = postStore((state: any) => state.postText);
 
-  const views = [
-    <SubmitView />,
-    <PrivacyView />,
-    <AlmostPrivateView />,
-  ];
+  const mutation = useMutation({
+    mutationKey: ['post'],
+    mutationFn: () =>
+      fetcherWithOptions({
+        url: '/api/posts',
+        method: 'POST',
+        body: {
+          content: postText,
+          privacy: privacy,
+          image: null,
+          visible_to: [],
+        },
+      }),
+  });
+
+  const onSubmit = () => {
+    mutation.mutate();
+  };
+  const views = [<SubmitView onSubmit={onSubmit} isPending={mutation.isPending} />, <PrivacyView />, <AlmostPrivateView />];
 
   const handleModalState = (state: boolean) => {
     if (state === true) return;

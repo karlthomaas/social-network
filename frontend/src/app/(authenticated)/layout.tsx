@@ -5,7 +5,7 @@ export default async function Layout({ children, params }: { children: React.Rea
   return (
     <>
       <Navbar authenticate={true} />
-      <div className='mx-auto h-full w-full max-w-screen-md p-4'>{children}</div>
+      <div className='relative mx-auto h-full w-full max-w-screen-md p-4'>{children}</div>
     </>
   );
 }
