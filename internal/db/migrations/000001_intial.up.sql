@@ -1,12 +1,12 @@
 CREATE TABLE users (
   id TEXT PRIMARY KEY,
-  email TEXT NOT NULL,
+  email TEXT NOT NULL UNIQUE,
   password TEXT NOT NULL,
   first_name TEXT NOT NULL,
   last_name TEXT NOT NULL,
   date_of_birth DATETIME NOT NULL,
   image BLOB,
-  nickname TEXT,
+  nickname TEXT NOT NULL UNIQUE,
   about_me TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   privacy TEXT NOT NULL DEFAULT 'public' CHECK(privacy IN ('private', 'public'))
