@@ -13,8 +13,16 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetcherWithOptions } from '@/lib/fetchers';
 import { useToast } from '../ui/use-toast';
 import { useRouter } from 'next/navigation';
+import { useSesssion } from '@/providers/user-provider';
 
-export const NavbarProfile = ({ profile }: { profile: string }) => {
+export const NavbarProfile = () => {
+  const { user } = useSesssion();
+  console.log("🚀 ~ NavbarProfile ~ user:", user)
+
+  if (!user) {
+    return null
+  }
+  
   const toastId = 'logout-toast';
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -57,12 +65,12 @@ export const NavbarProfile = ({ profile }: { profile: string }) => {
         <DropdownMenuLabel>My Account</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem>
-          <Link href={`/${profile}`}>Profile</Link>
+          <Link href={`/profile/${user.nickname}`}>Profile</Link>
         </DropdownMenuItem>
         <DropdownMenuItem>
           <Link href='/settings'>Settings</Link>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => mutation.mutate()}>Logout</DropdownMenuItem>
+        <DropdownMenuItem  className="hover:cursor-pointer" onClick={() => mutation.mutate()}>Logout</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

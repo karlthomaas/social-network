@@ -26,7 +26,7 @@ export const SubmitView = ({ isPending, onSubmit }: { isPending: boolean; onSubm
         </DialogDescription>
       </DialogHeader>
       <Textarea value={postText} onChange={onChange} placeholder="What's on your mind?" />
-      <Button onClick={onSubmit} disabled={true} >{isPending ? <LoadingSpinner /> : <>Submit</>}</Button>
+      <Button onClick={onSubmit} disabled={isPending} >{isPending ? <LoadingSpinner /> : <>Submit</>}</Button>
     </DialogContent>
   );
 };

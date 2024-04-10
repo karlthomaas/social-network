@@ -14,6 +14,7 @@ import { useToast } from '@/components/ui/use-toast';
 
 const formSchema = z.object({
     email: z.string().email(),
+    nickname: z.string(),
     first_name: z.string(),
     last_name: z.string(),
     date_of_birth: z.string(),
@@ -30,6 +31,7 @@ export const RegisterForm = () => {
     resolver: zodResolver(formSchema),
     defaultValues: {
       email: '',
+      nickname: '',
       first_name: '',
       last_name: '',
       date_of_birth: '',
@@ -82,6 +84,20 @@ export const RegisterForm = () => {
               </FormLabel>
               <FormControl>
                 <Input placeholder="email" {...field} />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="nickname"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>
+                  Nickname
+              </FormLabel>
+              <FormControl>
+                <Input placeholder="Nickname" {...field} />
               </FormControl>
             </FormItem>
           )}

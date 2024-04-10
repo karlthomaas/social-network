@@ -1,35 +1,27 @@
-
 'use client';
 
 import { Menu } from 'lucide-react';
 import { Button } from './ui/button';
 import Link from 'next/link';
-import { useQuery } from '@tanstack/react-query';
-import { fetcher } from '@/lib/fetchers';
 import { NavbarProfile } from './buttons/navbar-profile';
+import { useSesssion } from '@/providers/user-provider';
+import { useMemo } from 'react';
+import { LoginButton } from './buttons/login-btn';
 
 export default function Navbar({ authenticate = false }) {
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ['session'],
-    queryFn: async () => {
-      return fetcher('/api/users/me');
-    },
-    enabled: authenticate,
-  });
+  const { user, isLoading } = useSesssion();
 
-  let navbarButton = null;
-
-  if (isLoading) {
-    navbarButton = <div className='aspect-square w-[40px] animate-pulse rounded-full bg-secondary' />;
-  } else if (data && !isError) {
-    navbarButton = <NavbarProfile profile={`${data.user.first_name}.${data.user.last_name}`} />;
-  } else {
-    navbarButton = (
-      <Link href='/register'>
-        <Button size='sm'>Sign up</Button>
-      </Link>
-    );
-  }
+  const navbarButton = useMemo(() => {
+    if (!authenticate) {
+      return <LoginButton />;
+    } else if (isLoading) {
+      return <div className='aspect-square w-[40px] animate-pulse rounded-full bg-secondary' />;
+    } else if (user) {
+      return <NavbarProfile />;
+    } else {
+      return <LoginButton />;
+    }
+  }, [authenticate, isLoading, user]);
 
   return (
     <nav className='h-[65px] w-full border-b-[1px] border-border'>
