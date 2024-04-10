@@ -7,7 +7,6 @@ import (
 	"slices"
 	"social-network/internal/validator"
 	"time"
-
 	"github.com/gofrs/uuid"
 )
 

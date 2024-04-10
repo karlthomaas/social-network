@@ -25,6 +25,7 @@ export const refreshSession = async (refreshToken: string): Promise<string | nul
         'Content-Type': 'application/json',
       },
     });
+    // console.log(res);
     return res.headers.get('set-cookie');
   } catch (error) {
     return null;

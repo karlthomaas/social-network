@@ -6,7 +6,8 @@ import (
 )
 
 var (
-	ErrRecordNotFound = errors.New("record not found")
+	ErrRecordNotFound         = errors.New("record not found")
+	ErrUniqueConstraintFailed = errors.New("UNIQUE constraint failed")
 )
 
 type Models struct {

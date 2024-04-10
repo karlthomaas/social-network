@@ -14,12 +14,14 @@ func (app *application) routes() http.Handler {
 		app.ValidateJwt(app.HomeHandler))
 	router.HandleFunc("GET /api/users/me",
 		app.ValidateJwt(app.getSessionUserHandler))
-	router.HandleFunc("GET /api/users/{id}",
+	router.HandleFunc("PATCH /api/users/me",
+		app.ValidateJwt(app.updateUserHandler))
+	router.HandleFunc("GET /api/users/{nickname}",
 		app.ValidateJwt(app.showUserHandler))
 	router.HandleFunc("POST /api/logout",
 		app.ValidateJwt(app.deleteSession))
 
-	router.HandleFunc("GET /api/users/{username}/posts",
+	router.HandleFunc("GET /api/users/{nickname}/posts",
 		app.ValidateJwt(app.getUserPostsHandler))
 	router.HandleFunc("POST /api/posts",
 		app.ValidateJwt(app.createPostHandler))

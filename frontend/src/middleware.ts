@@ -17,13 +17,15 @@ export default async function middleware(req: NextRequest) {
     if (!token) {
       throw new errors.JWTExpired('JWT is expired');
     }
-    await verifyAuth(token.value);
+    const payload = await verifyAuth(token.value);
+    // console.log(payload);
   } catch (err) {
     if (err instanceof errors.JWTExpired) {
       if (!refreshToken) {
         return redirectToLogin(req);
       }
       const cookiesHeader = await refreshSession(refreshToken.value);
+      
       if (!cookiesHeader) {
         return redirectToLogin(req);
       }

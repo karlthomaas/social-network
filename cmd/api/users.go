@@ -65,10 +65,15 @@ func (app *application) createUserHandler(w http.ResponseWriter, r *http.Request
 
 	err = app.models.Users.Insert(user)
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		switch {
+		case errors.Is(err, data.ErrDuplicateNickname):
+			v.AddError("nickname", "a user with this nickname already exists")
+			app.failedValidationResponse(w, r, v.Errors)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
 		return
 	}
-
 	err = app.createSession(w, user.ID)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
@@ -79,18 +84,14 @@ func (app *application) createUserHandler(w http.ResponseWriter, r *http.Request
 	err = app.writeJSON(w, http.StatusCreated, envelope{"user": user.ID}, headers)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
-		return
 	}
+
 }
 
 func (app *application) showUserHandler(w http.ResponseWriter, r *http.Request) {
-	id, err := app.readIDParam(r)
-	if err != nil {
-		app.notFoundResponse(w, r)
-		return
-	}
+	nickname := r.PathValue("nickname")
 
-	user, err := app.models.Users.Get(id)
+	user, err := app.models.Users.GetByNickname(nickname)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
@@ -272,6 +273,56 @@ func (app *application) deleteSession(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	err = app.writeJSON(w, http.StatusOK, envelope{"user": "user succesfully logged out"}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+}
+
+func (app *application) updateUserHandler(w http.ResponseWriter, r *http.Request) {
+
+	user := app.contextGetUser(r)
+
+	var input struct {
+		Image    *[]byte `json:"image"`
+		Nickname *string `json:"nickname"`
+		AboutMe  *string `json:"about_me"`
+		Privacy  *string `json:"privacy"`
+	}
+
+	err := app.readJSON(w, r, &input)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	if input.Image != nil {
+		user.Image = *input.Image
+	}
+
+	if input.Nickname != nil {
+		user.Nickname = *input.Nickname
+	}
+
+	if input.AboutMe != nil {
+		user.AboutMe = *input.AboutMe
+	}
+
+	if input.Privacy != nil {
+		user.Privacy = *input.Privacy
+	}
+
+	err = app.models.Users.Update(user)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+	}
+
+	err = app.writeJSON(w, http.StatusOK, envelope{"user": user}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return

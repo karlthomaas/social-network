@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"slices"
 	"social-network/internal/validator"
 	"time"
 
@@ -14,21 +15,33 @@ type UserModel struct {
 	DB *sql.DB
 }
 
-func (u *UserModel) Insert(user *User) error {
+var (
+	privacies            = []string{"public", "private"}
+	ErrDuplicateNickname = errors.New("duplicate nickname")
+)
+
+func (m *UserModel) Insert(user *User) error {
 	query := `INSERT INTO Users (id, email, password, first_name, last_name, date_of_birth, image, nickname, about_me, privacy) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	_, err := u.DB.ExecContext(ctx, query, user.ID, user.Email, user.Password.hash, user.FirstName, user.LastName, user.DateOfBirth, user.Image, user.Nickname, user.AboutMe, user.Privacy)
-
-	return err
+	_, err := m.DB.ExecContext(ctx, query, user.ID, user.Email, user.Password.hash, user.FirstName, user.LastName, user.DateOfBirth, user.Image, user.Nickname, user.AboutMe, user.Privacy)
+	if err != nil {
+		switch {
+		case err.Error() == "UNIQUE constraint failed: users.nickname":
+			return ErrDuplicateNickname
+		default:
+			return err
+		}
+	}
+	return nil
 }
 
-func (u *UserModel) GetUserForToken(jwt string) {
+// func (m *UserModel) GetUserForToken(jwt string) {
 
-}
+// }
 
-func (u *UserModel) Get(id string) (*User, error) {
+func (m *UserModel) Get(id string) (*User, error) {
 	query := `SELECT id, email, password, first_name, last_name, date_of_birth, image, nickname, about_me, created_at, privacy
 	FROM users
 	WHERE id=?`
@@ -38,7 +51,7 @@ func (u *UserModel) Get(id string) (*User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := u.DB.QueryRowContext(ctx, query, id).Scan(
+	err := m.DB.QueryRowContext(ctx, query, id).Scan(
 		&user.ID,
 		&user.Email,
 		&user.Password.hash,
@@ -64,25 +77,47 @@ func (u *UserModel) Get(id string) (*User, error) {
 	return &user, nil
 }
 
-func (u *UserModel) Update(user *User) error {
+func (m *UserModel) Update(user *User) error {
+	query := `UPDATE users
+	SET image = ?, nickname = ?, about_me = ?, privacy = ?
+	WHERE id = ?
+	`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	args := []interface{}{
+		user.Image,
+		user.Nickname,
+		user.AboutMe,
+		user.Privacy,
+		user.ID,
+	}
+
+	_, err := m.DB.ExecContext(ctx, query, args...)
+	switch {
+	case errors.Is(err, sql.ErrNoRows):
+		return ErrRecordNotFound
+	default:
+		return err
+	}
+}
+
+func (m *UserModel) Delete(id string) error {
 	return nil
 }
 
-func (u *UserModel) Delete(id string) error {
-	return nil
-}
-
-func (u *UserModel) GetByName(firstName, lastName string) (*User, error) {
-	 query := `SELECT id, email, password, first_name, last_name, date_of_birth, image, nickname, about_me, created_at, privacy
+func (m *UserModel) GetByNickname(nickname string) (*User, error) {
+	query := `SELECT id, email, password, first_name, last_name, date_of_birth, image, nickname, about_me, created_at, privacy
 	FROM users
-	WHERE first_name=? AND last_name=?`
+	WHERE nickname = ?`
 
 	var user User
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := u.DB.QueryRowContext(ctx, query, firstName, lastName).Scan(
+	err := m.DB.QueryRowContext(ctx, query, nickname).Scan(
 		&user.ID,
 		&user.Email,
 		&user.Password.hash,
@@ -108,7 +143,7 @@ func (u *UserModel) GetByName(firstName, lastName string) (*User, error) {
 	return &user, nil
 }
 
-func (u *UserModel) GetByEmail(email string) (*User, error) {
+func (m *UserModel) GetByEmail(email string) (*User, error) {
 	query := `SELECT id, email, password, first_name, last_name, date_of_birth, image, nickname, about_me, created_at, privacy
 	FROM users
 	WHERE email=?`
@@ -118,7 +153,7 @@ func (u *UserModel) GetByEmail(email string) (*User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := u.DB.QueryRowContext(ctx, query, email).Scan(
+	err := m.DB.QueryRowContext(ctx, query, email).Scan(
 		&user.ID,
 		&user.Email,
 		&user.Password.hash,
@@ -203,9 +238,11 @@ func ValidatePassword(v *validator.Validator, password string) {
 
 func ValidateUser(v *validator.Validator, user *User) {
 	v.Check(user.FirstName != "", "first_name", "must be provided")
+	v.Check(user.Nickname != "", "nickname", "must be provided")
 	v.Check(user.LastName != "", "last_name", "must be provided")
 	v.Check(user.Privacy != "", "privacy", "must be provided")
 	v.Check(user.DateOfBirth.Before(time.Now()), "date_of_birth", "must not be in the future")
+	v.Check(slices.Contains(privacies, user.Privacy), "privacy", `must be one of these types: "public", "private",`)
 
 	ValidateEmail(v, user.Email)
 	ValidatePassword(v, *user.Password.plainText)

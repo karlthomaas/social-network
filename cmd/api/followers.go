@@ -27,6 +27,6 @@ func (app *application) addFollowerHandler(w http.ResponseWriter, r *http.Reques
 	}
 }
 
-func (app *application) getAllFollowers(w http.ResponseWriter, r *http.Request) {
+// func (app *application) getAllFollowers(w http.ResponseWriter, r *http.Request) {
 
-}
+// }

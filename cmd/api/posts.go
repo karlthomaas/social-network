@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"social-network/internal/data"
 	"social-network/internal/validator"
-	"strings"
 	"time"
 )
 
@@ -70,13 +69,9 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 }
 
 func (app *application) getUserPostsHandler(w http.ResponseWriter, r *http.Request) {
-	userName := r.PathValue("username")
+	nickname := r.PathValue("nickname")
 
-	parts := strings.Split(userName, ".")
-	firstName := parts[0]
-	lastName := parts[1]
-
-	user, err := app.models.Users.GetByName(firstName, lastName)
+	user, err := app.models.Users.GetByNickname(nickname)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
@@ -224,7 +219,7 @@ func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request
 				return
 			}
 		} else {
-			app.models.Posts.AddPostVisibilities(post.ID, input.VisibleTo)
+			err := app.models.Posts.AddPostVisibilities(post.ID, input.VisibleTo)
 			if err != nil {
 				app.serverErrorResponse(w, r, err)
 				return
