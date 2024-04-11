@@ -10,7 +10,7 @@ import { SubmitView } from './submit-view';
 import { PrivacyView } from './privacy-view';
 import { AlmostPrivateView } from './almost-private';
 import { privacyStore } from './privacy-view';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetcherWithOptions } from '@/lib/fetchers';
 
 export const postStore = create((set) => ({
@@ -23,13 +23,14 @@ export const postStore = create((set) => ({
 }));
 
 export const CreatePost = () => {
+  const queryClient = useQueryClient();
   const view = postStore((state: any) => state.view);
   const reset = postStore((state: any) => state.reset);
   const privacy = postStore((state: any) => state.privacy);
   const postText = postStore((state: any) => state.postText);
 
   const mutation = useMutation({
-    mutationKey: ['post'],
+    mutationKey: ['posts'],
     mutationFn: () =>
       fetcherWithOptions({
         url: '/api/posts',
@@ -41,6 +42,10 @@ export const CreatePost = () => {
           visible_to: [],
         },
       }),
+      onSuccess: () => {
+        // Refresh the posts feed
+        queryClient.invalidateQueries({ queryKey: ['posts'] });
+      },
   });
 
   const onSubmit = () => {
@@ -56,7 +61,7 @@ export const CreatePost = () => {
 
   return (
     <>
-      <Dialog onOpenChange={handleModalState}>
+      <Dialog  onOpenChange={handleModalState}>
         <div className='flex h-[80px] w-full items-center rounded-xl border border-border bg-background px-3'>
           <div className='aspect-square w-[50px] rounded-full bg-secondary' />
           <DialogTrigger asChild>

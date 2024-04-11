@@ -3,7 +3,7 @@ import { fetcher } from '@/lib/fetchers';
 import { Post } from '@/components/post/post';
 export const ProfilePosts = ({ username }: { username: string }) => {
   const { isLoading, data } = useQuery({
-    queryKey: ['posts', username],
+    queryKey: ['posts'],
     queryFn: () => fetcher(`/api/users/${username}/posts`),
   });
 

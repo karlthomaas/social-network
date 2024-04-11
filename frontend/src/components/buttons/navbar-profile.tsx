@@ -13,11 +13,10 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetcherWithOptions } from '@/lib/fetchers';
 import { useToast } from '../ui/use-toast';
 import { useRouter } from 'next/navigation';
-import { useSesssion } from '@/providers/user-provider';
+import { useSession } from '@/providers/user-provider';
 
 export const NavbarProfile = () => {
-  const { user } = useSesssion();
-  console.log("🚀 ~ NavbarProfile ~ user:", user)
+  const { user } = useSession();
 
   if (!user) {
     return null

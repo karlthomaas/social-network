@@ -32,7 +32,7 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
   return <SessionContext.Provider value={{ user, isLoading }}>{children}</SessionContext.Provider>;
 };
 
-export const useSesssion = () => {
+export const useSession = () => {
   return useContext(SessionContext);
 };
 

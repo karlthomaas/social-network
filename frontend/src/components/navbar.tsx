@@ -4,20 +4,28 @@ import { Menu } from 'lucide-react';
 import { Button } from './ui/button';
 import Link from 'next/link';
 import { NavbarProfile } from './buttons/navbar-profile';
-import { useSesssion } from '@/providers/user-provider';
+import { useSession } from '@/providers/user-provider';
 import { useMemo } from 'react';
 import { LoginButton } from './buttons/login-btn';
+import { FriendRequestsBtn } from './buttons/friend-requests-btn';
+import { NotificationBtn } from './buttons/notifications-btn';
 
 export default function Navbar({ authenticate = false }) {
-  const { user, isLoading } = useSesssion();
+  const { user, isLoading } = useSession();
 
-  const navbarButton = useMemo(() => {
+  const navbarButtons = useMemo(() => {
     if (!authenticate) {
       return <LoginButton />;
     } else if (isLoading) {
       return <div className='aspect-square w-[40px] animate-pulse rounded-full bg-secondary' />;
     } else if (user) {
-      return <NavbarProfile />;
+      return (
+        <li className='items-center flex space-x-5'>
+          <NotificationBtn />
+          <FriendRequestsBtn userId={user.id} />
+          <NavbarProfile />
+        </li>
+      );
     } else {
       return <LoginButton />;
     }
@@ -37,7 +45,7 @@ export default function Navbar({ authenticate = false }) {
             <Menu size={25} />
           </Button>
         </li>
-        {navbarButton}
+        {navbarButtons}
       </ul>
     </nav>
   );
