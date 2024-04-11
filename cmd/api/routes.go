@@ -18,6 +18,11 @@ func (app *application) routes() http.Handler {
 		app.ValidateJwt(app.updateUserHandler))
 	router.HandleFunc("GET /api/users/{nickname}",
 		app.ValidateJwt(app.showUserHandler))
+	router.HandleFunc("GET /api/users/{nickname}/followers",
+		app.ValidateJwt(app.getUserFollowersHandler))
+	router.HandleFunc("GET /api/users/{id}/follow_status",
+		app.ValidateJwt(app.checkFollowPermissionsHandler),
+	)
 	router.HandleFunc("POST /api/logout",
 		app.ValidateJwt(app.deleteSession))
 
@@ -43,6 +48,10 @@ func (app *application) routes() http.Handler {
 
 	router.HandleFunc("POST /api/users/{id}/follow",
 		app.ValidateJwt(app.addFollowerHandler))
+	router.HandleFunc("GET /api/users/{id}/friend_requests",
+		app.ValidateJwt(app.getAllRequestsHandler))
+	router.HandleFunc("POST /api/users/{id}/friend_requests",
+		app.ValidateJwt(app.acceptFollowRequestHandler))
 
 	return app.RecoverPanic(app.rateLimit(app.SecureHeaders(app.LogRequest(router))))
 }
