@@ -15,6 +15,7 @@ type Models struct {
 	Tokens    TokenModel
 	Posts     PostModel
 	Followers FollowerModel
+	Requests  RequestModel
 }
 
 func NewModels(db *sql.DB) Models {
@@ -23,5 +24,6 @@ func NewModels(db *sql.DB) Models {
 		Tokens:    TokenModel{DB: db},
 		Posts:     PostModel{DB: db},
 		Followers: FollowerModel{DB: db},
+		Requests:  RequestModel{DB: db},
 	}
 }

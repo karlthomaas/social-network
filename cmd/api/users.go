@@ -67,7 +67,7 @@ func (app *application) createUserHandler(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrDuplicateNickname):
-			v.AddError("nickname", "a user with this nickname already exists")
+			v.AddError("nickname", "user with this nickname already exists")
 			app.failedValidationResponse(w, r, v.Errors)
 		default:
 			app.serverErrorResponse(w, r, err)
@@ -312,11 +312,20 @@ func (app *application) updateUserHandler(w http.ResponseWriter, r *http.Request
 		user.Privacy = *input.Privacy
 	}
 
+	v := validator.New()
+
+	if data.ValidateUserUpdate(v, user); !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+	}
+
 	err = app.models.Users.Update(user)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
 			app.notFoundResponse(w, r)
+		case errors.Is(err, data.ErrDuplicateNickname):
+			v.AddError("nickname", "user with this nickname already exists")
+			app.failedValidationResponse(w, r, v.Errors)
 		default:
 			app.serverErrorResponse(w, r, err)
 		}

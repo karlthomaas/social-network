@@ -7,7 +7,7 @@ import (
 	"slices"
 	"social-network/internal/validator"
 	"time"
-
+	
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -18,7 +18,27 @@ type UserModel struct {
 var (
 	privacies            = []string{"public", "private"}
 	ErrDuplicateNickname = errors.New("duplicate nickname")
+	ErrDuplicateEmail    = errors.New("duplicate email")
 )
+
+type password struct {
+	plainText *string
+	hash      []byte
+}
+
+type User struct {
+	ID          string    `json:"id"`
+	Email       string    `json:"email"`
+	Password    password  `json:"-"`
+	FirstName   string    `json:"first_name"`
+	LastName    string    `json:"last_name"`
+	DateOfBirth time.Time `json:"date_of_birth"`
+	Image       []byte    `json:"image"`
+	Nickname    string    `json:"nickname"`
+	AboutMe     string    `json:"about_me"`
+	CreatedAt   time.Time `json:"created_at"`
+	Privacy     string    `json:"privacy"`
+}
 
 func (m *UserModel) Insert(user *User) error {
 	query := `INSERT INTO Users (id, email, password, first_name, last_name, date_of_birth, image, nickname, about_me, privacy) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
@@ -30,16 +50,14 @@ func (m *UserModel) Insert(user *User) error {
 		switch {
 		case err.Error() == "UNIQUE constraint failed: users.nickname":
 			return ErrDuplicateNickname
+		case err.Error() == "UNIQUE constraint failed: users.email":
+			return ErrDuplicateEmail
 		default:
 			return err
 		}
 	}
 	return nil
 }
-
-// func (m *UserModel) GetUserForToken(jwt string) {
-
-// }
 
 func (m *UserModel) Get(id string) (*User, error) {
 	query := `SELECT id, email, password, first_name, last_name, date_of_birth, image, nickname, about_me, created_at, privacy
@@ -98,6 +116,10 @@ func (m *UserModel) Update(user *User) error {
 	switch {
 	case errors.Is(err, sql.ErrNoRows):
 		return ErrRecordNotFound
+	case err.Error() == "UNIQUE constraint failed: users.nickname":
+		return ErrDuplicateNickname
+	case err.Error() == "UNIQUE constraint failed: users.email":
+		return ErrDuplicateEmail
 	default:
 		return err
 	}
@@ -205,24 +227,6 @@ func (p *password) Matches(plainTextPassword string) (bool, error) {
 	return true, nil
 }
 
-type password struct {
-	plainText *string
-	hash      []byte
-}
-
-type User struct {
-	ID          string    `json:"id"`
-	Email       string    `json:"email"`
-	Password    password  `json:"-"`
-	FirstName   string    `json:"first_name"`
-	LastName    string    `json:"last_name"`
-	DateOfBirth time.Time `json:"date_of_birth"`
-	Image       []byte    `json:"image"`
-	Nickname    string    `json:"nickname"`
-	AboutMe     string    `json:"about_me"`
-	CreatedAt   time.Time `json:"created_at"`
-	Privacy     string    `json:"privacy"`
-}
 
 func ValidateEmail(v *validator.Validator, email string) {
 	v.Check(email != "", "email", "must be provided")
@@ -250,4 +254,15 @@ func ValidateUser(v *validator.Validator, user *User) {
 	if user.Password.hash == nil {
 		panic("missing password hash for user")
 	}
+}
+
+func ValidateUserUpdate(v *validator.Validator, user *User) {
+	v.Check(user.FirstName != "", "first_name", "must be provided")
+	v.Check(user.Nickname != "", "nickname", "must be provided")
+	v.Check(user.LastName != "", "last_name", "must be provided")
+	v.Check(user.Privacy != "", "privacy", "must be provided")
+	v.Check(user.DateOfBirth.Before(time.Now()), "date_of_birth", "must not be in the future")
+	v.Check(slices.Contains(privacies, user.Privacy), "privacy", `must be one of these types: "public", "private",`)
+
+	ValidateEmail(v, user.Email)
 }
