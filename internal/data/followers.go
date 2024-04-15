@@ -92,5 +92,20 @@ func (m *FollowerModel) GetAllForUser(userID string) ([]*Follower, error) {
 	}
 
 	return followers, nil
+}
 
+func (m *FollowerModel) InsertWithTx(tx *sql.Tx ,follower *Follower) error {
+	query := `INSERT INTO followers (user_id, follower_id)
+	VALUES (?,?)`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	args := []interface{}{
+		follower.UserID,
+		follower.FollowerID,
+	}
+
+	_, err := tx.ExecContext(ctx, query, args...)
+	return err
 }

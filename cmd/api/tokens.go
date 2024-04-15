@@ -33,7 +33,7 @@ func (app *application) createJWT(userId string) (string, error) {
 
 	payload := &Payload{
 		UserId: userId,
-		Exp:    time.Now().Add(1 * time.Minute).Unix(),
+		Exp:    time.Now().Add(5 * time.Minute).Unix(),
 	}
 
 	headerBytes, err := json.Marshal(header)

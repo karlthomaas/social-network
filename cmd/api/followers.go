@@ -168,17 +168,18 @@ func (app *application) acceptFollowRequestHandler(w http.ResponseWriter, r *htt
 	}
 	defer tx.Rollback()
 
-	err = app.models.Followers.Insert(follower)
+	err = app.models.Requests.DeleteWithTx(tx, currentUser.ID, requesterID)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+	
+	err = app.models.Followers.InsertWithTx(tx, follower)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
 
-	err = app.models.Requests.Delete(currentUser.ID, requesterID)
-	if err != nil {
-		app.serverErrorResponse(w, r, err)
-		return
-	}
 
 	if err := tx.Commit(); err != nil {
 		app.serverErrorResponse(w, r, err)

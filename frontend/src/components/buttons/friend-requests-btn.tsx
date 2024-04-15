@@ -62,7 +62,7 @@ const FriendRequestItem = ({ request, handleAccept }: any) => {
     <div className='flex h-[50px] items-center'>
       <p>{request.user.nickname}</p>
       <div className='ml-auto flex space-x-2'>
-        <Button size='icon' variant='ghost' onClick={() => handleAccept(request.user_id)}>
+        <Button size='icon' variant='ghost' onClick={() => handleAccept(request.follower_id)}>
           <Check />
         </Button>
         <Button size='icon' variant='ghost'>

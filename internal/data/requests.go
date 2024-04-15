@@ -111,3 +111,16 @@ func (m *RequestModel) GetAllRequests(userID string) ([]*Request, error) {
 
 	return requests, nil
 }
+
+func (m *RequestModel) DeleteWithTx(tx *sql.Tx, userID, followerID string) error {
+	query := `
+	DELETE FROM follow_requests
+	WHERE user_id = ?
+	AND follower_id = ?`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	_, err := tx.ExecContext(ctx, query, userID, followerID)
+	return err
+}
