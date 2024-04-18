@@ -44,8 +44,19 @@ func (m *RequestModel) Delete(userID, followerID string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	_, err := m.DB.ExecContext(ctx, query, userID, followerID)
-	return err
+	result, err := m.DB.ExecContext(ctx, query, userID, followerID)
+	if err != nil {
+		return err
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return ErrRecordNotFound
+	}
+	return nil
 }
 
 func (m *RequestModel) Get(userID, followerID string) (*Request, error) {

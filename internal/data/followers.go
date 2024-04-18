@@ -42,14 +42,18 @@ func (m *FollowerModel) Delete(followerID, userID string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	_, err := m.DB.ExecContext(ctx, query, userID, followerID)
+	result, err := m.DB.ExecContext(ctx, query, userID, followerID)
 	if err != nil {
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			return ErrRecordNotFound
-		default:
-			return err
-		}
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return ErrRecordNotFound
 	}
 
 	return nil
