@@ -33,6 +33,27 @@ func (m *FollowerModel) Insert(follower *Follower) error {
 	return err
 }
 
+func (m *FollowerModel) Delete(followerID, userID string) error {
+	query := `DELETE from followers
+	WHERE user_id = ?
+	AND follower_id = ?`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	_, err := m.DB.ExecContext(ctx, query, userID, followerID)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return ErrRecordNotFound
+		default:
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (m *FollowerModel) Get(userID, followerID string) (*Follower, error) {
 	query := `SELECT user_id, follower_id, created_at
 		FROM followers
@@ -94,7 +115,7 @@ func (m *FollowerModel) GetAllForUser(userID string) ([]*Follower, error) {
 	return followers, nil
 }
 
-func (m *FollowerModel) InsertWithTx(tx *sql.Tx ,follower *Follower) error {
+func (m *FollowerModel) InsertWithTx(tx *sql.Tx, follower *Follower) error {
 	query := `INSERT INTO followers (user_id, follower_id)
 	VALUES (?,?)`
 
