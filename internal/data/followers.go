@@ -11,6 +11,7 @@ type Follower struct {
 	UserID     string    `json:"user_id"`
 	FollowerID string    `json:"follower_id"`
 	CreatedAt  time.Time `json:"created_at"`
+	User       User      `json:"user"`
 }
 
 type FollowerModel struct {
@@ -61,9 +62,10 @@ func (m *FollowerModel) Get(userID, followerID string) (*Follower, error) {
 }
 
 func (m *FollowerModel) GetAllForUser(userID string) ([]*Follower, error) {
-	query := `SELECT user_id, follower_id, created_at
-	FROM followers
-	WHERE user_id = ?
+	query := `SELECT f.user_id, f.follower_id, f.created_at, u.first_name, u.last_name
+	FROM followers f
+	JOIN users u ON f.user_id = u.id
+	WHERE f.user_id = ?
 	`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -82,6 +84,8 @@ func (m *FollowerModel) GetAllForUser(userID string) ([]*Follower, error) {
 			&follower.UserID,
 			&follower.FollowerID,
 			&follower.CreatedAt,
+			&follower.User.FirstName,
+			&follower.User.LastName,
 		)
 
 		followers = append(followers, &follower)
@@ -94,7 +98,7 @@ func (m *FollowerModel) GetAllForUser(userID string) ([]*Follower, error) {
 	return followers, nil
 }
 
-func (m *FollowerModel) InsertWithTx(tx *sql.Tx ,follower *Follower) error {
+func (m *FollowerModel) InsertWithTx(tx *sql.Tx, follower *Follower) error {
 	query := `INSERT INTO followers (user_id, follower_id)
 	VALUES (?,?)`
 
