@@ -5,11 +5,22 @@ import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { postStore } from './create-post';
+import { useQuery } from '@tanstack/react-query';
+import { fetcher } from '@/lib/fetchers';
+import { useSession } from '@/providers/user-provider';
 
 export const AlmostPrivateView = ({}) => {
   // todo improve this view when users and relationships are implemented
   const back = postStore((state: any) => state.deincrement);
 
+  const { user } = useSession();
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['friends'],
+    queryFn: async () => fetcher(`/api/users/${user?.nickname}/followers`),
+  });
+
+  console.log('🚀 ~ AlmostPrivateView ~ data:', data);
   return (
     <DialogContent>
       <DialogTitle className='flex items-center space-x-5'>
@@ -22,9 +33,11 @@ export const AlmostPrivateView = ({}) => {
         <Input type='text' placeholder='Search for friends' />
         <h2 className='text-lg'>Friends</h2>
         <RadioGroup>
-          <Friend firstname='John' lastname='Doe' avatar='' />
-          <Friend firstname='Jane' lastname='Doe' avatar='' />
-          <Friend firstname='Alice' lastname='Smith' avatar='' />
+          {isLoading || !data ? (
+            <p>Loading...</p>
+          ) : (
+            data.followers.map((friend: any) => <Friend firstname={friend.user.first_name} lastname={friend.user.last_name} avatar={friend.image} />)
+          )}
         </RadioGroup>
         <div className='ml-auto flex space-x-3'>
           <Button onClick={back} variant='outline'>

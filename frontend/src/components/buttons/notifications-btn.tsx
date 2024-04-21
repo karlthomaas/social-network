@@ -18,9 +18,9 @@ export const NotificationBtn = () => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        <DropdownMenuLabel>No notifications</DropdownMenuLabel>
+        <DropdownMenuLabel>Notifications</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem>Notification 1</DropdownMenuItem>
+        <DropdownMenuItem>Nothing here...</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

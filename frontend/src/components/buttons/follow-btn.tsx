@@ -21,7 +21,7 @@ const translateFollowStatus = (permission: number) => {
 };
 
 export const FollowBtn = ({ className = '', user_id }: { className?: string; user_id: string }) => {
-  const followStatus = useStore((state: any) => state.followStatus);
+  const followStatus: number = useStore((state: any) => state.followStatus);
 
   const { data, isLoading } = useQuery({
     queryKey: ['followStatus'],
@@ -37,9 +37,23 @@ export const FollowBtn = ({ className = '', user_id }: { className?: string; use
   const mutation = useMutation({
     mutationKey: ['follow'],
     mutationFn: async () => {
-      return fetcherWithOptions({ url: `/api/users/${user_id}/follow`, method: 'POST', body: {} });
+      const options: {
+        [key: number]: { url: string; method: string; body: any };
+      } = {
+        0: { url: `/api/users/${user_id}/follow`, method: 'POST', body: {} },
+        1: { url: `/api/users/${user_id}/followers`, method: 'DELETE', body: {} },
+        2: { url: `/api/users/${user_id}/follow_requests`, method: 'DELETE', body: {} },
+      };
+
+      return fetcherWithOptions(options[followStatus]);
     },
     onSuccess: (data: any) => {
+      // When user was already following or requested to follow -> Reset to permission 0
+      if (followStatus === 1 || followStatus === 2) {
+        useStore.setState({ followStatus: 0 });
+        return;
+      }
+
       if (data.privacy === 'public') {
         useStore.setState({ followStatus: 1 });
       } else {

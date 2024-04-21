@@ -36,7 +36,7 @@ export const useSession = () => {
   return useContext(SessionContext);
 };
 
-interface User {
+export interface User {
   id: string;
   about_me: string;
   date_of_birth: string;

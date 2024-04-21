@@ -15,17 +15,20 @@ import { Check, X } from 'lucide-react';
 export const FriendRequestsBtn = ({ userId }: { userId: string }) => {
   const { data, isLoading, isError } = useQuery({
     queryKey: ['friend-requests'],
-    queryFn: () => fetcher(`/api/users/${userId}/friend_requests`),
+    queryFn: () => fetcher(`/api/users/${userId}/follow_requests`),
   });
 
   const acceptMutation = useMutation({
-    mutationKey: ['accept-friend-request'],
+    mutationKey: ['friend-request'],
     mutationFn: (id: string) =>
       fetcherWithOptions({
-        url: `/api/users/${id}/friend_requests`,
+        url: `/api/users/${id}/follow_requests`,
         method: 'POST',
         body: {},
       }),
+    
+    onSuccess: () => {},
+    onError: () => {},
   });
 
   const handleAccept = (id: string) => {
@@ -48,7 +51,9 @@ export const FriendRequestsBtn = ({ userId }: { userId: string }) => {
         {isLoading || isError ? (
           <>Loading...</>
         ) : data.requests.length === 0 ? (
-          <>No friend requests</>
+          <div className='p-4'>
+            No friend requests
+          </div>
         ) : (
           data.requests.map((request: any) => <FriendRequestItem handleAccept={handleAccept} request={request} />)
         )}
@@ -59,7 +64,7 @@ export const FriendRequestsBtn = ({ userId }: { userId: string }) => {
 
 const FriendRequestItem = ({ request, handleAccept }: any) => {
   return (
-    <div className='flex h-[50px] items-center'>
+    <div className='flex h-[50px] items-center p-4'>
       <p>{request.user.nickname}</p>
       <div className='ml-auto flex space-x-2'>
         <Button size='icon' variant='ghost' onClick={() => handleAccept(request.follower_id)}>
