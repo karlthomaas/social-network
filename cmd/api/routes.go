@@ -46,12 +46,23 @@ func (app *application) routes() http.Handler {
 	router.HandleFunc("POST /api/refresh_session",
 		app.refreshSession)
 
-	router.HandleFunc("POST /api/users/{id}/follow",
+	router.HandleFunc("POST /api/users/{id}/followers",
 		app.ValidateJwt(app.addFollowerHandler))
-	router.HandleFunc("GET /api/users/{id}/friend_requests",
+	router.HandleFunc("DELETE /api/users/{id}/followers",
+		app.ValidateJwt(app.unFollowHandler))
+	router.HandleFunc("GET /api/users/{id}/follow_requests",
 		app.ValidateJwt(app.getAllRequestsHandler))
-	router.HandleFunc("POST /api/users/{id}/friend_requests",
+	router.HandleFunc("POST /api/users/{id}/follow_requests",
 		app.ValidateJwt(app.acceptFollowRequestHandler))
+	router.HandleFunc("DELETE /api/users/{id}/follow_requests",
+		app.ValidateJwt(app.cancelRequestHandler))
+
+	router.HandleFunc("GET /api/posts/{id}/reactions",
+		app.ValidateJwt(app.getReactionHandler))
+	router.HandleFunc("POST /api/posts/{id}/reactions",
+		app.ValidateJwt(app.addPostReactionHandler))
+	router.HandleFunc("DELETE /api/posts/{id}/reactions/{reactionID}",
+		app.ValidateJwt(app.deleteReactionHandler))
 
 	return app.RecoverPanic(app.rateLimit(app.SecureHeaders(app.LogRequest(router))))
 }

@@ -8,7 +8,7 @@ import (
 
 func (app *application) addFollowerHandler(w http.ResponseWriter, r *http.Request) {
 	followerID := app.contextGetUser(r).ID
-	userID, err := app.readIDParam(r)
+	userID, err := app.readParam(r, "id")
 	if err != nil {
 		app.notFoundResponse(w, r)
 		return
@@ -90,7 +90,7 @@ func (app *application) getUserFollowersHandler(w http.ResponseWriter, r *http.R
 }
 
 func (app *application) checkFollowPermissionsHandler(w http.ResponseWriter, r *http.Request) {
-	id, err := app.readIDParam(r)
+	id, err := app.readParam(r, "id")
 	if err != nil {
 		app.notFoundResponse(w, r)
 		return
@@ -150,7 +150,7 @@ func (app *application) getAllRequestsHandler(w http.ResponseWriter, r *http.Req
 func (app *application) acceptFollowRequestHandler(w http.ResponseWriter, r *http.Request) {
 	currentUser := app.contextGetUser(r)
 
-	requesterID, err := app.readIDParam(r)
+	requesterID, err := app.readParam(r, "id")
 	if err != nil {
 		app.notFoundResponse(w, r)
 		return
@@ -191,40 +191,39 @@ func (app *application) acceptFollowRequestHandler(w http.ResponseWriter, r *htt
 func (app *application) unFollowHandler(w http.ResponseWriter, r *http.Request) {
 	currentUser := app.contextGetUser(r)
 
-	targetID, err := app.readIDParam(r)
+	targetID, err := app.readParam(r, "id")
 	if err != nil {
 		app.notFoundResponse(w, r)
 		return
 	}
 
 	if currentUser.ID == targetID {
-		app.badRequestResponse(w,r, errors.New("user can't unfollow himself"))
+		app.badRequestResponse(w, r, errors.New("user can't unfollow himself"))
 		return
 	}
 
 	err = app.models.Followers.Delete(currentUser.ID, targetID)
 	if err != nil {
-		switch  {
+		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
-			app.notFoundResponse(w,r)
+			app.notFoundResponse(w, r)
 		default:
-			app.serverErrorResponse(w,r,err)
+			app.serverErrorResponse(w, r, err)
 		}
 		return
 	}
 
 	err = app.writeJSON(w, http.StatusOK, envelope{"message": "successfully unfollowed"}, nil)
 	if err != nil {
-		app.serverErrorResponse(w,r,err)
+		app.serverErrorResponse(w, r, err)
 		return
 	}
 }
 
-
 func (app *application) removeFollowerHandler(w http.ResponseWriter, r *http.Request) {
 	currentUser := app.contextGetUser(r)
 
-	targetID, err := app.readIDParam(r)
+	targetID, err := app.readParam(r, "id")
 	if err != nil {
 		app.notFoundResponse(w, r)
 		return
@@ -232,18 +231,18 @@ func (app *application) removeFollowerHandler(w http.ResponseWriter, r *http.Req
 
 	err = app.models.Followers.Delete(targetID, currentUser.ID)
 	if err != nil {
-		switch  {
+		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
-			app.notFoundResponse(w,r)
+			app.notFoundResponse(w, r)
 		default:
-			app.serverErrorResponse(w,r,err)
+			app.serverErrorResponse(w, r, err)
 		}
 		return
 	}
 
 	err = app.writeJSON(w, http.StatusOK, envelope{"message": "successfully unfollowed"}, nil)
 	if err != nil {
-		app.serverErrorResponse(w,r,err)
+		app.serverErrorResponse(w, r, err)
 		return
 	}
 }
@@ -251,28 +250,26 @@ func (app *application) removeFollowerHandler(w http.ResponseWriter, r *http.Req
 func (app *application) cancelRequestHandler(w http.ResponseWriter, r *http.Request) {
 	currentUser := app.contextGetUser(r)
 
-	targetID, err := app.readIDParam(r)
+	targetID, err := app.readParam(r, "id")
 	if err != nil {
 		app.notFoundResponse(w, r)
 		return
 	}
 
-
 	err = app.models.Requests.Delete(targetID, currentUser.ID)
 	if err != nil {
-		switch  {
+		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
-			app.notFoundResponse(w,r)
+			app.notFoundResponse(w, r)
 		default:
-			app.serverErrorResponse(w,r,err)
+			app.serverErrorResponse(w, r, err)
 		}
 		return
 	}
 
 	err = app.writeJSON(w, http.StatusOK, envelope{"message": "request cancelled succesfully"}, nil)
 	if err != nil {
-		app.serverErrorResponse(w,r,err)
+		app.serverErrorResponse(w, r, err)
 		return
 	}
 }
-

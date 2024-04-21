@@ -7,6 +7,7 @@ import (
 	"slices"
 	"social-network/internal/validator"
 	"time"
+
 	"github.com/gofrs/uuid"
 )
 
@@ -27,6 +28,8 @@ type Post struct {
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 	User      User      `json:"user"`
+	Reaction  Reaction  `json:"reaction"`
+	Reactions int       `json:"reactions"`
 }
 
 type PostVisibility struct {
@@ -37,9 +40,10 @@ type PostVisibility struct {
 
 func (m *PostModel) Get(id string) (*Post, error) {
 	query := `
-	SELECT p.id, p.user_id, p.content, p.image, p.privacy, p.created_at, p.updated_at, u.first_name, u.last_name
+	SELECT p.id, p.user_id, p.content, p.image, p.privacy, p.created_at, p.updated_at, u.first_name, u.last_name, r.user_id
 	FROM posts p 
 	JOIN users u ON p.user_id = u.id
+	JOIN reactions r ON p.id = r.post_id
 	WHERE p.id = ?`
 
 	var post Post
@@ -57,6 +61,7 @@ func (m *PostModel) Get(id string) (*Post, error) {
 		&post.UpdatedAt,
 		&post.User.FirstName,
 		&post.User.LastName,
+		&post.Reaction.UserID,
 	)
 
 	if err != nil {
@@ -147,17 +152,20 @@ func (m *PostModel) Delete(id string) error {
 	return nil
 }
 
-func (m *PostModel) GetAllForUser(userID string) ([]*Post, error) {
+func (m *PostModel) GetAllForUser(userID string, loggedInUser string) ([]*Post, error) {
 	query := `
-	SELECT p.id, p.user_id, p.content, p.image, p.privacy, p.created_at, p.updated_at, u.first_name, u.last_name
+	SELECT p.id, p.user_id, p.content, p.image, p.privacy, p.created_at, p.updated_at, u.first_name, u.last_name, r.id
 	FROM posts p 
 	JOIN users u ON p.user_id = u.id
-	WHERE p.user_id = ?`
+	LEFT JOIN reactions r ON p.id = r.post_id
+	AND r.user_id = ?
+	WHERE p.user_id = ?
+	`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	rows, err := m.DB.QueryContext(ctx, query, userID)
+	rows, err := m.DB.QueryContext(ctx, query, userID, loggedInUser)
 	if err != nil {
 		return nil, err
 	}
@@ -166,6 +174,7 @@ func (m *PostModel) GetAllForUser(userID string) ([]*Post, error) {
 
 	for rows.Next() {
 		var post Post
+		var reactionID sql.NullString
 
 		err := rows.Scan(
 			&post.ID,
@@ -177,10 +186,17 @@ func (m *PostModel) GetAllForUser(userID string) ([]*Post, error) {
 			&post.UpdatedAt,
 			&post.User.FirstName,
 			&post.User.LastName,
+			&reactionID,
 		)
 
 		if err != nil {
 			return nil, err
+		}
+
+		if !reactionID.Valid {
+			post.Reaction.ID = ""
+		} else {
+			post.Reaction.ID = reactionID.String
 		}
 
 		posts = append(posts, &post)

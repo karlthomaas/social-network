@@ -69,3 +69,8 @@ func (app *application) badRequestResponse(w http.ResponseWriter, r *http.Reques
 func (app *application) failedValidationResponse(w http.ResponseWriter, r *http.Request, errors map[string]string) {
 	app.errorResponse(w, r, http.StatusUnprocessableEntity, errors)
 }
+func (app *application) unAuthorizedResponse(w http.ResponseWriter, r *http.Request) {
+	message := "you are not authorized to access this resource"
+
+	app.errorResponse(w, r, http.StatusUnauthorized, message)
+}

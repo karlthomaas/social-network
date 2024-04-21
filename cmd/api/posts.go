@@ -69,6 +69,10 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 }
 
 func (app *application) getUserPostsHandler(w http.ResponseWriter, r *http.Request) {
+	// todo check if user has profile privated if so then check if both are friends
+
+	loggedInUser := app.contextGetUser(r)
+
 	nickname := r.PathValue("nickname")
 
 	user, err := app.models.Users.GetByNickname(nickname)
@@ -82,10 +86,19 @@ func (app *application) getUserPostsHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	posts, err := app.models.Posts.GetAllForUser(user.ID)
+	posts, err := app.models.Posts.GetAllForUser(user.ID, loggedInUser.ID)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
+	}
+
+	for _, post := range posts {
+		reactions, err := app.models.Reactions.GetReactions(post.ID)
+		if err != nil {
+			app.serverErrorResponse(w, r, err)
+			return
+		}
+		post.Reactions = reactions
 	}
 
 	err = app.writeJSON(w, http.StatusOK, envelope{"posts": posts}, nil)
@@ -96,7 +109,7 @@ func (app *application) getUserPostsHandler(w http.ResponseWriter, r *http.Reque
 }
 
 func (app *application) deletePostHandler(w http.ResponseWriter, r *http.Request) {
-	id, err := app.readIDParam(r)
+	id, err := app.readParam(r, "id")
 	if err != nil {
 		app.notFoundResponse(w, r)
 		return
@@ -121,7 +134,7 @@ func (app *application) deletePostHandler(w http.ResponseWriter, r *http.Request
 }
 
 func (app *application) showPostHandler(w http.ResponseWriter, r *http.Request) {
-	id, err := app.readIDParam(r)
+	id, err := app.readParam(r, "id")
 	if err != nil {
 		app.notFoundResponse(w, r)
 		return
@@ -145,7 +158,7 @@ func (app *application) showPostHandler(w http.ResponseWriter, r *http.Request) 
 }
 
 func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request) {
-	id, err := app.readIDParam(r)
+	id, err := app.readParam(r, "id")
 	if err != nil {
 		app.notFoundResponse(w, r)
 		return
