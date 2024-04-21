@@ -200,7 +200,7 @@ func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request
 		post.Privacy = *input.Privacy
 	}
 
-	post.CreatedAt = time.Now().Truncate(time.Second)
+	post.UpdatedAt = time.Now().Truncate(time.Second)
 
 	v := validator.New()
 	if data.ValidatePost(v, post); !v.Valid() {
