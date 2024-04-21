@@ -6,8 +6,7 @@ School project that
 - [x]  Create posts
 - [ ]  Create group posts
 - [ ]  Post Privacy Settings
-- [ ]  Post almost private functionality
-- [ ]  Ratings
+- [x]  Ratings
 - [ ]  Comments
 - [ ]  Share Post
 - [ ]  Delete Post 
