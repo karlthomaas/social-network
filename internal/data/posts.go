@@ -100,7 +100,7 @@ func (m *PostModel) Insert(post *Post) error {
 func (m *PostModel) Update(post *Post) error {
 	query := `
 		UPDATE posts
-		SET content = ?, image = ?, created_at = ?, privacy = ?
+		SET content = ?, image = ?, updated_at = ?, privacy = ?
 		WHERE user_id = ? AND id = ?
 	`
 
@@ -110,7 +110,7 @@ func (m *PostModel) Update(post *Post) error {
 	args := []interface{}{
 		post.Content,
 		post.Image,
-		post.CreatedAt,
+		post.UpdatedAt,
 		post.Privacy,
 		post.UserID,
 		post.ID,
