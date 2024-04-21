@@ -17,6 +17,7 @@ type Models struct {
 	Followers FollowerModel
 	Requests  RequestModel
 	Reactions ReactionModel
+	Replies   ReplyModel
 }
 
 func NewModels(db *sql.DB) Models {
@@ -27,5 +28,6 @@ func NewModels(db *sql.DB) Models {
 		Followers: FollowerModel{DB: db},
 		Requests:  RequestModel{DB: db},
 		Reactions: ReactionModel{DB: db},
+		Replies:   ReplyModel{DB: db},
 	}
 }
