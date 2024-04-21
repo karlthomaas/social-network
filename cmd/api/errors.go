@@ -26,7 +26,6 @@ func (app *application) errorResponse(w http.ResponseWriter, r *http.Request, st
 }
 
 func (app *application) invalidAuthenticationTokenResponse(w http.ResponseWriter, r *http.Request) {
-	// w.Header().Set("WWW-Authenticate", "Basic")
 	message := "invalid or missing authentication token"
 	app.errorResponse(w, r, http.StatusUnauthorized, message)
 }
@@ -43,7 +42,6 @@ func (app *application) unqiueConstraintResponse(w http.ResponseWriter, r *http.
 
 func (app *application) serverErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
 	app.logError(r, err)
-	fmt.Println(err)
 
 	message := "the server encountered a problem and could not proccess your request"
 
