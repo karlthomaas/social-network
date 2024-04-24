@@ -59,9 +59,9 @@ export const LikeButton = ({ reactions, postId, reactionId, likeStatus}: LikeBut
   );
 };
 
-export const CommentButton = () => {
+export const CommentButton = ({ onClick }: { onClick: () => {}}) => {
   return (
-    <Button variant='ghost' className='flex w-full items-center space-x-4'>
+    <Button onClick={onClick} variant='ghost' className='flex w-full items-center space-x-4'>
       <MessageSquare />
       <p>Comment</p>
     </Button>

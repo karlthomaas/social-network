@@ -37,6 +37,15 @@ func (app *application) routes() http.Handler {
 	router.HandleFunc("PATCH /api/posts/{id}",
 		app.ValidateJwt(app.updatePostHandler))
 
+	router.HandleFunc("GET /api/posts/{id}/reply",
+		app.ValidateJwt(app.getAllPostRepliesHandler))
+	router.HandleFunc("POST /api/posts/{id}/reply",
+		app.ValidateJwt(app.createReplyHandler))
+	router.HandleFunc("DELETE /api/posts/{id}/reply/{replyID}",
+		app.ValidateJwt(app.deleteReplyHandler))
+	router.HandleFunc("PATCH /api/posts/{id}/reply/{replyId}",
+		app.ValidateJwt(app.updateReplyHandler))
+
 	router.HandleFunc("POST /api/users",
 		app.createUserHandler)
 	router.HandleFunc("GET /api/authenticate",
