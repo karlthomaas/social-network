@@ -19,7 +19,7 @@ export const ProfilePosts = ({ username }: { username: string }) => {
 
   if (data) {
     return (
-      <div className='flex flex-col space-y-5'>
+      <div className='flex flex-col space-y-5 '>
         {data.posts.map((post: any) => (
           <Post key={post.id} post={post} isLoading={false} />
         ))}

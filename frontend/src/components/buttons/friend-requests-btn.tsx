@@ -38,12 +38,10 @@ export const FriendRequestsBtn = ({ userId }: { userId: string }) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger>
-        <Button className='relative' size='icon' variant='ghost'>
           {data?.requests.length > 0 && (
             <div className='absolute right-0 top-0 h-[20px] w-[20px] rounded-full bg-red-600'>{data.requests.length}</div>
           )}
           <Users2 size={24} />
-        </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className='w-[350px]'>
         <DropdownMenuLabel>Friend requests</DropdownMenuLabel>

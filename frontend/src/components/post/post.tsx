@@ -2,10 +2,11 @@ import { Button } from '../ui/button';
 import { Skeleton } from '../ui/skeleton';
 import { EllipsisVertical } from 'lucide-react';
 import { CommentButton, LikeButton, ShareButton } from './post_buttons';
-import { Comments } from './comments';
-import { Reply } from './reply';
+import { Replies, ReplyType } from './replies';
 import type { User } from '@/providers/user-provider';
 import { useState } from 'react';
+import { ReplyInput } from './reply-input';
+
 interface Reaction {
   id: string;
   user_id: string;
@@ -27,6 +28,7 @@ interface Post {
 }
 
 export const Post = ({ post, isLoading }: { post?: Post; isLoading: boolean }) => {
+  const [newReply, setNewReply] = useState<ReplyType | null>(null);
   const [showComments, setShowComments] = useState(false);
 
   if (isLoading || !post) {
@@ -47,16 +49,16 @@ export const Post = ({ post, isLoading }: { post?: Post; isLoading: boolean }) =
           <EllipsisVertical />
         </Button>
       </div>
-      <text className='ml-1'>{post.content}</text>
+      <p className='ml-1'>{post.content}</p>
       <div className='mb-3 mt-10 flex justify-evenly border-y border-border'>
         <LikeButton reactions={post.reactions} likeStatus={likeStatus} type='post' postId={post.id} reactionId={post.reaction.id} />
-        <CommentButton onClick={async () => setShowComments(true)} />
+        <CommentButton onClick={async () => setShowComments(!showComments)} />
         <ShareButton link='' />
       </div>
       {showComments && (
         <>
-          <Comments post_id={post.id} />
-          <Reply post_id={post.id} />
+          <Replies post_id={post.id} newReply={newReply} />
+          <ReplyInput postId={post.id} setNewReply={setNewReply} />
         </>
       )}
     </div>

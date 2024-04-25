@@ -13,9 +13,7 @@ export const NotificationBtn = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger>
-        <Button size='icon' variant='ghost'>
           <Bell size={24} />
-        </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
         <DropdownMenuLabel>Notifications</DropdownMenuLabel>
