@@ -34,12 +34,13 @@ func (app *application) createReplyHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	reply := &data.Reply{
-		ID:      replyID,
-		UserID:  user.ID,
-		PostID:  postID,
-		Content: input.Content,
-		Image:   input.Image,
+		ID:        replyID,
+		UserID:    user.ID,
+		PostID:    postID,
+		Content:   input.Content,
+		Image:     input.Image,
 		UpdatedAt: time.Now().Truncate(time.Second),
+		CreatedAt: time.Now().Truncate(time.Second),
 	}
 
 	err = app.models.Replies.Insert(reply)
@@ -55,46 +56,44 @@ func (app *application) createReplyHandler(w http.ResponseWriter, r *http.Reques
 	}
 }
 
-
 func (app *application) deleteReplyHandler(w http.ResponseWriter, r *http.Request) {
 
 	currentUser := app.contextGetUser(r)
 
 	replyID, err := app.readParam(r, "replyID")
 	if err != nil {
-		app.notFoundResponse(w,r)
+		app.notFoundResponse(w, r)
 		return
 	}
 
 	reply, err := app.models.Replies.Get(replyID)
 	if err != nil {
-		app.notFoundResponse(w,r)
+		app.notFoundResponse(w, r)
 		return
 	}
 
 	if reply.UserID != currentUser.ID {
-		app.unAuthorizedResponse(w,r)
+		app.unAuthorizedResponse(w, r)
 		return
 	}
 
 	err = app.models.Replies.Delete(replyID)
 	if err != nil {
-		app.serverErrorResponse(w,r,err)
+		app.serverErrorResponse(w, r, err)
 		return
 	}
 
-	err = app.writeJSON(w,http.StatusOK,envelope{"reply":"successfully deleted"}, nil)
+	err = app.writeJSON(w, http.StatusOK, envelope{"reply": "successfully deleted"}, nil)
 	if err != nil {
-		app.serverErrorResponse(w,r,err)
+		app.serverErrorResponse(w, r, err)
 		return
 	}
 }
 
-
 func (app *application) getAllPostRepliesHandler(w http.ResponseWriter, r *http.Request) {
 	postID, err := app.readParam(r, "id")
 	if err != nil {
-		app.notFoundResponse(w,r)
+		app.notFoundResponse(w, r)
 		return
 	}
 
@@ -102,16 +101,16 @@ func (app *application) getAllPostRepliesHandler(w http.ResponseWriter, r *http.
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
-			app.notFoundResponse(w,r)
+			app.notFoundResponse(w, r)
 		default:
-			app.serverErrorResponse(w,r,err)
+			app.serverErrorResponse(w, r, err)
 		}
 		return
 	}
 
-	err = app.writeJSON(w, http.StatusOK, envelope{"replies":replies}, nil)
+	err = app.writeJSON(w, http.StatusOK, envelope{"replies": replies}, nil)
 	if err != nil {
-		app.serverErrorResponse(w,r,err)
+		app.serverErrorResponse(w, r, err)
 		return
 	}
 }
@@ -126,18 +125,24 @@ func (app *application) updateReplyHandler(w http.ResponseWriter, r *http.Reques
 
 	replyID, err := app.readParam(r, "replyID")
 	if err != nil {
-		app.notFoundResponse(w,r)
+		app.notFoundResponse(w, r)
 		return
 	}
 
 	reply, err := app.models.Replies.Get(replyID)
 	if err != nil {
-		app.notFoundResponse(w,r)
+		app.notFoundResponse(w, r)
 		return
 	}
 
 	if reply.UserID != currentUser.ID {
-		app.unAuthorizedResponse(w,r)
+		app.unAuthorizedResponse(w, r)
+		return
+	}
+
+	err = app.readJSON(w, r, &input)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
 		return
 	}
 
