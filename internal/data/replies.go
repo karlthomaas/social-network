@@ -164,7 +164,7 @@ func (m *ReplyModel) GetAll(postID string) ([]*Reply, error) {
 			return nil, err
 		}
 
-	replies = append(replies, &r)
+		replies = append(replies, &r)
 	}
 
 	if err = rows.Err(); err != nil {
