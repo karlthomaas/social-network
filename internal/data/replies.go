@@ -19,6 +19,9 @@ type Reply struct {
 	Image     []byte    `json:"image"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+	User      User      `json:"user"`
+	Reactions int       `json:"reactions"`
+	Reaction Reaction 	`json:"reaction"`
 }
 
 func (m *ReplyModel) Insert(r *Reply) error {
@@ -68,8 +71,10 @@ func (m *ReplyModel) Delete(id string) error {
 
 func (m *ReplyModel) Get(id string) (*Reply, error) {
 	query := `
-	SELECT id, user_id, post_id, content, image, created_at, updated_at
-	FROM replies
+	SELECT r.id, r.user_id, r.post_id, r.content, r.image, r.created_at, r.updated_at, u.first_name, u.last_name, react.user_id
+	FROM replies r
+	JOIN users u ON u.id = r.user_id
+	JOIN reactions react ON react.reply_id = r.id
 	WHERE id = ?
 	`
 
@@ -86,6 +91,9 @@ func (m *ReplyModel) Get(id string) (*Reply, error) {
 		&r.Image,
 		&r.CreatedAt,
 		&r.UpdatedAt,
+		&r.User.FirstName,
+		&r.User.LastName,
+		&r.Reaction.UserID,
 	)
 
 	if err != nil {
@@ -130,17 +138,20 @@ func (m *ReplyModel) Update(r *Reply) error {
 	return err
 }
 
-func (m *ReplyModel) GetAll(postID string) ([]*Reply, error) {
+func (m *ReplyModel) GetAll(postID, loggedInUser string) ([]*Reply, error) {
 	query := `
-	SELECT id, user_id, post_id, content, image, created_at, updated_at
-	FROM replies
-	WHERE post_id = ?
+	SELECT r.id, r.user_id, r.post_id, r.content, r.image, r.created_at, r.updated_at, u.first_name, u.last_name
+	FROM replies r
+	JOIN users u ON r.user_id = u.id
+	LEFT JOIN reactions react ON r.id = react.reply_id
+	AND react.user_id = ?
+	WHERE r.post_id = ?
 	`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	rows, err := m.DB.QueryContext(ctx, query, postID)
+	rows, err := m.DB.QueryContext(ctx, query, postID, loggedInUser)
 	if err != nil {
 		return nil, err
 	}
@@ -149,6 +160,7 @@ func (m *ReplyModel) GetAll(postID string) ([]*Reply, error) {
 
 	for rows.Next() {
 		var r Reply
+		var reactionID sql.NullString
 
 		err := rows.Scan(
 			&r.ID,
@@ -158,10 +170,19 @@ func (m *ReplyModel) GetAll(postID string) ([]*Reply, error) {
 			&r.Image,
 			&r.CreatedAt,
 			&r.UpdatedAt,
+			&r.User.FirstName,
+			&r.User.LastName,
+			&reactionID,
 		)
 
+		
 		if err != nil {
 			return nil, err
+		}
+		if !reactionID.Valid {
+			r.Reaction.ID = ""
+		} else {
+			r.Reaction.ID = reactionID.String
 		}
 
 		replies = append(replies, &r)

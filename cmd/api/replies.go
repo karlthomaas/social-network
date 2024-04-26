@@ -97,7 +97,9 @@ func (app *application) getAllPostRepliesHandler(w http.ResponseWriter, r *http.
 		return
 	}
 
-	replies, err := app.models.Replies.GetAll(postID)
+	user := app.contextGetUser(r)
+
+	replies, err := app.models.Replies.GetAll(postID, user.ID)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
@@ -106,6 +108,24 @@ func (app *application) getAllPostRepliesHandler(w http.ResponseWriter, r *http.
 			app.serverErrorResponse(w, r, err)
 		}
 		return
+	}
+
+	for _, reply := range replies {
+		reactions, err := app.models.Reactions.GetReactions(reply.ID)
+		if err != nil {
+			app.serverErrorResponse(w, r, err)
+			return
+		}
+		reply.Reactions = reactions
+	}
+
+	for _, reply := range replies {
+		reactions, err := app.models.Reactions.GetReactions(reply.ID)
+		if err != nil {
+			app.serverErrorResponse(w, r, err)
+			return
+		}
+		reply.Reactions = reactions
 	}
 
 	err = app.writeJSON(w, http.StatusOK, envelope{"replies": replies}, nil)
