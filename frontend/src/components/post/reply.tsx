@@ -26,6 +26,7 @@ export const Reply = ({ postId, reply, isAuthor }: { postId: string; reply: Repl
   const [replyContent, setReplyContent] = useState(reply.content);
 
   const handleReaction = async () => {
+
     if (isLiked) {
       setReactions(reactions - 1);
       setIsLiked(false);
@@ -33,8 +34,22 @@ export const Reply = ({ postId, reply, isAuthor }: { postId: string; reply: Repl
       setReactions(reactions + 1);
       setIsLiked(true);
     }
+
   };
 
+  const reactMutation = useMutation({
+    mutationFn: async (like: boolean) => {
+
+      const method = like ? 'POST' : 'DELETE';
+      // const url = like ? 
+      return fetcherWithOptions({
+        url: `/api/posts/${postId}/reply/${reply.id}/reaction`,
+        method: 'POST',
+        body: {},
+      });
+    }
+  });
+  
   const mutation = useMutation({
     mutationFn: async () => {
       return fetcherWithOptions({
@@ -80,9 +95,9 @@ export const Reply = ({ postId, reply, isAuthor }: { postId: string; reply: Repl
       <div id='pfp' className='size-[40px] flex-none rounded-full bg-secondary ' />
       <div className='flex w-max max-w-[calc(100%-110px)] flex-col space-y-1'>
         <div className='relative flex space-x-3'>
-          <div className='flex w-max flex-col rounded-xl bg-secondary p-2'>
-            <h1 className='font-medium'>{reply.user_id}</h1>
-            <p className='break-all '>{replyContent}</p>
+          <div className='flex w-max flex-col rounded-xl bg-secondary p-2 min-w-[200px]'>
+            <h1 className='font-medium capitalize'>{`${reply.user.first_name} ${reply.user.last_name}`}</h1>
+            <p className='break-all'>{replyContent}</p>
           </div>
           {isAuthor && (
             <ReplyOptions

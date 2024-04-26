@@ -21,7 +21,7 @@ type Reply struct {
 	UpdatedAt time.Time `json:"updated_at"`
 	User      User      `json:"user"`
 	Reactions int       `json:"reactions"`
-	Reaction Reaction 	`json:"reaction"`
+	Reaction  Reaction  `json:"reaction"`
 }
 
 func (m *ReplyModel) Insert(r *Reply) error {
@@ -140,11 +140,10 @@ func (m *ReplyModel) Update(r *Reply) error {
 
 func (m *ReplyModel) GetAll(postID, loggedInUser string) ([]*Reply, error) {
 	query := `
-	SELECT r.id, r.user_id, r.post_id, r.content, r.image, r.created_at, r.updated_at, u.first_name, u.last_name
+	SELECT r.id, r.user_id, r.post_id, r.content, r.image, r.created_at, r.updated_at, u.first_name, u.last_name, react.id
 	FROM replies r
 	JOIN users u ON r.user_id = u.id
 	LEFT JOIN reactions react ON r.id = react.reply_id
-	AND react.user_id = ?
 	WHERE r.post_id = ?
 	`
 
@@ -175,7 +174,6 @@ func (m *ReplyModel) GetAll(postID, loggedInUser string) ([]*Reply, error) {
 			&reactionID,
 		)
 
-		
 		if err != nil {
 			return nil, err
 		}
