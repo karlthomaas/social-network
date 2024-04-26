@@ -67,11 +67,21 @@ func (app *application) routes() http.Handler {
 		app.ValidateJwt(app.cancelRequestHandler))
 
 	router.HandleFunc("GET /api/posts/{id}/reactions",
-		app.ValidateJwt(app.getReactionHandler))
+		app.ValidateJwt(app.getPostReactionHandler))
 	router.HandleFunc("POST /api/posts/{id}/reactions",
 		app.ValidateJwt(app.addPostReactionHandler))
 	router.HandleFunc("DELETE /api/posts/{id}/reactions/{reactionID}",
-		app.ValidateJwt(app.deleteReactionHandler))
+		app.ValidateJwt(app.deletePostReactionHandler))
+
+
+		router.HandleFunc("GET /api/posts/{id}/replies/{replyID}/reactions",
+		app.ValidateJwt(app.getReplyReactionHandler))
+	router.HandleFunc("POST /api/posts/{id}/replies/{replyID}/reactions",
+		app.ValidateJwt(app.addReplyReactionHandler))
+	router.HandleFunc("DELETE /api/posts/{id}/replies/{id}/reactions/{reactionID}",
+		app.ValidateJwt(app.deleteReplyReactionHandler))
+
+	
 
 	return app.RecoverPanic(app.rateLimit(app.SecureHeaders(app.LogRequest(router))))
 }
