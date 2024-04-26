@@ -8,6 +8,7 @@ import (
 )
 
 func (app *application) createReplyHandler(w http.ResponseWriter, r *http.Request) {
+
 	var input struct {
 		Content string `json:"content"`
 		Image   []byte `json:"image"`
@@ -43,13 +44,23 @@ func (app *application) createReplyHandler(w http.ResponseWriter, r *http.Reques
 		CreatedAt: time.Now().Truncate(time.Second),
 	}
 
+	type responseStruct struct {
+		Reply *data.Reply
+		User *data.User
+	}
+
+	response := &responseStruct{
+		Reply: reply,
+		User: user,
+	}
+
 	err = app.models.Replies.Insert(reply)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
 
-	err = app.writeJSON(w, http.StatusOK, envelope{"reply": reply}, nil)
+	err = app.writeJSON(w, http.StatusOK, envelope{"response": response}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -108,15 +119,6 @@ func (app *application) getAllPostRepliesHandler(w http.ResponseWriter, r *http.
 			app.serverErrorResponse(w, r, err)
 		}
 		return
-	}
-
-	for _, reply := range replies {
-		reactions, err := app.models.Reactions.GetReactions(reply.ID)
-		if err != nil {
-			app.serverErrorResponse(w, r, err)
-			return
-		}
-		reply.Reactions = reactions
 	}
 
 	for _, reply := range replies {
