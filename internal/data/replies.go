@@ -138,21 +138,20 @@ func (m *ReplyModel) Update(r *Reply) error {
 	return err
 }
 
-func (m *ReplyModel) GetAll(postID string) ([]*Reply, error) {
+func (m *ReplyModel) GetAll(postID, loggedInUser string) ([]*Reply, error) {
 	query := `
 	SELECT r.id, r.user_id, r.post_id, r.content, r.image, r.created_at, r.updated_at, u.first_name, u.last_name
 	FROM replies r
-	WHERE post_id = ?
 	JOIN users u ON r.user_id = u.id
 	LEFT JOIN reactions react ON r.id = react.reply_id
 	AND react.user_id = ?
-	WHERE r.user_id = ?
+	WHERE r.post_id = ?
 	`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	rows, err := m.DB.QueryContext(ctx, query, postID)
+	rows, err := m.DB.QueryContext(ctx, query, postID, loggedInUser)
 	if err != nil {
 		return nil, err
 	}

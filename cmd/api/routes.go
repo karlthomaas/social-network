@@ -78,7 +78,7 @@ func (app *application) routes() http.Handler {
 		app.ValidateJwt(app.getReplyReactionHandler))
 	router.HandleFunc("POST /api/posts/{id}/replies/{replyID}/reactions",
 		app.ValidateJwt(app.addReplyReactionHandler))
-	router.HandleFunc("DELETE /api/posts/{id}/replies/{id}/reactions/{reactionID}",
+	router.HandleFunc("DELETE /api/posts/{id}/replies/{replyID}/reactions/{reactionID}",
 		app.ValidateJwt(app.deleteReplyReactionHandler))
 
 	

@@ -98,7 +98,9 @@ func (app *application) getAllPostRepliesHandler(w http.ResponseWriter, r *http.
 		return
 	}
 
-	replies, err := app.models.Replies.GetAll(postID)
+	user := app.contextGetUser(r)
+
+	replies, err := app.models.Replies.GetAll(postID, user.ID)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
