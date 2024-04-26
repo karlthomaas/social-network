@@ -144,13 +144,14 @@ func (m *ReplyModel) GetAll(postID, loggedInUser string) ([]*Reply, error) {
 	FROM replies r
 	JOIN users u ON r.user_id = u.id
 	LEFT JOIN reactions react ON r.id = react.reply_id
+	AND react.user_id = ?
 	WHERE r.post_id = ?
 	`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	rows, err := m.DB.QueryContext(ctx, query, postID, loggedInUser)
+	rows, err := m.DB.QueryContext(ctx, query, loggedInUser, postID)
 	if err != nil {
 		return nil, err
 	}
