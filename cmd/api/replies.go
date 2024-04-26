@@ -109,6 +109,15 @@ func (app *application) getAllPostRepliesHandler(w http.ResponseWriter, r *http.
 		return
 	}
 
+	for _, reply := range replies {
+		reactions, err := app.models.Reactions.GetReactions(reply.ID)
+		if err != nil {
+			app.serverErrorResponse(w,r,err)
+			return
+		}
+		reply.Reactions = reactions
+	}
+
 	err = app.writeJSON(w, http.StatusOK, envelope{"replies":replies}, nil)
 	if err != nil {
 		app.serverErrorResponse(w,r,err)
