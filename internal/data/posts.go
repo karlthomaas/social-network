@@ -165,7 +165,69 @@ func (m *PostModel) GetAllForUser(userID string, loggedInUser string) ([]*Post, 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	rows, err := m.DB.QueryContext(ctx, query, userID, loggedInUser)
+	rows, err := m.DB.QueryContext(ctx, query, loggedInUser, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	posts := []*Post{}
+
+	for rows.Next() {
+		var post Post
+		var reactionID sql.NullString
+
+		err := rows.Scan(
+			&post.ID,
+			&post.UserID,
+			&post.Content,
+			&post.Image,
+			&post.Privacy,
+			&post.CreatedAt,
+			&post.UpdatedAt,
+			&post.User.FirstName,
+			&post.User.LastName,
+			&reactionID,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		if !reactionID.Valid {
+			post.Reaction.ID = ""
+		} else {
+			post.Reaction.ID = reactionID.String
+		}
+
+		posts = append(posts, &post)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return posts, nil
+}
+
+func (m *PostModel) GetAll(loggedInUser string) ([]*Post, error) {
+
+	query := `
+	SELECT p.id, p.user_id, p.content, p.image, p.privacy, p.created_at, p.updated_at, 
+	u.first_name, u.last_name, r.id
+	FROM posts p 
+	JOIN users u ON p.user_id = u.id
+	LEFT JOIN followers f ON f.user_id = p.user_id AND f.follower_id = ?
+	LEFT JOIN reactions r ON p.id = r.post_id AND r.user_id = ?
+	LEFT JOIN post_visibilities pv ON pv.post_id = p.id
+	WHERE (p.privacy = "public" OR 
+       (p.privacy = "private" AND (f.follower_id = ? OR p.user_id = ?)) OR 
+       (p.privacy = "almost_private" AND pv.user_id = ?))
+	`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	rows, err := m.DB.QueryContext(ctx, query, loggedInUser, loggedInUser, loggedInUser, loggedInUser, loggedInUser)
 	if err != nil {
 		return nil, err
 	}

@@ -1,6 +1,6 @@
 'use client';
 
-import { ReplyType } from './replies';
+import { ReplyType, ReactionType } from './replies';
 
 import { formatDistanceToNowStrict } from 'date-fns';
 import { EllipsisVertical, Pencil, ThumbsUp, Trash2 } from 'lucide-react';
@@ -17,16 +17,18 @@ import {
 import { useMutation } from '@tanstack/react-query';
 import { toast } from '../ui/use-toast';
 import { ReplyInput } from './reply-input';
+import { useRef } from 'react';
 
 export const Reply = ({ postId, reply, isAuthor }: { postId: string; reply: ReplyType; isAuthor: boolean }) => {
-  const [reactions, setReactions] = useState(0);
-  const [isLiked, setIsLiked] = useState(false);
+  const [reactions, setReactions] = useState(reply.reactions);
+  const [isLiked, setIsLiked] = useState(reply.reaction.id ? true : false);
   const [isDeleted, setIsDeleted] = useState(false);
   const [editState, setEditState] = useState(false);
   const [replyContent, setReplyContent] = useState(reply.content);
 
-  const handleReaction = async () => {
+  const replyRef = useRef(reply);
 
+  const handleReaction = async () => {
     if (isLiked) {
       setReactions(reactions - 1);
       setIsLiked(false);
@@ -35,22 +37,30 @@ export const Reply = ({ postId, reply, isAuthor }: { postId: string; reply: Repl
       setIsLiked(true);
     }
 
+    reactMutation.mutate(!isLiked);
   };
 
   const reactMutation = useMutation({
     mutationFn: async (like: boolean) => {
-
       const method = like ? 'POST' : 'DELETE';
-      // const url = like ? 
+      const url = like ? `/api/posts/${postId}/replies/${reply.id}/reactions` : `/api/posts/${postId}/replies/${reply.id}/reactions/${replyRef.current.reaction.id}`;
       return fetcherWithOptions({
-        url: `/api/posts/${postId}/reply/${reply.id}/reaction`,
-        method: 'POST',
+        url: url,
+        method: method,
         body: {},
       });
-    }
+    },
+
+    onSuccess: (data: { [key: string]: ReactionType}) => {
+      if (isLiked) {
+        replyRef.current.reaction = data.reaction;
+      } else {
+        replyRef.current.reaction = {"id": '', "user_id": '', "reply_id": ''};
+      }
+    },
   });
   
-  const mutation = useMutation({
+  const replyMutation = useMutation({
     mutationFn: async () => {
       return fetcherWithOptions({
         url: `/api/posts/${postId}/reply/${reply.id}`,
@@ -95,20 +105,20 @@ export const Reply = ({ postId, reply, isAuthor }: { postId: string; reply: Repl
       <div id='pfp' className='size-[40px] flex-none rounded-full bg-secondary ' />
       <div className='flex w-max max-w-[calc(100%-110px)] flex-col space-y-1'>
         <div className='relative flex space-x-3'>
-          <div className='flex w-max flex-col rounded-xl bg-secondary p-2 min-w-[200px]'>
+          <div className='flex w-max flex-col rounded-xl bg-secondary p-2 min-w-[250px]'>
             <h1 className='font-medium capitalize'>{`${reply.user.first_name} ${reply.user.last_name}`}</h1>
             <p className='break-all'>{replyContent}</p>
           </div>
           {isAuthor && (
             <ReplyOptions
-              handleDelete={() => mutation.mutate()}
+              handleDelete={() => replyMutation.mutate()}
               handleEdit={() => {
                 setEditState(true);
               }}
             />
           )}
         </div>
-        <div className='mr-14 flex'>
+        <div className='mr-14 flex mt-1'>
           <div>{formatDistanceToNowStrict(new Date(reply.created_at), { addSuffix: true })} |</div>
           <div onClick={handleReaction} className={cn('ml-4 font-medium hover:cursor-pointer hover:underline', isLiked && 'text-primary')}>
             Like

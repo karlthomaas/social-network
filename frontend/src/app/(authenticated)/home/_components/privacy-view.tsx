@@ -11,12 +11,25 @@ import { postStore } from './create-post';
 
 export const privacyStore = create((set) => ({
   radioValue: 'public',
+  visibleTo: [],
+  toggleVisibleToUser: (id: string) => {
+    set((state: any) => {
+      console.log(id);
+      const index = state.visibleTo.indexOf(id);
+      if (index === -1) {
+        return { visibleTo: [...state.visibleTo, id] };
+      } else {
+        return { visibleTo: state.visibleTo.filter((user: string) => user !== id) };
+      }
+    });
+  },
   setValue: (value: string) => set({ radioValue: value }),
 }));
 
 export const PrivacyView = ({}: {}) => {
   const radioValue = privacyStore((state: any) => state.radioValue);
   const setValue = privacyStore((state: any) => state.setValue);
+  const visibleTo = privacyStore((state: any) => state.visibleTo);
 
   const next = postStore((state: any) => state.increment);
   const back = postStore((state: any) => state.deincrement);
@@ -32,6 +45,10 @@ export const PrivacyView = ({}: {}) => {
 
   const handleSave = () => {
     // save privacy to parent component
+    if (radioValue === 'almost private' && visibleTo.length === 0) {
+      next();
+      return;
+    }
     postStore.setState({ privacy: radioValue });
     back();
   };
@@ -66,7 +83,7 @@ export const PrivacyView = ({}: {}) => {
         <Button variant='outline' onClick={handleCancel}>
           Cancel
         </Button>
-        <Button onClick={handleSave}>Done</Button>
+        <Button onClick={handleSave}>{radioValue === 'almost private' && visibleTo.length === 0 ? 'Next' : 'Done'}</Button>
       </div>
     </DialogContent>
   );

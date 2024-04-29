@@ -52,9 +52,9 @@ export const LikeButton = ({ reactions, postId, reactionId, likeStatus}: LikeBut
   });
 
   return (
-    <Button variant='ghost' className='flex w-full items-center space-x-4' onClick={() => mutation.mutate()}>
-      <ThumbsUp fill={liked ? '#3b82f6' : ''} stroke={liked ? '#3b82f6#' : 'white'} />
-      { likes }
+    <Button variant='ghost' className='flex w-full items-center space-x-2' onClick={() => mutation.mutate()}>
+      <ThumbsUp className="inline-flex" fill={liked ? '#3b82f6' : ''} stroke={liked ? '#3b82f6#' : 'white'} />
+      <span>{ likes }</span>
     </Button>
   );
 };

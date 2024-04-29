@@ -2,6 +2,7 @@
 School project that 
 
 ### Project requirements
+
 #### Posts
 - [x]  Create posts
 - [ ]  Create group posts
@@ -24,8 +25,8 @@ School project that
 
 
 #### Profile 
-- [ ]  Follow button
-- [ ]  Unfollow button
+- [x]  Follow button
+- [x]  Unfollow button
 - [ ]  Display bio
 - [ ]  Display follower count
 - [ ]  Edit profile

@@ -40,7 +40,7 @@ export const FollowBtn = ({ className = '', user_id }: { className?: string; use
       const options: {
         [key: number]: { url: string; method: string; body: any };
       } = {
-        0: { url: `/api/users/${user_id}/follow`, method: 'POST', body: {} },
+        0: { url: `/api/users/${user_id}/followers`, method: 'POST', body: {} },
         1: { url: `/api/users/${user_id}/followers`, method: 'DELETE', body: {} },
         2: { url: `/api/users/${user_id}/follow_requests`, method: 'DELETE', body: {} },
       };

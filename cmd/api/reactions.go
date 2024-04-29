@@ -165,7 +165,6 @@ func (app *application) addReplyReactionHandler(w http.ResponseWriter, r *http.R
 	}
 }
 
-
 func (app *application) deleteReplyReactionHandler(w http.ResponseWriter, r *http.Request) {
 	userID := app.contextGetUser(r).ID
 
@@ -213,7 +212,6 @@ func (app *application) deleteReplyReactionHandler(w http.ResponseWriter, r *htt
 		app.serverErrorResponse(w, r, err)
 	}
 }
-
 
 func (app *application) getReplyReactionHandler(w http.ResponseWriter, r *http.Request) {
 

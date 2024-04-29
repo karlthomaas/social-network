@@ -2,7 +2,10 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
+	"os"
+	"path/filepath"
 	"social-network/internal/data"
 	"social-network/internal/validator"
 	"time"
@@ -40,6 +43,24 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	v := validator.New()
+
+	if len(post.Image) != 0 {
+		path := filepath.Join("internal", "images", string(post.Image))
+		file, err := os.Create(path)
+		if err != nil {
+			fmt.Println(err)
+			app.serverErrorResponse(w, r, err)
+			return
+		}
+		defer file.Close()
+
+		_, err = file.Write(post.Image)
+		if err != nil {
+			fmt.Println(err)
+			app.serverErrorResponse(w, r, err)
+			return
+		}
+	}
 
 	if data.ValidatePost(v, post); !v.Valid() {
 		app.failedValidationResponse(w, r, v.Errors)
@@ -241,6 +262,23 @@ func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	err = app.writeJSON(w, http.StatusOK, envelope{"post": post}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+}
+
+func (app *application) getFeedPostsHandlder(w http.ResponseWriter, r *http.Request) {
+
+	user := app.contextGetUser(r)
+
+	posts, err := app.models.Posts.GetAll(user.ID)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusOK, envelope{"posts": posts}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return

@@ -3,6 +3,12 @@ import { fetcher } from '@/lib/fetchers';
 import { LoadingSpinner } from '../ui/spinners';
 import { useEffect, useState } from 'react';
 import { Reply } from './reply';
+export interface ReactionType {
+  id: string;
+  user_id: string;
+  reply_id: string;
+}
+
 import { User, useSession } from '@/providers/user-provider';
 
 export interface ReplyType {
@@ -14,8 +20,10 @@ export interface ReplyType {
   created_at: string;
   updated_at: string;
   user: User;
-  reactions: number
+  reactions: number;
+  reaction: ReactionType;
 }
+
 
 export const Replies = ({ post_id, newReply }: { post_id: string; newReply: ReplyType | null }) => {
   const { user } = useSession();

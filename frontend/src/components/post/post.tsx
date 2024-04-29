@@ -19,7 +19,7 @@ interface Post {
   user_id: string;
   content: string;
   image: string;
-  privacy: ['public', 'private', 'almost_private'];
+  privacy: ['public', 'private', 'almost private'];
   created_at: string;
   updated_at: string;
   user: User;

@@ -10,8 +10,8 @@ func (app *application) routes() http.Handler {
 	router.HandleFunc("GET /api/healthcheck",
 		app.healthCheckHandler)
 
-	router.Handle("GET /",
-		app.ValidateJwt(app.HomeHandler))
+	router.Handle("GET /api/posts/feed",
+		app.ValidateJwt(app.getFeedPostsHandlder))
 	router.HandleFunc("GET /api/users/me",
 		app.ValidateJwt(app.getSessionUserHandler))
 	router.HandleFunc("PATCH /api/users/me",

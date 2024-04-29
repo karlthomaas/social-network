@@ -17,6 +17,7 @@ export const postStore = create((set) => ({
   view: 0,
   postText: '',
   privacy: 'public',
+  visibleTo: [],
   reset: () => set({ privacy: 'public', view: 0, postText: '' }),
   increment: () => set((state: any) => ({ view: state.view + 1 })),
   deincrement: () => set((state: any) => ({ view: state.view - 1 })),
@@ -28,6 +29,7 @@ export const CreatePost = () => {
   const reset = postStore((state: any) => state.reset);
   const privacy = postStore((state: any) => state.privacy);
   const postText = postStore((state: any) => state.postText);
+  const visibleTo = postStore((state: any) => state.visibleTo);
 
   const mutation = useMutation({
     mutationKey: ['posts'],
@@ -37,9 +39,9 @@ export const CreatePost = () => {
         method: 'POST',
         body: {
           content: postText,
-          privacy: privacy,
+          privacy: privacy === 'almost private' ? 'almost_private' : privacy,
           image: null,
-          visible_to: [],
+          visible_to: visibleTo,
         },
       }),
       onSuccess: () => {

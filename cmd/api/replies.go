@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"social-network/internal/data"
+	"social-network/internal/validator"
 	"time"
 )
 
@@ -44,14 +45,13 @@ func (app *application) createReplyHandler(w http.ResponseWriter, r *http.Reques
 		CreatedAt: time.Now().Truncate(time.Second),
 	}
 
-	type responseStruct struct {
-		Reply *data.Reply
-		User *data.User
-	}
+	reply.User = *user
 
-	response := &responseStruct{
-		Reply: reply,
-		User: user,
+	v := validator.New()
+
+	if data.ValidateReply(v, reply); !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
 	}
 
 	err = app.models.Replies.Insert(reply)
@@ -60,7 +60,7 @@ func (app *application) createReplyHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	err = app.writeJSON(w, http.StatusOK, envelope{"response": response}, nil)
+	err = app.writeJSON(w, http.StatusOK, envelope{"reply": reply}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -181,6 +181,13 @@ func (app *application) updateReplyHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	reply.UpdatedAt = time.Now().Truncate(time.Second)
+
+	v := validator.New()
+
+	if data.ValidateReply(v, reply); !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
 
 	err = app.models.Replies.Update(reply)
 	if err != nil {

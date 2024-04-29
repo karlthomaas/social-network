@@ -89,7 +89,7 @@ func (m *FollowerModel) Get(userID, followerID string) (*Follower, error) {
 func (m *FollowerModel) GetAllForUser(userID string) ([]*Follower, error) {
 	query := `SELECT f.user_id, f.follower_id, f.created_at, u.first_name, u.last_name
 	FROM followers f
-	JOIN users u ON f.user_id = u.id
+	JOIN users u ON f.follower_id = u.id
 	WHERE f.user_id = ?
 	`
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"social-network/internal/validator"
 	"time"
 )
 
@@ -192,4 +193,11 @@ func (m *ReplyModel) GetAll(postID, loggedInUser string) ([]*Reply, error) {
 	}
 
 	return replies, nil
+}
+
+func ValidateReply(v *validator.Validator, reply *Reply) {
+	v.Check(reply.Content != "", "content", "must not be empty")
+	v.Check(len(reply.Content) <= 2000, "content", "must not be more than 2000 characters long")
+
+	v.Check(reply.UserID != "", "user_id", "must not be empty")
 }
