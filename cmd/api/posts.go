@@ -278,6 +278,15 @@ func (app *application) getFeedPostsHandlder(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	for _, post := range posts {
+		reactions, err := app.models.Reactions.GetReactions(post.ID)
+		if err != nil {
+			app.serverErrorResponse(w, r, err)
+			return
+		}
+		post.Reactions = reactions
+	}
+
 	err = app.writeJSON(w, http.StatusOK, envelope{"posts": posts}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
