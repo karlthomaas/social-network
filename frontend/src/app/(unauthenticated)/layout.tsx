@@ -8,7 +8,7 @@ export default function Layout({ children }: LayoutProps) {
   return (
     <>
       <Navbar />
-      <div className='mx-auto h-full w-full max-w-screen-lg p-4'>{children}</div>
+      <div className='mx-auto h-full w-full max-w-screen-md p-4'>{children}</div>
     </>
   );
 }
