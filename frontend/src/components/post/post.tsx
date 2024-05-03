@@ -6,6 +6,7 @@ import { Replies, ReplyType } from './replies';
 import type { User } from '@/providers/user-provider';
 import { useState } from 'react';
 import { ReplyInput } from './reply-input';
+import { PostOptions } from './post-optionst';
 
 interface Reaction {
   id: string;
@@ -14,7 +15,7 @@ interface Reaction {
   reply_id: string;
 }
 
-interface Post {
+export interface PostType {
   id: string;
   user_id: string;
   content: string;
@@ -27,7 +28,7 @@ interface Post {
   reactions: number;
 }
 
-export const Post = ({ post, isLoading }: { post?: Post; isLoading: boolean }) => {
+export const Post = ({ post, isLoading }: { post?: PostType; isLoading: boolean }) => {
   const [newReply, setNewReply] = useState<ReplyType | null>(null);
   const [showComments, setShowComments] = useState(false);
 
@@ -45,9 +46,7 @@ export const Post = ({ post, isLoading }: { post?: Post; isLoading: boolean }) =
             {post.user.first_name} {post.user.last_name}{' '}
           </p>
         </div>
-        <Button size='icon' variant='ghost'>
-          <EllipsisVertical />
-        </Button>
+        <PostOptions post={post} />
       </div>
       <p className='ml-1'>{post.content}</p>
       <div className='mb-3 mt-10 flex justify-evenly border-y border-border'>
