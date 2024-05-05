@@ -33,7 +33,7 @@ func (app *application) createJWT(userId string) (string, error) {
 
 	payload := &Payload{
 		UserId: userId,
-		Exp:    time.Now().Add(5 * time.Minute).Unix(),
+		Exp:    time.Now().Add(15 * time.Minute).Unix(),
 	}
 
 	headerBytes, err := json.Marshal(header)
@@ -171,7 +171,7 @@ func (app *application) refreshSession(w http.ResponseWriter, r *http.Request) {
 		Name:     "Token",
 		Value:    jwt,
 		Path:     "/",
-		Expires:  time.Now().Add(5 * time.Minute),
+		Expires:  time.Now().Add(15 * time.Minute),
 		HttpOnly: true,
 		Secure:   true,
 		SameSite: http.SameSiteLaxMode,
