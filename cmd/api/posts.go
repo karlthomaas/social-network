@@ -130,9 +130,27 @@ func (app *application) getUserPostsHandler(w http.ResponseWriter, r *http.Reque
 }
 
 func (app *application) deletePostHandler(w http.ResponseWriter, r *http.Request) {
+
+	user := app.contextGetUser(r)
+
 	id, err := app.readParam(r, "id")
 	if err != nil {
 		app.notFoundResponse(w, r)
+		return
+	}
+
+	post, err := app.models.Posts.Get(id)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w,r)
+		default:
+			app.serverErrorResponse(w,r,err)
+		}
+		return
+	}
+	if post.UserID != user.ID {
+		app.unAuthorizedResponse(w,r)
 		return
 	}
 

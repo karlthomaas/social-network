@@ -26,7 +26,14 @@ func (app *application) addPostReactionHandler(w http.ResponseWriter, r *http.Re
 		PostID: postID,
 	}
 
-	react, _ := app.models.Reactions.Get(user.ID, postID)
+	react, err := app.models.Reactions.Get(user.ID, postID)
+	if err != nil {
+		if err != data.ErrRecordNotFound {
+			app.serverErrorResponse(w, r, err)
+			return
+		}
+	}
+
 	if react != nil {
 		app.badRequestResponse(w, r, errors.New("you have already liked this post"))
 		return

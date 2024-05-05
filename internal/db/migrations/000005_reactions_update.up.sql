@@ -6,8 +6,8 @@ CREATE TABLE reactions (
   post_id TEXT,
   reply_id TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES users(id),
-  FOREIGN KEY (post_id) REFERENCES posts(id),
-  FOREIGN KEY (reply_id) REFERENCES replies(id)
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
+  FOREIGN KEY (reply_id) REFERENCES replies(id) ON DELETE CASCADE
 );
 

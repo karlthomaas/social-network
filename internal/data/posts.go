@@ -222,6 +222,7 @@ func (m *PostModel) GetAll(loggedInUser string) ([]*Post, error) {
 	WHERE (p.privacy = "public" OR 
        (p.privacy = "private" AND (f.follower_id = ? OR p.user_id = ?)) OR 
        (p.privacy = "almost_private" AND pv.user_id = ?))
+	ORDER BY p.created_at DESC
 	`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)

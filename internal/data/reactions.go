@@ -33,7 +33,15 @@ func (m *ReactionModel) Insert(r *Reaction) error {
 	}
 
 	_, err := m.DB.ExecContext(ctx, query, args...)
-	return err
+	if err != nil {
+		switch {
+		case err.Error() == "FOREIGN KEY constraint failed":
+			return nil
+		default:
+			return err
+		}
+	}
+	return nil
 }
 
 func (m *ReactionModel) Delete(reactionID string) error {
