@@ -88,6 +88,8 @@ func (app *application) routes() http.Handler {
 		app.ValidateJwt(app.showGroupHandler))
 	router.HandleFunc("PATCH /api/groups/{id}",
 		app.ValidateJwt(app.updateGroupHandler))
+	router.HandleFunc("GET /api/groups",
+		app.ValidateJwt(app.getAllGroups))
 
 	router.HandleFunc("POST /api/groups/{id}/users/{userID}",
 		app.ValidateJwt(app.inviteToGroupHandler))
@@ -98,6 +100,8 @@ func (app *application) routes() http.Handler {
 	router.HandleFunc("GET /api/users/{id}/group_invitations",
 		app.ValidateJwt(app.getAllGroupInvitationsHandler))
 
-		
+	router.HandleFunc("GET /api/groups/{id}/members",
+		app.ValidateJwt(app.getAllGroupMembersHandler))
+
 	return app.RecoverPanic(app.rateLimit(app.SecureHeaders(app.LogRequest(router))))
 }

@@ -126,6 +126,42 @@ func (m *GroupModel) Get(groupID string) (*Group, error) {
 	return &group, nil
 }
 
+func (m *GroupModel) GetAll() ([]*Group, error) {
+	query := `
+	SELECT * from groups`
+
+	ctx, cancel := context.WithTimeout(context.Background(),3*time.Second)
+	defer cancel()
+
+	rows, err := m.DB.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+
+	groups := []*Group{}
+
+	for rows.Next() {
+		var group Group
+
+		err := rows.Scan(
+			&group.ID,
+			&group.UserID,
+			&group.Title,
+			&group.Description,
+			&group.CreatedAt,
+			&group.UpdatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		groups = append(groups, &group)
+	}
+
+	return groups, nil
+
+}
+
 func ValidateGroup(v *validator.Validator, group *Group) {
 
 	v.Check(group.ID != "", "id", "must not be empty")

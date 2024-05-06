@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 )
 
@@ -44,6 +45,35 @@ func (m *GroupMemberModel) Insert(gm *GroupMember) error {
 	return nil
 }
 
+func (m *GroupMemberModel) Get(userID string) (*GroupMember, error) {
+	query := `SELECT group_id, user_id, created_at
+	FROM group_members
+	WHERE user_id = ?`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var groupMember GroupMember
+
+	err := m.DB.QueryRowContext(ctx, query, userID).Scan(
+		&groupMember.GroupID,
+		&groupMember.UserID,
+		&groupMember.CreatedAt,
+	)
+
+	if err != nil {
+		fmt.Println("error", err)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ErrRecordNotFound
+		default:
+			return nil, err
+		}
+	}
+
+	return &groupMember, nil
+}
+
 func (m *GroupMemberModel) Delete(groupID, userID string) error {
 	query := `DELETE FROM group_members
 	WHERE group_id = ? AND user_id = ?`
@@ -66,4 +96,35 @@ func (m *GroupMemberModel) Delete(groupID, userID string) error {
 	}
 
 	return nil
+}
+
+
+func (m *GroupMemberModel) GetAllGroupMembers(groupID string) ([]*GroupMember, error) {
+	query := `SELECT group_id, user_id, created_at
+	FROM group_members
+	WHERE group_id = ?`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	rows, err := m.DB.QueryContext(ctx, query, groupID)
+	if err != nil {
+		return nil, err
+	}
+
+	members := []*GroupMember{}
+
+	for rows.Next() {
+		var member GroupMember
+		err = rows.Scan(
+			&member.GroupID,
+			&member.UserID,
+			&member.CreatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+		members = append(members, &member)
+	}
+	return members, nil
 }
