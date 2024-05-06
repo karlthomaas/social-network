@@ -24,7 +24,7 @@ type Post struct {
 	UserID    string    `json:"user_id"`
 	Content   string    `json:"content"`
 	Image     []byte    `json:"image"`
-	Privacy   string    `json:"public"`
+	Privacy   string    `json:"privacy"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 	User      User      `json:"user"`
@@ -43,13 +43,15 @@ func (m *PostModel) Get(id string) (*Post, error) {
 	SELECT p.id, p.user_id, p.content, p.image, p.privacy, p.created_at, p.updated_at, u.first_name, u.last_name, r.user_id
 	FROM posts p 
 	JOIN users u ON p.user_id = u.id
-	JOIN reactions r ON p.id = r.post_id
+	LEFT JOIN reactions r ON p.id = r.post_id
 	WHERE p.id = ?`
 
 	var post Post
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
+
+	var RUserID sql.NullString
 
 	err := m.DB.QueryRowContext(ctx, query, id).Scan(
 		&post.ID,
@@ -61,7 +63,7 @@ func (m *PostModel) Get(id string) (*Post, error) {
 		&post.UpdatedAt,
 		&post.User.FirstName,
 		&post.User.LastName,
-		&post.Reaction.UserID,
+		&RUserID,
 	)
 
 	if err != nil {
@@ -71,6 +73,12 @@ func (m *PostModel) Get(id string) (*Post, error) {
 		default:
 			return nil, err
 		}
+	}
+
+	if !RUserID.Valid {
+		post.Reaction.UserID = ""
+	} else {
+		post.Reaction.UserID = RUserID.String
 	}
 
 	return &post, nil

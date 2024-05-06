@@ -5,8 +5,9 @@ import { capitalize } from '@/lib/utils';
 import React from 'react';
 import { postStore } from './create-post';
 import { LoadingSpinner } from '@/components/ui/spinners';
+import { PostType } from '@/components/post/post';
 
-export const SubmitView = ({ isPending, onSubmit }: { isPending: boolean; onSubmit: () => void }) => {
+export const SubmitView = ({ isPending, post, onSubmit }: { isPending: boolean; post?: PostType; onSubmit: () => void }) => {
   const next = postStore((state: any) => state.increment);
   const privacy = postStore((state: any) => state.privacy);
   const postText = postStore((state: any) => state.postText);
@@ -26,7 +27,9 @@ export const SubmitView = ({ isPending, onSubmit }: { isPending: boolean; onSubm
         </DialogDescription>
       </DialogHeader>
       <Textarea value={postText} onChange={onChange} placeholder="What's on your mind?" />
-      <Button onClick={onSubmit} disabled={isPending} >{isPending ? <LoadingSpinner /> : <>Submit</>}</Button>
+      <Button onClick={onSubmit} disabled={isPending}>
+        {isPending ? <LoadingSpinner /> : <>Submit</>}
+      </Button>
     </DialogContent>
   );
 };

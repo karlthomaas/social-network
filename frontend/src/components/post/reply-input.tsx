@@ -31,7 +31,7 @@ export const ReplyInput = ({
 }) => {
   const formSchema = z.object({
     content: z.string().min(1),
-    file: z.instanceof(File).optional(),
+    // file: z.instanceof(File).optional(),
   });
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -53,16 +53,9 @@ export const ReplyInput = ({
   const mutation = useMutation({
     mutationKey: ['reply'],
     mutationFn: async (values: z.infer<typeof formSchema>) => {
-      
-      const formData = new FormData();
-      formData.append('content', values.content);
-      if (values.file) {
-        // formData.append('file', values.file[0]);
-      }
-      console.log(formData, values)
       const method = replyId ? 'PATCH' : 'POST';
       const url = replyId ? `/api/posts/${postId}/reply/${replyId}` : `/api/posts/${postId}/reply`;
-      return fetcherWithOptions({ url, method, body: JSON.stringify(formData), headers: { 'Content-Type': 'multipart/form-data' } });
+      return fetcherWithOptions({ url, method, body: values });
     },
     onError: () => {
       toast({
@@ -87,7 +80,7 @@ export const ReplyInput = ({
   };
 
   const input = form.watch('content');
-  const fileRef = form.register('file');
+  // const fileRef = form.register('file');
 
   return (
     <Form {...form}>
@@ -108,7 +101,7 @@ export const ReplyInput = ({
             }}
           />
           <div className='flex'>
-            <FormField
+            {/* <FormField
               control={form.control}
               name='file'
               render={({ field }) => {
@@ -121,7 +114,7 @@ export const ReplyInput = ({
                   </FormItem>
                 );
               }}
-            />
+            /> */}
             <div className='ml-auto flex space-x-2'>
               {replyId && (
                 <Button type='button' size='sm' variant='secondary' className='w-[120px]' onClick={onCancel}>
