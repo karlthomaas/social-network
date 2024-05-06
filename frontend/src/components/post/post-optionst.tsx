@@ -2,17 +2,12 @@ import type { PostType } from './post';
 
 import { Button } from '../ui/button';
 import { EllipsisVertical, Pencil, Trash2 } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from '../ui/use-toast';
 import { fetcherWithOptions } from '@/lib/fetchers';
+import { CreatePost } from '@/app/(authenticated)/home/_components/create-post';
+import { DialogTrigger } from '@radix-ui/react-dialog';
 
 export const PostOptions = ({ post }: { post: PostType }) => {
   const queryClient = useQueryClient();
@@ -44,22 +39,25 @@ export const PostOptions = ({ post }: { post: PostType }) => {
   });
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger>
-        <Button className='' variant='ghost' size='icon'>
-          <EllipsisVertical />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent>
-        <DropdownMenuItem>
-          <Pencil size={17} className='mr-2' />
-          Edit
-        </DropdownMenuItem>
-        <DropdownMenuItem className='text-red-700 focus:text-red-600 hover:cursor-pointer' onClick={() => deleteMutation.mutate()}>
-          <Trash2 size={17} className='mr-2' />
-          Delete
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <CreatePost post={post}>
+      <DropdownMenu>
+        <DropdownMenuTrigger>
+          <Button className='' variant='ghost' size='icon'>
+            <EllipsisVertical />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DialogTrigger asChild>
+            <DropdownMenuItem>
+              <Pencil size={17} className='mr-2' /> Edit
+            </DropdownMenuItem>
+          </DialogTrigger>
+          <DropdownMenuItem className='text-red-700 hover:cursor-pointer focus:text-red-600' onClick={() => deleteMutation.mutate()}>
+            <Trash2 size={17} className='mr-2' />
+            Delete
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </CreatePost>
   );
 };

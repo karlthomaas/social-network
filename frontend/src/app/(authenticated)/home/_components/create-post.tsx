@@ -1,17 +1,17 @@
 'use client';
 
 import { create } from 'zustand';
-import React from 'react';
+import React, { useEffect } from 'react';
 
-import { Dialog, DialogTrigger } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { fetcherWithOptions } from '@/lib/fetchers';
+import { Dialog } from '@/components/ui/dialog';
 
 import { SubmitView } from './submit-view';
 import { PrivacyView } from './privacy-view';
-import { AlmostPrivateView } from './almost-private';
 import { privacyStore } from './privacy-view';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetcherWithOptions } from '@/lib/fetchers';
+import { AlmostPrivateView } from './almost-private';
+import { PostType } from '@/components/post/post';
 
 export const postStore = create((set) => ({
   view: 0,
@@ -23,7 +23,7 @@ export const postStore = create((set) => ({
   deincrement: () => set((state: any) => ({ view: state.view - 1 })),
 }));
 
-export const CreatePost = () => {
+export const CreatePost = ({ children, post }: { children: React.ReactNode; post?: PostType }) => {
   const queryClient = useQueryClient();
   const view = postStore((state: any) => state.view);
   const reset = postStore((state: any) => state.reset);
@@ -31,12 +31,20 @@ export const CreatePost = () => {
   const postText = postStore((state: any) => state.postText);
   const visibleTo = postStore((state: any) => state.visibleTo);
 
+  useEffect(() => {
+    if (post) {
+      console.log(post);
+      postStore.setState({ postText: post.content });
+      postStore.setState({ privacy: post.privacy });
+    }
+  }, []);
+
   const mutation = useMutation({
     mutationKey: ['posts'],
     mutationFn: () =>
       fetcherWithOptions({
-        url: '/api/posts',
-        method: 'POST',
+        url: post ? `/api/posts/${post.id}` : '/api/posts',
+        method: post ? 'PATCH' : 'POST',
         body: {
           content: postText,
           privacy: privacy === 'almost private' ? 'almost_private' : privacy,
@@ -44,16 +52,16 @@ export const CreatePost = () => {
           visible_to: visibleTo,
         },
       }),
-      onSuccess: () => {
-        // Refresh the posts feed
-        queryClient.invalidateQueries({ queryKey: ['posts'] });
-      },
+    onSuccess: () => {
+      // Refresh the posts feed
+      queryClient.invalidateQueries({ queryKey: ['posts'] });
+    },
   });
 
   const onSubmit = () => {
     mutation.mutate();
   };
-  const views = [<SubmitView onSubmit={onSubmit} isPending={mutation.isPending} />, <PrivacyView />, <AlmostPrivateView />];
+  const views = [<SubmitView onSubmit={onSubmit} isPending={mutation.isPending} post={post} />, <PrivacyView />, <AlmostPrivateView />];
 
   const handleModalState = (state: boolean) => {
     if (state === true) return;
@@ -63,15 +71,8 @@ export const CreatePost = () => {
 
   return (
     <>
-      <Dialog  onOpenChange={handleModalState}>
-        <div className='flex h-[80px] w-full items-center rounded-xl border border-border bg-background px-3'>
-          <div className='aspect-square w-[50px] rounded-full bg-secondary' />
-          <DialogTrigger asChild>
-            <Button className='ml-3 w-full justify-start' variant='outline'>
-              What's on your mind?
-            </Button>
-          </DialogTrigger>
-        </div>
+      <Dialog onOpenChange={handleModalState}>
+        {children}
         {views[view]}
       </Dialog>
     </>
