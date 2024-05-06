@@ -143,14 +143,14 @@ func (app *application) deletePostHandler(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
-			app.notFoundResponse(w,r)
+			app.notFoundResponse(w, r)
 		default:
-			app.serverErrorResponse(w,r,err)
+			app.serverErrorResponse(w, r, err)
 		}
 		return
 	}
 	if post.UserID != user.ID {
-		app.unAuthorizedResponse(w,r)
+		app.unAuthorizedResponse(w, r)
 		return
 	}
 

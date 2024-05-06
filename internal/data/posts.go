@@ -24,7 +24,7 @@ type Post struct {
 	UserID    string    `json:"user_id"`
 	Content   string    `json:"content"`
 	Image     []byte    `json:"image"`
-	Privacy   string    `json:"public"`
+	Privacy   string    `json:"privacy"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 	User      User      `json:"user"`
