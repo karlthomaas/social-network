@@ -3,21 +3,16 @@
 import { ReplyType, ReactionType } from './replies';
 
 import { formatDistanceToNowStrict } from 'date-fns';
-import { EllipsisVertical, Pencil, ThumbsUp, Trash2 } from 'lucide-react';
+import { ThumbsUp } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { fetcherWithOptions } from '@/lib/fetchers';
 
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { useMutation } from '@tanstack/react-query';
 import { toast } from '../ui/use-toast';
 import { ReplyInput } from './reply-input';
 import { useRef } from 'react';
+import { ReplyOptions } from './reply-optionts';
 
 export const Reply = ({ postId, reply, isAuthor }: { postId: string; reply: ReplyType; isAuthor: boolean }) => {
   const [reactions, setReactions] = useState(reply.reactions);
@@ -43,7 +38,9 @@ export const Reply = ({ postId, reply, isAuthor }: { postId: string; reply: Repl
   const reactMutation = useMutation({
     mutationFn: async (like: boolean) => {
       const method = like ? 'POST' : 'DELETE';
-      const url = like ? `/api/posts/${postId}/replies/${reply.id}/reactions` : `/api/posts/${postId}/replies/${reply.id}/reactions/${replyRef.current.reaction.id}`;
+      const url = like
+        ? `/api/posts/${postId}/replies/${reply.id}/reactions`
+        : `/api/posts/${postId}/replies/${reply.id}/reactions/${replyRef.current.reaction.id}`;
       return fetcherWithOptions({
         url: url,
         method: method,
@@ -51,15 +48,15 @@ export const Reply = ({ postId, reply, isAuthor }: { postId: string; reply: Repl
       });
     },
 
-    onSuccess: (data: { [key: string]: ReactionType}) => {
+    onSuccess: (data: { [key: string]: ReactionType }) => {
       if (isLiked) {
         replyRef.current.reaction = data.reaction;
       } else {
-        replyRef.current.reaction = {"id": '', "user_id": '', "reply_id": ''};
+        replyRef.current.reaction = { id: '', user_id: '', reply_id: '' };
       }
     },
   });
-  
+
   const replyMutation = useMutation({
     mutationFn: async () => {
       return fetcherWithOptions({
@@ -105,7 +102,7 @@ export const Reply = ({ postId, reply, isAuthor }: { postId: string; reply: Repl
       <div id='pfp' className='size-[40px] flex-none rounded-full bg-secondary ' />
       <div className='flex w-max max-w-[calc(100%-110px)] flex-col space-y-1'>
         <div className='relative flex space-x-3'>
-          <div className='flex w-max flex-col rounded-xl bg-secondary p-2 min-w-[250px]'>
+          <div className='flex w-max min-w-[250px] flex-col rounded-xl bg-secondary p-2'>
             <h1 className='font-medium capitalize'>{`${reply.user.first_name} ${reply.user.last_name}`}</h1>
             <p className='break-all'>{replyContent}</p>
           </div>
@@ -118,8 +115,12 @@ export const Reply = ({ postId, reply, isAuthor }: { postId: string; reply: Repl
             />
           )}
         </div>
-        <div className='mr-14 flex mt-1'>
-          <div>{formatDistanceToNowStrict(new Date(reply.created_at), { addSuffix: true })} |</div>
+        <div
+          className={cn('mr-5 mt-1 flex', {
+            'mr-14': isAuthor, // add more margin because author replies are wider than usual
+          })}
+        >
+          <div>{formatDistanceToNowStrict(new Date(reply.updated_at), { addSuffix: true })} |</div>
           <div onClick={handleReaction} className={cn('ml-4 font-medium hover:cursor-pointer hover:underline', isLiked && 'text-primary')}>
             Like
           </div>
@@ -131,30 +132,5 @@ export const Reply = ({ postId, reply, isAuthor }: { postId: string; reply: Repl
         </div>
       </div>
     </div>
-  );
-};
-
-const ReplyOptions = ({ handleDelete, handleEdit }: { handleDelete: () => void; handleEdit: () => void }) => {
-  const [isOpen, setIsOpen] = useState(false);
-
-  return (
-    <DropdownMenu onOpenChange={setIsOpen}>
-      <DropdownMenuTrigger
-        onClick={() => {
-          console.log('click');
-        }}
-        className={cn('invisible group-hover:visible', isOpen && 'visible')}
-      >
-        <EllipsisVertical />
-      </DropdownMenuTrigger>
-      <DropdownMenuContent className='w-[200px]'>
-        <DropdownMenuItem className='hover:cursor-pointer' onClick={handleDelete}>
-          <Trash2 className='mr-2' /> Delete
-        </DropdownMenuItem>
-        <DropdownMenuItem className='hover:cursor-pointer' onClick={handleEdit}>
-          <Pencil className='mr-2' onClick={handleEdit} /> Edit
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
   );
 };

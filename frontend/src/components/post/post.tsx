@@ -1,12 +1,12 @@
-import { Button } from '../ui/button';
 import { Skeleton } from '../ui/skeleton';
-import { EllipsisVertical } from 'lucide-react';
 import { CommentButton, LikeButton, ShareButton } from './post_buttons';
 import { Replies, ReplyType } from './replies';
 import type { User } from '@/providers/user-provider';
 import { useState } from 'react';
 import { ReplyInput } from './reply-input';
-import { PostOptions } from './post-optionst';
+import { PostOptions } from './post-options';
+import { formatDistanceToNowStrict } from 'date-fns';
+import { Globe, Lock } from 'lucide-react';
 
 interface Reaction {
   id: string;
@@ -20,7 +20,7 @@ export interface PostType {
   user_id: string;
   content: string;
   image: string;
-  privacy: ['public', 'private', 'almost private'];
+  privacy: 'public' | 'private' | 'almost_private';
   created_at: string;
   updated_at: string;
   user: User;
@@ -36,15 +36,22 @@ export const Post = ({ post, isLoading }: { post?: PostType; isLoading: boolean 
     return <Skeleton className='h-[340px] w-full rounded-xl' />;
   }
   const likeStatus = post.reaction.id ? true : false;
+  const privacyIcon = post.privacy === 'public' ? <Globe size={15} /> : <Lock size={15} />;
 
   return (
     <div className='h-max w-full rounded-xl border border-border px-6 pt-6'>
       <div className='mb-2 flex justify-between'>
         <div className='flex items-center space-x-2'>
           <div className='aspect-square h-[50px] rounded-full bg-secondary' />
-          <p className='capitalize'>
-            {post.user.first_name} {post.user.last_name}{' '}
-          </p>
+          <div className='flex flex-col'>
+            <p className='capitalize'>
+              {post.user.first_name} {post.user.last_name}{' '}
+            </p>
+            <div className='flex items-center space-x-1 text-neutral-400'>
+              <p className='text-sm '>{formatDistanceToNowStrict(new Date(post.updated_at), { addSuffix: true })}</p>
+              {privacyIcon}
+            </div>
+          </div>
         </div>
         <PostOptions post={post} />
       </div>

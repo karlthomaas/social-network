@@ -14,7 +14,6 @@ export const privacyStore = create((set) => ({
   visibleTo: [],
   toggleVisibleToUser: (id: string) => {
     set((state: any) => {
-      console.log(id);
       const index = state.visibleTo.indexOf(id);
       if (index === -1) {
         return { visibleTo: [...state.visibleTo, id] };
