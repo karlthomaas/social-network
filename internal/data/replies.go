@@ -75,14 +75,16 @@ func (m *ReplyModel) Get(id string) (*Reply, error) {
 	SELECT r.id, r.user_id, r.post_id, r.content, r.image, r.created_at, r.updated_at, u.first_name, u.last_name, react.user_id
 	FROM replies r
 	JOIN users u ON u.id = r.user_id
-	JOIN reactions react ON react.reply_id = r.id
-	WHERE id = ?
+	LEFT JOIN reactions react ON react.reply_id = r.id
+	WHERE r.id = ?
 	`
 
 	var r Reply
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
+
+	var RUserID sql.NullString
 
 	err := m.DB.QueryRowContext(ctx, query, id).Scan(
 		&r.ID,
@@ -94,7 +96,7 @@ func (m *ReplyModel) Get(id string) (*Reply, error) {
 		&r.UpdatedAt,
 		&r.User.FirstName,
 		&r.User.LastName,
-		&r.Reaction.UserID,
+		&RUserID,
 	)
 
 	if err != nil {
@@ -104,6 +106,12 @@ func (m *ReplyModel) Get(id string) (*Reply, error) {
 		default:
 			return nil, err
 		}
+	}
+
+	if !RUserID.Valid {
+		r.Reaction.UserID = ""
+	} else {
+		r.Reaction.UserID = RUserID.String
 	}
 
 	return &r, nil

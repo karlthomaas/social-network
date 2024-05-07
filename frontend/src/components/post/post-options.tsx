@@ -41,14 +41,14 @@ export const PostOptions = ({ post }: { post: PostType }) => {
   return (
     <CreatePost post={post}>
       <DropdownMenu>
-        <DropdownMenuTrigger>
-          <Button className='' variant='ghost' size='icon'>
+        <DropdownMenuTrigger asChild>
+          <Button variant='ghost' size='icon'>
             <EllipsisVertical />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent>
           <DialogTrigger asChild>
-            <DropdownMenuItem>
+            <DropdownMenuItem className='hover:cursor-pointer'>
               <Pencil size={17} className='mr-2' /> Edit
             </DropdownMenuItem>
           </DialogTrigger>

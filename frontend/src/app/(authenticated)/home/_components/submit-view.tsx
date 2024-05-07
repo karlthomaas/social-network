@@ -22,7 +22,7 @@ export const SubmitView = ({ isPending, post, onSubmit }: { isPending: boolean; 
         <DialogTitle className='text-lg'>Create Post</DialogTitle>
         <DialogDescription>
           <Button onClick={next} className='mt-2' variant='outline' size='sm'>
-            {capitalize(privacy)}
+            {capitalize(privacy === 'almost_private' ? 'Almost private' : privacy)}
           </Button>
         </DialogDescription>
       </DialogHeader>

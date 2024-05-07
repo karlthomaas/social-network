@@ -3,15 +3,20 @@
 import { create } from 'zustand';
 import React, { useEffect } from 'react';
 
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetcherWithOptions } from '@/lib/fetchers';
-import { Dialog } from '@/components/ui/dialog';
+import { Dialog, DialogTrigger } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 
 import { SubmitView } from './submit-view';
 import { PrivacyView } from './privacy-view';
-import { privacyStore } from './privacy-view';
 import { AlmostPrivateView } from './almost-private';
 import { PostType } from '@/components/post/post';
+import { useState } from 'react';
+import { toast } from '@/components/ui/use-toast';
+import { privacyStore } from './privacy-view';
+
+import { useQueryClient, useMutation } from '@tanstack/react-query';
+import { fetcherWithOptions } from '@/lib/fetchers';
+
 
 export const postStore = create((set) => ({
   view: 0,
@@ -24,6 +29,8 @@ export const postStore = create((set) => ({
 }));
 
 export const CreatePost = ({ children, post }: { children: React.ReactNode; post?: PostType }) => {
+  const [open, setOpen] = useState(false);
+
   const queryClient = useQueryClient();
   const view = postStore((state: any) => state.view);
   const reset = postStore((state: any) => state.reset);
@@ -53,25 +60,57 @@ export const CreatePost = ({ children, post }: { children: React.ReactNode; post
         },
       }),
     onSuccess: () => {
-      // Refresh the posts feed
       queryClient.invalidateQueries({ queryKey: ['posts'] });
+      setOpen(false);
+      resetStores();
+      if (post) {
+        toast({
+          title: 'Post updated',
+          description: 'Your post has been updated',
+        });
+      } else {
+        toast({
+          title: 'Post created',
+          description: 'Your post has been created',
+        });
+      }
+    },
+    onError: () => {
+      toast({
+        title: 'Something went wrong...',
+        description: 'Please try again later',
+        variant: 'destructive',
+      });
     },
   });
 
-  const onSubmit = () => {
-    mutation.mutate();
+  const resetStores = () => {
+    privacyStore.setState({ radioValue: 'public', visibleTo: [] });
+    reset();
   };
-  const views = [<SubmitView onSubmit={onSubmit} isPending={mutation.isPending} post={post} />, <PrivacyView />, <AlmostPrivateView />];
+
+  const views = [
+    <SubmitView onSubmit={() => mutation.mutate()} isPending={mutation.isPending} post={post} />,
+    <PrivacyView />,
+    <AlmostPrivateView />,
+  ];
 
   const handleModalState = (state: boolean) => {
-    if (state === true) return;
-    privacyStore.setState({ radioValue: 'public' });
-    reset();
+    if (post) {
+      postStore.setState({ postText: post.content });
+      postStore.setState({ privacy: post.privacy });
+    }
+
+    if (!state) {
+      resetStores();
+    }
+
+    setOpen(state);
   };
 
   return (
     <>
-      <Dialog onOpenChange={handleModalState}>
+      <Dialog open={open} onOpenChange={handleModalState}>
         {children}
         {views[view]}
       </Dialog>
