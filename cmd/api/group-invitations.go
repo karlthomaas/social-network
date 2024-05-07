@@ -9,6 +9,7 @@ import (
 )
 
 func (app *application) inviteToGroupHandler(w http.ResponseWriter, r *http.Request) {
+
 	user := app.contextGetUser(r)
 
 	groupID, err := app.readParam(r, "id")

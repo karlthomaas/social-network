@@ -98,7 +98,6 @@ func (m *GroupMemberModel) Delete(groupID, userID string) error {
 	return nil
 }
 
-
 func (m *GroupMemberModel) GetAllGroupMembers(groupID string) ([]*GroupMember, error) {
 	query := `SELECT group_id, user_id, created_at
 	FROM group_members
@@ -127,4 +126,32 @@ func (m *GroupMemberModel) GetAllGroupMembers(groupID string) ([]*GroupMember, e
 		members = append(members, &member)
 	}
 	return members, nil
+}
+
+func (m *GroupMemberModel) CheckIfMember(groupID, userID string) (*GroupMember, error) {
+	query := `
+	SELECT group_id, user_id, created_at
+	FROM group_members
+	WHERE group_id = ?
+	AND user_id = ?`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var member GroupMember
+
+	err := m.DB.QueryRowContext(ctx, query, groupID, userID).Scan(
+		&member.GroupID,
+		&member.UserID,
+		&member.CreatedAt,
+	)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ErrRecordNotFound
+		default:
+			return nil, err
+		}
+	}
+	return &member, nil
 }

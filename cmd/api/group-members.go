@@ -32,17 +32,17 @@ func (app *application) getAllGroupMembersHandler(w http.ResponseWriter, r *http
 		app.serverErrorResponse(w, r, err)
 	}
 
-	var isMember bool
-
-	for _, member := range members {
-		if member.UserID == user.ID {
-			isMember = true
+	_, err = app.models.GroupMembers.CheckIfMember(group.ID, user.ID)
+	if err != nil {
+		if errors.Is(err, data.ErrRecordNotFound) {
+			if (group.UserID != user.ID)  {
+				app.unAuthorizedResponse(w,r)
+				return
+			}
+		} else {
+			app.serverErrorResponse(w,r,err)
+			return
 		}
-	}
-
-	if !isMember && (group.UserID != user.ID) {
-		app.unAuthorizedResponse(w, r)
-		return
 	}
 
 	err = app.writeJSON(w, http.StatusOK, envelope{"members": members}, nil)
