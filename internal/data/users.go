@@ -265,38 +265,3 @@ func ValidateUserUpdate(v *validator.Validator, user *User) {
 
 	ValidateEmail(v, user.Email)
 }
-
-func (m *UserModel) GetInvitableUsers(groupID, userID string) ([]*User, error) {
-	query := `
-	SELECT u.id, u.first_name, u.last_name
-	FROM users u
-	JOIN followers f ON f.follower_id = u.id 
-	LEFT JOIN group_members gm ON gm.user_id != u.id
-	AND group_id = ?
-	WHERE f.user_id = ?
-	`
-
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
-
-	rows, err := m.DB.QueryContext(ctx, query, groupID, userID)
-	if err != nil {
-		return nil, err
-	}
-
-	users := []*User{}
-
-	for rows.Next() {
-		var user User
-		err = rows.Scan(
-			&user.ID,
-			&user.FirstName,
-			&user.LastName,
-		)
-		if err != nil {
-			return nil, err
-		}
-		users = append(users, &user)
-	}
-	return users, nil
-}

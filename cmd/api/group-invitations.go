@@ -217,12 +217,43 @@ func (app *application) getInvitableUsersHandler(w http.ResponseWriter, r *http.
 		return
 	}
 
-	users, err := app.models.Users.GetInvitableUsers(groupID, user.ID)
+	members, err := app.models.GroupMembers.GetAllGroupMembers(groupID)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
 
-	err = app.writeJSON(w, http.StatusOK, envelope{"user": users}, nil)
+	followers, err := app.models.Followers.GetAllForUser(user.ID)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	// invitations, err := app.models.GroupInvitations.GetYourInvitations(groupID, user.ID)
+	// if err != nil {
+	// 	app.serverErrorResponse(w, r, err)
+	// 	return
+	// }
+
+	invitable := []*data.Follower{}
+
+	for _, follower := range followers {
+		if len(members) == 0 {
+			invitable = followers
+		}
+
+		if len(members) > 0 {
+			for _, member := range members {
+				fmt.Println(member.UserID)
+				if follower.FollowerID == member.UserID {
+					continue
+				} else {
+					invitable = append(invitable, follower)
+				}
+			}
+		}
+	}
+
+	err = app.writeJSON(w, http.StatusOK, envelope{"user": invitable}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
