@@ -96,10 +96,11 @@ func (app *application) routes() http.Handler {
 	router.HandleFunc("POST /api/groups/{id}/group_invitations",
 		app.ValidateJwt(app.acceptInvitationHandler))
 	router.HandleFunc("GET /api/groups/{id}/invitations",
-		app.ValidateJwt(app.getAllInvitedUsersHandler))
+		app.ValidateJwt(app.getMyInvitedUsersHandler))
 	router.HandleFunc("GET /api/users/{id}/group_invitations",
 		app.ValidateJwt(app.getAllGroupInvitationsHandler))
-
+	router.HandleFunc("GET /api/groups/{id}/invitable_users",
+		app.ValidateJwt(app.getInvitableUsersHandler))
 	router.HandleFunc("GET /api/groups/{id}/members",
 		app.ValidateJwt(app.getAllGroupMembersHandler))
 

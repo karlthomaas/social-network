@@ -7,7 +7,7 @@ import (
 	"slices"
 	"social-network/internal/validator"
 	"time"
-	
+
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -227,7 +227,6 @@ func (p *password) Matches(plainTextPassword string) (bool, error) {
 	return true, nil
 }
 
-
 func ValidateEmail(v *validator.Validator, email string) {
 	v.Check(email != "", "email", "must be provided")
 	v.Check(validator.Matches(email, *validator.EmailRX), "email", "must be a valid email address")
@@ -265,4 +264,39 @@ func ValidateUserUpdate(v *validator.Validator, user *User) {
 	v.Check(slices.Contains(privacies, user.Privacy), "privacy", `must be one of these types: "public", "private",`)
 
 	ValidateEmail(v, user.Email)
+}
+
+func (m *UserModel) GetInvitableUsers(groupID, userID string) ([]*User, error) {
+	query := `
+	SELECT u.id, u.first_name, u.last_name
+	FROM users u
+	JOIN followers f ON f.follower_id = u.id 
+	LEFT JOIN group_members gm ON gm.user_id != u.id
+	AND group_id = ?
+	WHERE f.user_id = ?
+	`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	rows, err := m.DB.QueryContext(ctx, query, groupID, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	users := []*User{}
+
+	for rows.Next() {
+		var user User
+		err = rows.Scan(
+			&user.ID,
+			&user.FirstName,
+			&user.LastName,
+		)
+		if err != nil {
+			return nil, err
+		}
+		users = append(users, &user)
+	}
+	return users, nil
 }

@@ -14,6 +14,7 @@ var (
 
 type GroupInvitation struct {
 	GroupID   string    `json:"group_id"`
+	InvitedBy string    `json:"invited_by"`
 	UserID    string    `json:"user_id"`
 	CreatedAt time.Time `json:"created_at"`
 }
@@ -24,13 +25,14 @@ type GroupInvitationModel struct {
 
 func (m *GroupInvitationModel) Insert(gi *GroupInvitation) error {
 	query := `INSERT INTO group_invitations
-	(group_id, user_id) VALUES (?,?)`
+	(group_id, invited_by, user_id) VALUES (?,?,?)`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
 	args := []interface{}{
 		gi.GroupID,
+		gi.InvitedBy,
 		gi.UserID,
 	}
 	_, err := m.DB.ExecContext(ctx, query, args...)
@@ -72,7 +74,7 @@ func (m *GroupInvitationModel) Delete(groupID, userID string) error {
 
 func (m *GroupInvitationModel) Get(groupID, userID string) (*GroupInvitation, error) {
 	query := `
-	SELECT group_id, user_id, created_at
+	SELECT group_id, invited_by, user_id, created_at
 	FROM group_invitations
 	WHERE group_id = ?
 	AND user_id = ?`
@@ -84,6 +86,7 @@ func (m *GroupInvitationModel) Get(groupID, userID string) (*GroupInvitation, er
 
 	err := m.DB.QueryRowContext(ctx, query, groupID, userID).Scan(
 		&gi.GroupID,
+		&gi.InvitedBy,
 		&gi.UserID,
 		&gi.CreatedAt,
 	)
@@ -149,6 +152,37 @@ func (m *GroupInvitationModel) GetAllForUser(userID string) ([]*GroupInvitation,
 		var invitation GroupInvitation
 		err = rows.Scan(
 			&invitation.GroupID,
+			&invitation.UserID,
+			&invitation.CreatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+		invitations = append(invitations, &invitation)
+	}
+	return invitations, nil
+}
+
+func (m *GroupInvitationModel) GetYourInvitations(groupID, userID string) ([]*GroupInvitation, error) {
+	query := `SELECT group_id, invited_by, user_id, created_at
+	FROM group_invitations
+	WHERE group_id = ? AND invited_by = ?`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	rows, err := m.DB.QueryContext(ctx, query, groupID, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	invitations := []*GroupInvitation{}
+
+	for rows.Next() {
+		var invitation GroupInvitation
+		err = rows.Scan(
+			&invitation.GroupID,
+			&invitation.InvitedBy,
 			&invitation.UserID,
 			&invitation.CreatedAt,
 		)

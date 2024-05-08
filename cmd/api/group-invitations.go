@@ -9,7 +9,7 @@ import (
 )
 
 func (app *application) inviteToGroupHandler(w http.ResponseWriter, r *http.Request) {
-
+	/* Route that handles HTTP requests for inviting a user to a group */
 	user := app.contextGetUser(r)
 
 	groupID, err := app.readParam(r, "id")
@@ -24,7 +24,6 @@ func (app *application) inviteToGroupHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-
 	group, err := app.models.Groups.Get(groupID)
 	if err != nil {
 		switch {
@@ -37,15 +36,24 @@ func (app *application) inviteToGroupHandler(w http.ResponseWriter, r *http.Requ
 	}
 	v := validator.New()
 
-	if user.ID != group.UserID {
+	member, err := app.models.GroupMembers.CheckIfMember(group.ID, user.ID)
+	if err != nil {
+		switch {
+		case !errors.Is(err, data.ErrRecordNotFound):
+			app.serverErrorResponse(w, r, err)
+			return
+		}
+	}
+
+	if user.ID != group.UserID && member == nil {
 		app.unAuthorizedResponse(w, r)
 		return
 	}
 
 	invitedUser, err := app.models.GroupMembers.Get(invitedUserID)
-	if err != nil  {
+	if err != nil {
 		if !errors.Is(err, data.ErrRecordNotFound) {
-			app.serverErrorResponse(w,r,err)
+			app.serverErrorResponse(w, r, err)
 			return
 		}
 	}
@@ -61,8 +69,9 @@ func (app *application) inviteToGroupHandler(w http.ResponseWriter, r *http.Requ
 	}
 
 	invitation := &data.GroupInvitation{
-		GroupID: group.ID,
-		UserID:  invitedUserID,
+		GroupID:   group.ID,
+		InvitedBy: user.ID,
+		UserID:    invitedUserID,
 	}
 
 	if data.ValidateGroupInvitation(v, invitation); !v.Valid() {
@@ -90,6 +99,8 @@ func (app *application) inviteToGroupHandler(w http.ResponseWriter, r *http.Requ
 }
 
 func (app *application) acceptInvitationHandler(w http.ResponseWriter, r *http.Request) {
+	/* Route that is used for accepting incoming group invitations */
+
 	user := app.contextGetUser(r)
 
 	groupID, err := app.readParam(r, "id")
@@ -151,6 +162,8 @@ func (app *application) getAllInvitedUsersHandler(w http.ResponseWriter, r *http
 }
 
 func (app *application) getAllGroupInvitationsHandler(w http.ResponseWriter, r *http.Request) {
+	/* Route that shows all incoming group invitations */
+
 	userID, err := app.readParam(r, "id")
 	if err != nil {
 		app.notFoundResponse(w, r)
@@ -168,6 +181,48 @@ func (app *application) getAllGroupInvitationsHandler(w http.ResponseWriter, r *
 	}
 
 	err = app.writeJSON(w, http.StatusOK, envelope{"invitations": invitations}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+}
+
+func (app *application) getMyInvitedUsersHandler(w http.ResponseWriter, r *http.Request) {
+	user := app.contextGetUser(r)
+
+	groupID, err := app.readParam(r, "id")
+	if err != nil {
+		app.notFoundResponse(w, r)
+		return
+	}
+
+	invitations, err := app.models.GroupInvitations.GetYourInvitations(groupID, user.ID)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+
+	err = app.writeJSON(w, http.StatusOK, envelope{"invitations": invitations}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+}
+
+func (app *application) getInvitableUsersHandler(w http.ResponseWriter, r *http.Request) {
+	user := app.contextGetUser(r)
+
+	groupID, err := app.readParam(r, "id")
+	if err != nil {
+		app.notFoundResponse(w, r)
+		return
+	}
+
+	users, err := app.models.Users.GetInvitableUsers(groupID, user.ID)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+
+	err = app.writeJSON(w, http.StatusOK, envelope{"user": users}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return

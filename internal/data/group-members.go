@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"time"
 )
 
@@ -62,7 +61,6 @@ func (m *GroupMemberModel) Get(userID string) (*GroupMember, error) {
 	)
 
 	if err != nil {
-		fmt.Println("error", err)
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return nil, ErrRecordNotFound

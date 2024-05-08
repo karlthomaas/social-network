@@ -8,6 +8,7 @@ import (
 )
 
 func (app *application) addGroupRequestHandler(w http.ResponseWriter, r *http.Request) {
+	/* Route that allows user to create join request into a group */
 	user := app.contextGetUser(r)
 
 	groupID, err := app.readParam(r, "id")
