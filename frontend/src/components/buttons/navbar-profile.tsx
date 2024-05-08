@@ -67,6 +67,9 @@ export const NavbarProfile = () => {
           <Link href={`/profile/${user.nickname}`}>Profile</Link>
         </DropdownMenuItem>
         <DropdownMenuItem>
+          <Link href='/groups'>Groups</Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
           <Link href='/settings'>Settings</Link>
         </DropdownMenuItem>
         <DropdownMenuItem  className="hover:cursor-pointer" onClick={() => mutation.mutate()}>Logout</DropdownMenuItem>

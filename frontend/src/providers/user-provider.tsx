@@ -36,7 +36,7 @@ export const useSession = () => {
   return useContext(SessionContext);
 };
 
-export interface User {
+export interface UserType {
   id: string;
   about_me: string;
   date_of_birth: string;
@@ -49,6 +49,6 @@ export interface User {
 }
 
 interface ContextProps {
-  user: User | null;
+  user: UserType | null;
   isLoading: boolean;
 }
