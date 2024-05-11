@@ -29,5 +29,5 @@ export const RequestButton = ({ group_id }: { group_id: string }) => {
 };
 
 export const InviteButton = () => {
-  return <Button asChild>Invite</Button>;
+  return <Button>Invite followers</Button>;
 };
