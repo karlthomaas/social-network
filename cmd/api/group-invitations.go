@@ -178,6 +178,7 @@ func (app *application) getAllGroupInvitationsHandler(w http.ResponseWriter, r *
 	invitations, err := app.models.GroupInvitations.GetAllForUser(user.ID)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
+		return
 	}
 
 	err = app.writeJSON(w, http.StatusOK, envelope{"invitations": invitations}, nil)
@@ -193,6 +194,17 @@ func (app *application) getMyInvitedUsersHandler(w http.ResponseWriter, r *http.
 	groupID, err := app.readParam(r, "id")
 	if err != nil {
 		app.notFoundResponse(w, r)
+		return
+	}
+
+	_, err = app.models.Groups.Get(groupID)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w,r)
+		default:
+			app.serverErrorResponse(w,r,err)
+		}
 		return
 	}
 
@@ -228,34 +240,83 @@ func (app *application) getInvitableUsersHandler(w http.ResponseWriter, r *http.
 		return
 	}
 
-	// invitations, err := app.models.GroupInvitations.GetYourInvitations(groupID, user.ID)
-	// if err != nil {
-	// 	app.serverErrorResponse(w, r, err)
-	// 	return
-	// }
-
 	invitable := []*data.Follower{}
 
-	for _, follower := range followers {
-		if len(members) == 0 {
-			invitable = followers
-		}
-
-		if len(members) > 0 {
-			for _, member := range members {
-				fmt.Println(member.UserID)
-				if follower.FollowerID == member.UserID {
-					continue
-				} else {
+	if len(members) == 0 {
+		invitable = followers
+	} else {
+		for _, follower := range followers {
+			var isMember bool
+			if follower.UserID == user.ID {
+				for _, member := range members {
+					if member.UserID == follower.FollowerID {
+						isMember = true
+						break
+					}
+				}
+				if !isMember {
 					invitable = append(invitable, follower)
 				}
+				
 			}
 		}
-	}
+	} 
+
+	fmt.Println(invitable)
 
 	err = app.writeJSON(w, http.StatusOK, envelope{"user": invitable}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
+		return
+	}
+}
+
+
+func (app *application) deleteGroupInvitationHandler(w http.ResponseWriter, r *http.Request) {
+	user := app.contextGetUser(r)
+
+	groupID, err := app.readParam(r, "id")
+	if err != nil {
+		app.notFoundResponse(w,r)
+		return
+	}
+
+	userID, err := app.readParam(r, "userID")
+	if err != nil {
+		app.notFoundResponse(w,r)
+		return
+	}
+
+	invitation, err := app.models.GroupInvitations.Get(groupID, userID)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w,r)
+		default:
+			app.serverErrorResponse(w,r,err)
+		}
+		return
+	}
+
+	if invitation.InvitedBy != user.ID {
+		app.unAuthorizedResponse(w,r)
+		return
+	}
+
+	err = app.models.GroupInvitations.Delete(groupID, userID)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w,r)
+		default:
+			app.serverErrorResponse(w,r,err)
+		}
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusOK, envelope{"message":"invitation cancelled"},nil)
+	if err != nil {
+		app.serverErrorResponse(w,r,err)
 		return
 	}
 }

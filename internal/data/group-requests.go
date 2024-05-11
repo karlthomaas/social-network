@@ -15,6 +15,7 @@ type GroupRequest struct {
 	GroupID   string `json:"group_id"`
 	UserID    string `json:"user_id"`
 	CreatedAt string `json:"created_at"`
+	User      User   `json:"user"`
 }
 
 type GroupRequestModel struct {
@@ -102,8 +103,9 @@ func (m *GroupRequestModel) Get(groupID, userID string) (*GroupRequest, error) {
 }
 
 func (m *GroupRequestModel) GetAllGroupRequests(groupID string) ([]*GroupRequest, error) {
-	query := `SELECT group_id, user_id, created_at
-	FROM group_requests
+	query := `SELECT gr.group_id, gr.user_id, gr.created_at, u.first_name, u.last_name
+	FROM group_requests gr
+	LEFT JOIN users u ON u.id = gr.user_id
 	WHERE group_id = ?`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -122,6 +124,8 @@ func (m *GroupRequestModel) GetAllGroupRequests(groupID string) ([]*GroupRequest
 			&request.GroupID,
 			&request.UserID,
 			&request.CreatedAt,
+			&request.User.FirstName,
+			&request.User.LastName,
 		)
 		if err != nil {
 			return nil, err
@@ -130,6 +134,3 @@ func (m *GroupRequestModel) GetAllGroupRequests(groupID string) ([]*GroupRequest
 	}
 	return requests, nil
 }
-
-
-
