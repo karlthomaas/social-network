@@ -8,8 +8,10 @@ import { toast } from '../ui/use-toast';
 import { fetcherWithOptions } from '@/lib/fetchers';
 import { CreatePost } from '@/app/(authenticated)/home/_components/create-post';
 import { DialogTrigger } from '@radix-ui/react-dialog';
+import { useState } from 'react';
 
 export const PostOptions = ({ post }: { post: PostType }) => {
+  const [postHolder, PostHolder] = useState(null);
   const queryClient = useQueryClient();
 
   const deleteMutation = useMutation({

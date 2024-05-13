@@ -2,7 +2,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTrigger } from '@/components
 import { Button } from '@/components/ui/button';
 import { GroupInviteContent } from './group-invite-content';
 
-export const GroupInvite = ({ group_id }: { group_id: string }) => {
+export const GroupInvite = ({ groupId }: { groupId: string }) => {
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -10,7 +10,7 @@ export const GroupInvite = ({ group_id }: { group_id: string }) => {
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>Invite friends to Group</DialogHeader>
-        <GroupInviteContent group_id={group_id} />
+        <GroupInviteContent groupId={groupId} />
       </DialogContent>
     </Dialog>
   );

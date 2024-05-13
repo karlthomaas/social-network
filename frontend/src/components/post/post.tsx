@@ -1,7 +1,7 @@
 import { Skeleton } from '../ui/skeleton';
 import { CommentButton, LikeButton, ShareButton } from './post_buttons';
 import { Replies, ReplyType } from './replies';
-import type { User } from '@/providers/user-provider';
+import { UserType } from '@/providers/user-provider';
 import { useState } from 'react';
 import { ReplyInput } from './reply-input';
 import { PostOptions } from './post-options';
@@ -23,7 +23,7 @@ export interface PostType {
   privacy: 'public' | 'private' | 'almost_private';
   created_at: string;
   updated_at: string;
-  user: User;
+  user: UserType;
   reaction: Reaction;
   reactions: number;
 }

@@ -16,7 +16,7 @@ import { privacyStore } from './privacy-view';
 
 import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { fetcherWithOptions } from '@/lib/fetchers';
-
+import { GroupType } from '../../groups/page';
 
 export const postStore = create((set) => ({
   view: 0,
@@ -28,7 +28,7 @@ export const postStore = create((set) => ({
   deincrement: () => set((state: any) => ({ view: state.view - 1 })),
 }));
 
-export const CreatePost = ({ children, post }: { children: React.ReactNode; post?: PostType }) => {
+export const CreatePost = ({ children, post, mutationKeys=['posts'], group }: { children: React.ReactNode; post?: PostType; mutationKeys?: string[]; group?: GroupType }) => {
   const [open, setOpen] = useState(false);
 
   const queryClient = useQueryClient();
@@ -39,18 +39,28 @@ export const CreatePost = ({ children, post }: { children: React.ReactNode; post
   const visibleTo = postStore((state: any) => state.visibleTo);
 
   useEffect(() => {
-    if (post) {
-      console.log(post);
+    if (post && open) {
       postStore.setState({ postText: post.content });
       postStore.setState({ privacy: post.privacy });
     }
   }, []);
 
   const mutation = useMutation({
-    mutationKey: ['posts'],
-    mutationFn: () =>
-      fetcherWithOptions({
-        url: post ? `/api/posts/${post.id}` : '/api/posts',
+    mutationKey: mutationKeys,
+    mutationFn: () => {
+      let url;
+      if (group && post) {
+        url = `/api/groups/${group.id}/posts/${post.id}`;
+      } else if (group && !post) {
+        url = `/api/groups/${group.id}/posts`;
+      } else if (!group && post) {
+        url = `/api/posts/${post.id}`;
+      } else {
+        url = '/api/posts';
+      }
+
+      return fetcherWithOptions({
+        url,
         method: post ? 'PATCH' : 'POST',
         body: {
           content: postText,
@@ -58,9 +68,10 @@ export const CreatePost = ({ children, post }: { children: React.ReactNode; post
           image: null,
           visible_to: visibleTo,
         },
-      }),
+      });
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['posts'] });
+      queryClient.invalidateQueries({ queryKey: mutationKeys });
       setOpen(false);
       resetStores();
       if (post) {
@@ -89,14 +100,14 @@ export const CreatePost = ({ children, post }: { children: React.ReactNode; post
     reset();
   };
 
-  const views = [
-    <SubmitView onSubmit={() => mutation.mutate()} isPending={mutation.isPending} post={post} />,
-    <PrivacyView />,
-    <AlmostPrivateView />,
-  ];
+  let views = [<SubmitView onSubmit={() => mutation.mutate()} isPending={mutation.isPending} showPrivacyOptions={!group} />];
+
+  if (!group) {
+    views = [...views, <PrivacyView />, <AlmostPrivateView />];
+  }
 
   const handleModalState = (state: boolean) => {
-    if (post) {
+    if (post) { 
       postStore.setState({ postText: post.content });
       postStore.setState({ privacy: post.privacy });
     }
@@ -104,7 +115,6 @@ export const CreatePost = ({ children, post }: { children: React.ReactNode; post
     if (!state) {
       resetStores();
     }
-
     setOpen(state);
   };
 

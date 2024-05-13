@@ -5,16 +5,21 @@ import { fetcherWithOptions } from '@/lib/fetchers';
 import { LoadingSpinner } from '@/components/ui/spinners';
 import { toast } from '@/components/ui/use-toast';
 import { FollowerType } from './group-invite-content';
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export const GroupInviteUser = ({ isInvited, groupId, follower }: { isInvited: boolean; groupId: string; follower: FollowerType }) => {
+  const [buttonText, setButtonText] = useState('');
   const isInvitedRef = useRef(isInvited);
+
+  useEffect(() => {
+    setButtonText(isInvited ? 'Cancel' : 'Invite')
+  }, []);
 
   const mutation = useMutation({
     mutationKey: ['group-invite'],
     mutationFn: async () => {
       const url = isInvitedRef.current
-        ? `/api/groups/${groupId}/requests/users/${follower.follower_id}`
+        ? `/api/groups/${groupId}/group_invitations/users/${follower.follower_id}`
         : `/api/groups/${groupId}/users/${follower.follower_id}`;
 
       const method = isInvitedRef.current ? 'DELETE' : 'POST';
@@ -22,6 +27,7 @@ export const GroupInviteUser = ({ isInvited, groupId, follower }: { isInvited: b
     },
     onSuccess: () => {
       isInvitedRef.current = !isInvitedRef.current;
+      setButtonText(isInvitedRef.current ? 'Invited' : 'Cancelled');
     },
     onError: () => {
       toast({
@@ -32,14 +38,6 @@ export const GroupInviteUser = ({ isInvited, groupId, follower }: { isInvited: b
     },
   });
 
-  let buttonText;
-  if (mutation.isPending) {
-    buttonText = <LoadingSpinner />;
-  } else if (isInvitedRef.current) {
-    buttonText = mutation.isSuccess ? 'Invite' : 'Cancel';
-  } else {
-    buttonText = mutation.isSuccess ? 'Invited' : 'Invite';
-  }
 
   return (
     <div className='flex h-[75px] items-center rounded-lg border border-border p-4'>

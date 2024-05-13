@@ -8,12 +8,22 @@ import { GroupInvite } from './_components/group-invite';
 import { RequestButton } from './_components/buttons';
 import { GroupJoinRequests } from './_components/group-join-requests';
 import { useSession } from '@/providers/user-provider';
+import { useEffect, useState } from 'react';
+import { GroupLeaveButton } from './_components/group-leave-button';
+import { CreatePost } from '../../home/_components/create-post';
+import { DialogTrigger } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { GroupFeed } from './_components/group-feed';
+import { CreateEvent } from '@/components/event/create-event';
 
 interface GroupQueryResponse {
   group: GroupType;
 }
 
 export default function GroupPage({ params }: { params: { id: string } }) {
+  const [isOwner, setIsOwner] = useState(false);
+  const [isMember, setIsMember] = useState(false);
+
   const { user } = useSession();
   // Fetches the group details
   const groupQuery = useQuery<GroupQueryResponse>({
@@ -29,6 +39,18 @@ export default function GroupPage({ params }: { params: { id: string } }) {
     retry: 1,
   });
 
+  useEffect(() => {
+    if (isMemberQuery.data) {
+      setIsMember(true);
+    }
+  }, [isMemberQuery.data]);
+
+  useEffect(() => {
+    if (groupQuery.data && user?.id === groupQuery.data.group.user_id) {
+      setIsOwner(true);
+    }
+  }, [groupQuery.data, user?.id]);
+
   if (groupQuery.isLoading || isMemberQuery.isLoading) {
     return <div>Loading...</div>;
   }
@@ -37,12 +59,28 @@ export default function GroupPage({ params }: { params: { id: string } }) {
     return <div>Group not found</div>;
   }
 
-  console.log(groupQuery.data);
   return (
-    <div className='flex flex-col'>
+    <div className='flex flex-col space-y-5'>
       <GroupDetails title={groupQuery.data.group.title} description={groupQuery.data.group.description} />
-      <div>{!isMemberQuery.data ? <RequestButton group_id={params.id} /> : <GroupInvite group_id={params.id} />}</div>
-      {user?.id === groupQuery.data.group.user_id && <GroupJoinRequests groupId={params.id} />}
+      <div className='flex space-x-2'>
+      {isMember ? <GroupInvite groupId={params.id} /> : <RequestButton groupId={params.id} />}
+      {!isOwner && isMember && <GroupLeaveButton groupId={params.id} />}
+      {isMember && <CreateEvent groupId={params.id} />}
+      {isOwner && <GroupJoinRequests groupId={params.id} />}
+      </div>
+      <div className='flex h-[80px] w-full items-center rounded-xl border border-border bg-background px-3'>
+        <div className='aspect-square w-[50px] rounded-full bg-secondary' />
+        <CreatePost mutationKeys={['group-feed']} group={groupQuery.data.group}>
+          <DialogTrigger asChild>
+            <Button className='ml-3 w-full justify-start' variant='outline'>
+              What's on your mind?
+            </Button>
+          </DialogTrigger>
+        </CreatePost>
+      </div>
+      <div>
+        <GroupFeed groupId={params.id} />
+      </div>
     </div>
   );
 }

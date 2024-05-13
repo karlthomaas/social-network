@@ -12,20 +12,20 @@ export interface FollowerType {
 }
 
 interface Invitation {
-  group_id: string;
+  groupId: string;
   invited_by: string;
   user_id: string;
 }
 
-export const GroupInviteContent = ({ group_id }: { group_id: string }) => {
+export const GroupInviteContent = ({ groupId }: { groupId: string }) => {
   const usersQuery = useQuery({
     queryKey: ['friends'],
-    queryFn: async () => fetcher(`/api/groups/${group_id}/invitable_users`),
+    queryFn: async () => fetcher(`/api/groups/${groupId}/invitable_users`),
   });
 
   const invitationsQuery = useQuery({
     queryKey: ['invitations'],
-    queryFn: async () => fetcher(`/api/groups/${group_id}/invitations`),
+    queryFn: async () => fetcher(`/api/groups/${groupId}/invitations`),
   });
 
   if (usersQuery.isError || invitationsQuery.isError) {
@@ -44,7 +44,7 @@ export const GroupInviteContent = ({ group_id }: { group_id: string }) => {
         <GroupInviteUser
           key={follower.user_id}
           isInvited={invitedUserIds.includes(follower.follower_id)}
-          groupId={group_id}
+          groupId={groupId}
           follower={follower}
         />
       ))}
