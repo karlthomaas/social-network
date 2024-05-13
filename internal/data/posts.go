@@ -23,6 +23,7 @@ type Post struct {
 	ID        string    `json:"id"`
 	UserID    string    `json:"user_id"`
 	Content   string    `json:"content"`
+	GroupID   string    `json:"group_id"`
 	Image     []byte    `json:"image"`
 	Privacy   string    `json:"privacy"`
 	CreatedAt time.Time `json:"created_at"`
@@ -40,7 +41,7 @@ type PostVisibility struct {
 
 func (m *PostModel) Get(id string) (*Post, error) {
 	query := `
-	SELECT p.id, p.user_id, p.content, p.image, p.privacy, p.created_at, p.updated_at, u.first_name, u.last_name, r.user_id
+	SELECT p.id, p.user_id, p.content, p.group_id, p.image, p.privacy, p.created_at, p.updated_at, u.first_name, u.last_name, r.user_id
 	FROM posts p 
 	JOIN users u ON p.user_id = u.id
 	LEFT JOIN reactions r ON p.id = r.post_id
@@ -57,6 +58,7 @@ func (m *PostModel) Get(id string) (*Post, error) {
 		&post.ID,
 		&post.UserID,
 		&post.Content,
+		&post.GroupID,
 		&post.Image,
 		&post.Privacy,
 		&post.CreatedAt,
@@ -86,8 +88,8 @@ func (m *PostModel) Get(id string) (*Post, error) {
 
 func (m *PostModel) Insert(post *Post) error {
 	query := `
-		INSERT INTO posts (id, user_id, content, image, privacy, updated_at)
-		VALUES (?,?,?,?,?,?)`
+		INSERT INTO posts (id, user_id, content, group_id, image, privacy, updated_at)
+		VALUES (?,?,?,?,?,?,?)`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -96,6 +98,7 @@ func (m *PostModel) Insert(post *Post) error {
 		post.ID,
 		post.UserID,
 		post.Content,
+		post.GroupID,
 		post.Image,
 		post.Privacy,
 		post.UpdatedAt,
@@ -162,7 +165,7 @@ func (m *PostModel) Delete(id string) error {
 
 func (m *PostModel) GetAllForUser(userID string, loggedInUser string) ([]*Post, error) {
 	query := `
-	SELECT p.id, p.user_id, p.content, p.image, p.privacy, p.created_at, p.updated_at, u.first_name, u.last_name, r.id
+	SELECT p.id, p.user_id, p.content, p.group_id ,p.image, p.privacy, p.created_at, p.updated_at, u.first_name, u.last_name, r.id
 	FROM posts p 
 	JOIN users u ON p.user_id = u.id
 	LEFT JOIN reactions r ON p.id = r.post_id
@@ -188,6 +191,7 @@ func (m *PostModel) GetAllForUser(userID string, loggedInUser string) ([]*Post, 
 			&post.ID,
 			&post.UserID,
 			&post.Content,
+			&post.GroupID,
 			&post.Image,
 			&post.Privacy,
 			&post.CreatedAt,
@@ -220,7 +224,7 @@ func (m *PostModel) GetAllForUser(userID string, loggedInUser string) ([]*Post, 
 func (m *PostModel) GetAll(loggedInUser string) ([]*Post, error) {
 
 	query := `
-	SELECT p.id, p.user_id, p.content, p.image, p.privacy, p.created_at, p.updated_at, 
+	SELECT p.id, p.user_id, p.content, p.group_id,p.image, p.privacy, p.created_at, p.updated_at, 
 	u.first_name, u.last_name, r.id
 	FROM posts p 
 	JOIN users u ON p.user_id = u.id
@@ -251,6 +255,7 @@ func (m *PostModel) GetAll(loggedInUser string) ([]*Post, error) {
 			&post.ID,
 			&post.UserID,
 			&post.Content,
+			&post.GroupID,
 			&post.Image,
 			&post.Privacy,
 			&post.CreatedAt,
@@ -403,6 +408,65 @@ func (m *PostModel) UpdatePostVisibilities(postID string, newUserIDs, currentUse
 		}
 	}
 	return nil
+}
+
+func (m *PostModel) GetAllGroupPosts(groupID, loggedInUser string) ([]*Post, error) {
+	query := `
+	SELECT p.id, p.user_id, p.content, p.group_id, p.image, p.privacy, p.created_at, p.updated_at, 
+	u.first_name, u.last_name, r.id
+	FROM posts p 
+	JOIN users u ON p.user_id = u.id
+	LEFT JOIN reactions r ON p.id = r.post_id AND r.user_id = ?
+	WHERE p.group_id = ?
+	ORDER BY p.created_at DESC
+	`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	rows, err := m.DB.QueryContext(ctx, query, loggedInUser,groupID)
+	if err != nil {
+		return nil, err
+	}
+
+	posts := []*Post{}
+
+	for rows.Next() {
+		var post Post
+		var reactionID sql.NullString
+
+		err := rows.Scan(
+			&post.ID,
+			&post.UserID,
+			&post.Content,
+			&post.GroupID,
+			&post.Image,
+			&post.Privacy,
+			&post.CreatedAt,
+			&post.UpdatedAt,
+			&post.User.FirstName,
+			&post.User.LastName,
+			&reactionID,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		if !reactionID.Valid {
+			post.Reaction.ID = ""
+		} else {
+			post.Reaction.ID = reactionID.String
+		}
+
+		posts = append(posts, &post)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return posts, nil
 }
 
 func ValidatePost(v *validator.Validator, post *Post) {
