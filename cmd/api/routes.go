@@ -115,5 +115,15 @@ func (app *application) routes() http.Handler {
 	router.HandleFunc("GET /api/groups/{id}/requests",
 		app.ValidateJwt(app.getAllGroupRequestsHandler))
 
+	router.HandleFunc("POST /api/groups/{id}/posts",
+		app.ValidateJwt(app.createGroupPostHandler))
+	router.HandleFunc("GET /api/groups/{id}/posts",
+		app.ValidateJwt(app.getAllGroupPosts))
+
+	router.HandleFunc("POST /api/groups/{id}/group_events",
+		app.ValidateJwt(app.createGroupEventHandler))
+	router.HandleFunc("DELETE /api/groups/{id}/group_events/{eventID}",
+		app.ValidateJwt(app.deleteGroupEventHandler))
+
 	return app.RecoverPanic(app.rateLimit(app.SecureHeaders(app.LogRequest(router))))
 }
