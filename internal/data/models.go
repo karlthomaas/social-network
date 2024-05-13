@@ -22,6 +22,7 @@ type Models struct {
 	GroupInvitations GroupInvitationModel
 	GroupMembers     GroupMemberModel
 	GroupRequests    GroupRequestModel
+	GroupEvents      GroupEventModel
 }
 
 func NewModels(db *sql.DB) Models {
@@ -37,5 +38,6 @@ func NewModels(db *sql.DB) Models {
 		GroupInvitations: GroupInvitationModel{DB: db},
 		GroupMembers:     GroupMemberModel{DB: db},
 		GroupRequests:    GroupRequestModel{DB: db},
+		GroupEvents:      GroupEventModel{DB: db},
 	}
 }
