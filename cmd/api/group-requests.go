@@ -186,13 +186,12 @@ func (app *application) deleteGroupRequestHandler(w http.ResponseWriter, r *http
 	}
 }
 
-
 func (app *application) getAllGroupRequestsHandler(w http.ResponseWriter, r *http.Request) {
 	user := app.contextGetUser(r)
 
-	groupID, err := app.readParam(r,"id")
+	groupID, err := app.readParam(r, "id")
 	if err != nil {
-		app.notFoundResponse(w,r)
+		app.notFoundResponse(w, r)
 		return
 	}
 
@@ -200,31 +199,71 @@ func (app *application) getAllGroupRequestsHandler(w http.ResponseWriter, r *htt
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
-			app.notFoundResponse(w,r)
+			app.notFoundResponse(w, r)
 		default:
-			app.serverErrorResponse(w,r,err)
+			app.serverErrorResponse(w, r, err)
 		}
 		return
 	}
 
 	if group.UserID != user.ID {
-		app.unAuthorizedResponse(w,r)
+		app.unAuthorizedResponse(w, r)
 		return
 	}
-
 
 	requests, err := app.models.GroupRequests.GetAllGroupRequests(groupID)
 	if err != nil {
-		app.serverErrorResponse(w,r,err)
+		app.serverErrorResponse(w, r, err)
 		return
 	}
 
-
-	err = app.writeJSON(w, http.StatusOK, envelope{"requests":requests}, nil)
+	err = app.writeJSON(w, http.StatusOK, envelope{"requests": requests}, nil)
 	if err != nil {
-		app.serverErrorResponse(w,r,err)
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+}
+
+func (app *application) getGroupRequestHandler(w http.ResponseWriter, r *http.Request) {
+	/* Route for determing group join request state */
+	user := app.contextGetUser(r)
+
+	groupID, err := app.readParam(r, "id")
+	if err != nil {
+		app.notFoundResponse(w, r)
 		return
 	}
 
+	group, err := app.models.Groups.Get(groupID)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
 
+	v := validator.New()
+
+	res, _ := app.models.GroupMembers.CheckIfMember(group.ID, user.ID)
+	if res != nil {
+		v.AddError("member", "user is already member")
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+
+	request, err := app.models.GroupRequests.Get(groupID, user.ID)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusOK, envelope{"request": request}, nil)
 }

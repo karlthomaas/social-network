@@ -114,6 +114,8 @@ func (app *application) routes() http.Handler {
 		app.ValidateJwt(app.deleteGroupRequestHandler))
 	router.HandleFunc("GET /api/groups/{id}/requests",
 		app.ValidateJwt(app.getAllGroupRequestsHandler))
+	router.HandleFunc("GET /api/groups/{id}/join-request-status",
+		app.ValidateJwt(app.getGroupRequestHandler))
 
 	router.HandleFunc("POST /api/groups/{id}/posts",
 		app.ValidateJwt(app.createGroupPostHandler))
