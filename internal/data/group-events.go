@@ -84,5 +84,5 @@ func ValidateGroupEvent(v *validator.Validator, g *GroupEvent) {
 	v.Check(g.Description != "", "description", "must not be empty")
 	v.Check(len(g.Description) < 2000, "description", "must not be more than 2000 characters")
 
-	v.Check(g.Date.Before(time.Now()), "date_of_birth", "must not be in the future")
+	v.Check(g.Date.After(time.Now()), "date_of_birth", "must not be in the past")
 }

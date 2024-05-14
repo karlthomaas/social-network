@@ -134,3 +134,4 @@ func (m *GroupRequestModel) GetAllGroupRequests(groupID string) ([]*GroupRequest
 	}
 	return requests, nil
 }
+

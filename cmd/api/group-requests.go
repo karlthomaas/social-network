@@ -138,6 +138,7 @@ func (app *application) acceptGroupRequestHandler(w http.ResponseWriter, r *http
 }
 
 func (app *application) deleteGroupRequestHandler(w http.ResponseWriter, r *http.Request) {
+	// Delete group request, operations allowed for group owner and the user that made the request
 	user := app.contextGetUser(r)
 
 	groupID, err := app.readParam(r, "id")

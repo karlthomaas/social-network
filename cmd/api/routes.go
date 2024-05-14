@@ -105,6 +105,8 @@ func (app *application) routes() http.Handler {
 		app.ValidateJwt(app.getAllGroupMembersHandler))
 	router.HandleFunc("DELETE /api/groups/{id}/group_invitations/users/{userID}",
 		app.ValidateJwt(app.deleteGroupInvitationHandler))
+	router.HandleFunc("DELETE /api/groups/{id}/members/users/{userID}",
+		app.ValidateJwt(app.deleteGroupMemberHandler))
 
 	router.HandleFunc("POST /api/groups/{id}/requests",
 		app.ValidateJwt(app.addGroupRequestHandler))
