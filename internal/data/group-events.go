@@ -3,6 +3,7 @@ package data
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"social-network/internal/validator"
 	"time"
 )
@@ -75,6 +76,62 @@ func (m *GroupEventModel) Delete(eventID string) error {
 	}
 
 	return nil
+}
+
+
+func (m *GroupEventModel) Update(ge *GroupEvent) (error) {
+	// Update Group Event
+	query := `UPDATE group_events
+	SET title = ?, description = ?, date = ?, updated_at = ?
+	WHERE id = ?`
+
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	args := []interface{}{
+		ge.Title,
+		ge.Description,
+		ge.Date,
+		ge.UpdatedAt,
+		ge.ID,
+	}
+
+	_, err := m.DB.ExecContext(ctx, query, args...)
+	return err
+}
+
+
+func (m *GroupEventModel) Get(eventID string) (*GroupEvent, error) {
+	query := `SELECT id, group_id, user_id, title, description, date, created_at, updated_at
+	FROM group_events
+	WHERE id = ?`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var event GroupEvent
+
+	err := m.DB.QueryRowContext(ctx, query, eventID).Scan(
+		&event.ID,
+		&event.GroupID,
+		&event.UserID,
+		&event.Title,
+		&event.Description,
+		&event.Date,
+		&event.CreatedAt,
+		&event.UpdatedAt,
+	)
+	if err != nil {
+		switch {
+		case errors.Is(err,sql.ErrNoRows):
+			return nil, ErrRecordNotFound
+		default:
+			return nil,err
+		}
+	}
+
+	return &event, err
 }
 
 func ValidateGroupEvent(v *validator.Validator, g *GroupEvent) {

@@ -61,53 +61,52 @@ func (app *application) createGroupEventHandler(w http.ResponseWriter, r *http.R
 
 	id, err := app.generateUUID()
 	if err != nil {
-		app.serverErrorResponse(w,r,err)
+		app.serverErrorResponse(w, r, err)
 		return
 	}
 
 	g := &data.GroupEvent{
-		ID:id,
-		GroupID: group.ID,
-		UserID: user.ID,
-		Title: input.Title,
+		ID:          id,
+		GroupID:     group.ID,
+		UserID:      user.ID,
+		Title:       input.Title,
 		Description: input.Description,
-		Date: date,
-		UpdatedAt: time.Now().Truncate(time.Second),
+		Date:        date,
+		UpdatedAt:   time.Now().Truncate(time.Second),
 	}
 
 	v := validator.New()
 
 	if data.ValidateGroupEvent(v, g); !v.Valid() {
-		app.failedValidationResponse(w,r,v.Errors)
+		app.failedValidationResponse(w, r, v.Errors)
 		return
 	}
 
 	err = app.models.GroupEvents.Insert(g)
 	if err != nil {
-		app.serverErrorResponse(w,r,err)
+		app.serverErrorResponse(w, r, err)
 		return
 	}
 
-	err = app.writeJSON(w, http.StatusCreated, envelope{"group_event":g}, nil)
+	err = app.writeJSON(w, http.StatusCreated, envelope{"group_event": g}, nil)
 	if err != nil {
-		app.serverErrorResponse(w,r,err)
+		app.serverErrorResponse(w, r, err)
 		return
 	}
 }
-
 
 func (app *application) deleteGroupEventHandler(w http.ResponseWriter, r *http.Request) {
 	user := app.contextGetUser(r)
 
 	groupID, err := app.readParam(r, "id")
 	if err != nil {
-		app.notFoundResponse(w,r)
+		app.notFoundResponse(w, r)
 		return
 	}
 
 	eventID, err := app.readParam(r, "eventID")
 	if err != nil {
-		app.notFoundResponse(w,r)
+		app.notFoundResponse(w, r)
 		return
 	}
 
@@ -146,12 +145,102 @@ func (app *application) deleteGroupEventHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
-
-	err = app.writeJSON(w, http.StatusOK, envelope{"group_event": "event deleted succesfully"},nil)
+	err = app.writeJSON(w, http.StatusOK, envelope{"group_event": "event deleted succesfully"}, nil)
 	if err != nil {
-		app.serverErrorResponse(w,r, err)
+		app.serverErrorResponse(w, r, err)
 		return
 	}
 }
 
+func (app *application) updateGroupEventHandler(w http.ResponseWriter, r *http.Request) {
+	
+	user := app.contextGetUser(r)
+	
+	groupID, err := app.readParam(r, "id")
+	if err != nil {
+		app.notFoundResponse(w,r)
+	}
+	
+	eventID, err := app.readParam(r, "eventID")
+	if err != nil {
+		app.notFoundResponse(w,r)
+	}
+	
+	_, err = app.models.Groups.Get(groupID)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
 
+	
+	event, err := app.models.GroupEvents.Get(eventID)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+	var input struct {
+		Title       *string `json:"title"`
+		Description *string `json:"description"`
+		Date        *string `json:"date"`
+	}
+
+	err = app.readJSON(w,r, &input)
+	if err != nil {
+		app.badRequestResponse(w,r,err)
+		return
+	}
+
+	v := validator.New()
+
+	if event.UserID != user.ID {
+		app.unAuthorizedResponse(w, r)
+		return
+	}
+
+	if input.Title != nil {
+		event.Title = *input.Title
+	}
+
+	if input.Description != nil {
+		event.Description = *input.Description
+	}
+
+	if input.Date != nil {
+		date, err := time.Parse("2006-01-02", *input.Date)
+		if err != nil {
+			app.badRequestResponse(w, r, err)
+			return
+		}
+		event.Date = date
+	}
+
+	event.UpdatedAt = time.Now().Truncate(time.Second)
+
+	if data.ValidateGroupEvent(v,event); !v.Valid() {
+		app.failedValidationResponse(w,r,v.Errors)
+		return
+	}
+
+	err = app.models.GroupEvents.Update(event)
+	if err != nil {
+		app.serverErrorResponse(w,r,err)
+		return
+	}
+
+	err = app.writeJSON(w,http.StatusOK, envelope{"group_event": event}, nil)
+	if err != nil {
+		app.serverErrorResponse(w,r,err)
+		return
+	}
+
+}

@@ -76,10 +76,11 @@ func (m *GroupInvitationModel) Delete(groupID, userID string) error {
 
 func (m *GroupInvitationModel) Get(groupID, userID string) (*GroupInvitation, error) {
 	query := `
-	SELECT group_id, invited_by, user_id, created_at
-	FROM group_invitations
-	WHERE group_id = ?
-	AND user_id = ?`
+	SELECT gi.group_id, gi.invited_by, gi.user_id, gi.created_at, u.first.name, u.last_name
+	FROM group_invitations gi
+	JOIN users u ON gi.user_id = u.id
+	WHERE gi.group_id = ?
+	AND gi.user_id = ?`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -91,6 +92,8 @@ func (m *GroupInvitationModel) Get(groupID, userID string) (*GroupInvitation, er
 		&gi.InvitedBy,
 		&gi.UserID,
 		&gi.CreatedAt,
+		&gi.User.FirstName,
+		&gi.User.LastName,
 	)
 
 	if err != nil {
@@ -106,9 +109,10 @@ func (m *GroupInvitationModel) Get(groupID, userID string) (*GroupInvitation, er
 }
 
 func (m *GroupInvitationModel) GetAllForGroup(groupID string) ([]*GroupInvitation, error) {
-	query := `SELECT group_id, user_id, created_at
-	FROM group_invitations
-	WHERE group_id = ?`
+	query := `SELECT gi.group_id, gi.user_id, gi.created_at, u.first_name, u.last_name
+	FROM group_invitations gi
+	LEFT JOIN users u ON gi.user_id = u.id
+	WHERE gi.group_id = ?`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -126,6 +130,8 @@ func (m *GroupInvitationModel) GetAllForGroup(groupID string) ([]*GroupInvitatio
 			&invitation.GroupID,
 			&invitation.UserID,
 			&invitation.CreatedAt,
+			&invitation.User.FirstName,
+			&invitation.User.LastName,
 		)
 		if err != nil {
 			return nil, err
@@ -136,9 +142,10 @@ func (m *GroupInvitationModel) GetAllForGroup(groupID string) ([]*GroupInvitatio
 }
 
 func (m *GroupInvitationModel) GetAllForUser(userID string) ([]*GroupInvitation, error) {
-	query := `SELECT gi.group_id, gi.user_id, gi.created_at, g.title
+	query := `SELECT gi.group_id, gi.user_id, gi.created_at, g.title, u.first_name, u.last_name
 	FROM group_invitations gi
 	LEFT JOIN groups g ON gi.group_id = g.id
+	LEFT JOIN users u ON gi.user_id = u.id
 	WHERE gi.user_id = ?`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -158,6 +165,8 @@ func (m *GroupInvitationModel) GetAllForUser(userID string) ([]*GroupInvitation,
 			&invitation.UserID,
 			&invitation.CreatedAt,
 			&invitation.Group.Title,
+			&invitation.User.FirstName,
+			&invitation.User.LastName,
 		)
 		if err != nil {
 			return nil, err
