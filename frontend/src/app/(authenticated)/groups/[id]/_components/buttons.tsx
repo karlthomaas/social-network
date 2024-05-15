@@ -2,33 +2,47 @@ import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/ui/spinners';
 import { toast } from '@/components/ui/use-toast';
 import { fetcherWithOptions, fetcher } from '@/lib/fetchers';
+import { UserType } from '@/providers/user-provider';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
+
+interface JoinRequestStatusQuery {
+  request: JoinRequestStatus;
+}
+
+interface JoinRequestStatus {
+  group_id: string;
+  user_id: string;
+  created_at: string;
+  user: UserType;
+}
 
 interface RequestButtonProps {
   groupId: string;
 }
 
 export const RequestButton = ({ groupId }: RequestButtonProps) => {
-  const [joinRequest, setJoinRequest] = useState<'pending' | 'none' | null>(null);
+  const [btnText, setBtnText] = useState('');
   const queryClient = useQueryClient();
-
-  const joinRequestStatus = useQuery({
-    queryKey: ['joinRequestStatus', groupId],
-    queryFn: () => fetcher(`/api/groups/${groupId}/join-request-status`),
-    retry: 1,
-  });
+  const requestObject = useRef<JoinRequestStatus | null>();
 
   const mutation = useMutation({
-    // todo create cancel group request mutation
-    mutationFn: async () =>
-      fetcherWithOptions({
-        url: `/api/groups/${groupId}/requests`,
-        method: 'POST',
+    mutationFn: async () => {
+      const method = requestObject.current ? 'DELETE' : 'POST';
+      const url = requestObject.current
+        ? `/api/groups/${groupId}/requests/users/${requestObject.current.user_id}`
+        : `/api/groups/${groupId}/requests`;
+
+      return fetcherWithOptions({
+        url,
+        method,
         body: {},
-      }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['joinRequestStatus'] });
+      });
+    },
+    onSuccess: (response: any) => {
+      requestObject.current = requestObject.current ? null : response.request;
+      // reset query so the joinRequestStatus will update the button in useEffect with new data.
+      queryClient.resetQueries({ queryKey: ['joinRequestStatus'] });
     },
     onError: () => {
       toast({
@@ -39,23 +53,24 @@ export const RequestButton = ({ groupId }: RequestButtonProps) => {
     },
   });
 
+  const joinRequestStatus = useQuery<JoinRequestStatusQuery>({
+    queryKey: ['joinRequestStatus', groupId],
+    queryFn: () => fetcher(`/api/groups/${groupId}/join-request-status`),
+    retry: 1,
+  });
+
   useEffect(() => {
     if (joinRequestStatus.data) {
-      setJoinRequest('pending');
-    } else if (joinRequestStatus.isError) {
-      setJoinRequest('none');
+      setBtnText('Cancel request');
+      requestObject.current = joinRequestStatus.data.request;
+    } else {
+      setBtnText('Request to join');
+      requestObject.current = null;
     }
-  }, [joinRequestStatus.data]);
-
-  let btnText = '';
-  if (joinRequest === 'pending') {
-    btnText = 'Cancel request';
-  } else if (joinRequest === 'none') {
-    btnText = 'Request to join';
-  }
+  }, [joinRequestStatus.dataUpdatedAt]);
 
   return (
-    <Button onClick={() => mutation.mutate()} disabled={mutation.isPending || mutation.isSuccess}>
+    <Button onClick={() => mutation.mutate()} disabled={mutation.isPending}>
       {mutation.isPending ? <LoadingSpinner /> : btnText}
     </Button>
   );

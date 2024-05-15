@@ -27,7 +27,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
   const { user } = useSession();
   // Fetches the group details
   const groupQuery = useQuery<GroupQueryResponse>({
-    queryKey: ['group'],
+    queryKey: ['group', params.id],
     queryFn: () => fetcher(`/api/groups/${params.id}`),
   });
 
@@ -42,6 +42,8 @@ export default function GroupPage({ params }: { params: { id: string } }) {
   useEffect(() => {
     if (isMemberQuery.data) {
       setIsMember(true);
+    } else {
+      setIsMember(false);
     }
   }, [isMemberQuery.data]);
 
@@ -63,10 +65,10 @@ export default function GroupPage({ params }: { params: { id: string } }) {
     <div className='flex flex-col space-y-5'>
       <GroupDetails title={groupQuery.data.group.title} description={groupQuery.data.group.description} />
       <div className='flex space-x-2'>
-      {isMember ? <GroupInvite groupId={params.id} /> : <RequestButton groupId={params.id} />}
-      {!isOwner && isMember && <GroupLeaveButton groupId={params.id} />}
-      {isMember && <CreateEvent groupId={params.id} />}
-      {isOwner && <GroupJoinRequests groupId={params.id} />}
+        {isMember ? <GroupInvite groupId={params.id} /> : <RequestButton groupId={params.id} />}
+        {!isOwner && isMember && <GroupLeaveButton groupId={params.id} userId={user?.id} />}
+        {isMember && <CreateEvent groupId={params.id} />}
+        {isOwner && <GroupJoinRequests groupId={params.id} />}
       </div>
       <div className='flex h-[80px] w-full items-center rounded-xl border border-border bg-background px-3'>
         <div className='aspect-square w-[50px] rounded-full bg-secondary' />

@@ -14,7 +14,7 @@ export interface InvitationType {
   group: GroupType;
 }
 
-export const GroupInvitation = ({ invitation }: { invitation: InvitationType }) => {
+export const GroupInvitation = ({ invitation, removeInvitation }: { invitation: InvitationType, removeInvitation: (invitation: InvitationType) => void }) => {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
@@ -26,7 +26,8 @@ export const GroupInvitation = ({ invitation }: { invitation: InvitationType }) 
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['incoming-requests'] });
+      // queryClient.resetQueries({ queryKey: ['incoming-requests'] });
+      removeInvitation(invitation);
     },
   });
 
