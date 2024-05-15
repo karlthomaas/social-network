@@ -142,10 +142,10 @@ func (m *GroupInvitationModel) GetAllForGroup(groupID string) ([]*GroupInvitatio
 }
 
 func (m *GroupInvitationModel) GetAllForUser(userID string) ([]*GroupInvitation, error) {
-	query := `SELECT gi.group_id, gi.user_id, gi.created_at, g.title, u.first_name, u.last_name
+	query := `SELECT gi.group_id, gi.invited_by, gi.user_id, gi.created_at, g.title, u.first_name, u.last_name
 	FROM group_invitations gi
 	LEFT JOIN groups g ON gi.group_id = g.id
-	LEFT JOIN users u ON gi.user_id = u.id
+	LEFT JOIN users u ON gi.invited_by = u.id
 	WHERE gi.user_id = ?`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -162,6 +162,7 @@ func (m *GroupInvitationModel) GetAllForUser(userID string) ([]*GroupInvitation,
 		var invitation GroupInvitation
 		err = rows.Scan(
 			&invitation.GroupID,
+			&invitation.InvitedBy,
 			&invitation.UserID,
 			&invitation.CreatedAt,
 			&invitation.Group.Title,

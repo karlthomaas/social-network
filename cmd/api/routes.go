@@ -130,6 +130,8 @@ func (app *application) routes() http.Handler {
 		app.ValidateJwt(app.deleteGroupEventHandler))
 	router.HandleFunc("PATCH /api/groups/{id}/group_events/{eventID}",
 		app.ValidateJwt(app.updateGroupEventHandler))
+	router.HandleFunc("GET /api/groups/{id}/group_events",
+		app.ValidateJwt(app.getAllGroupEventsHandler))
 
 	return app.RecoverPanic(app.rateLimit(app.SecureHeaders(app.LogRequest(router))))
 }

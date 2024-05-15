@@ -311,4 +311,5 @@ func (app *application) getFeedPostsHandlder(w http.ResponseWriter, r *http.Requ
 		app.serverErrorResponse(w, r, err)
 		return
 	}
+
 }

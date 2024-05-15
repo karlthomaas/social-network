@@ -17,6 +17,7 @@ type GroupEvent struct {
 	Date        time.Time `json:"date"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
+	User        User      `json:"user"`
 }
 
 type GroupEventModel struct {
@@ -78,13 +79,11 @@ func (m *GroupEventModel) Delete(eventID string) error {
 	return nil
 }
 
-
-func (m *GroupEventModel) Update(ge *GroupEvent) (error) {
+func (m *GroupEventModel) Update(ge *GroupEvent) error {
 	// Update Group Event
 	query := `UPDATE group_events
 	SET title = ?, description = ?, date = ?, updated_at = ?
 	WHERE id = ?`
-
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -100,7 +99,6 @@ func (m *GroupEventModel) Update(ge *GroupEvent) (error) {
 	_, err := m.DB.ExecContext(ctx, query, args...)
 	return err
 }
-
 
 func (m *GroupEventModel) Get(eventID string) (*GroupEvent, error) {
 	query := `SELECT id, group_id, user_id, title, description, date, created_at, updated_at
@@ -124,14 +122,56 @@ func (m *GroupEventModel) Get(eventID string) (*GroupEvent, error) {
 	)
 	if err != nil {
 		switch {
-		case errors.Is(err,sql.ErrNoRows):
+		case errors.Is(err, sql.ErrNoRows):
 			return nil, ErrRecordNotFound
 		default:
-			return nil,err
+			return nil, err
 		}
 	}
 
 	return &event, err
+}
+
+func (m *GroupEventModel) GetAllForGroup(groupID string) ([]*GroupEvent, error) {
+	query := `
+	SELECT ge.id, ge.group_id, ge.user_id, ge.title, ge.description, ge.date, ge.created_at, ge.updated_at, u.first_name, u.last_name
+	FROM group_events ge
+	JOIN users u ON ge.user_id = u.id
+	WHERE ge.group_id = ?
+	`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	rows, err := m.DB.QueryContext(ctx, query, groupID)
+	if err != nil {
+		return nil, err
+	}
+
+	groupEvents := []*GroupEvent{}
+
+	for rows.Next() {
+		var groupEvent GroupEvent
+
+		err := rows.Scan(
+			&groupEvent.ID,
+			&groupEvent.GroupID,
+			&groupEvent.UserID,
+			&groupEvent.Title,
+			&groupEvent.Description,
+			&groupEvent.Date,
+			&groupEvent.CreatedAt,
+			&groupEvent.UpdatedAt,
+			&groupEvent.User.FirstName,
+			&groupEvent.User.LastName,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		groupEvents = append(groupEvents, &groupEvent)
+	}
+	return groupEvents, nil
 }
 
 func ValidateGroupEvent(v *validator.Validator, g *GroupEvent) {

@@ -11,18 +11,19 @@ var (
 )
 
 type Models struct {
-	Users            UserModel
-	Tokens           TokenModel
-	Posts            PostModel
-	Followers        FollowerModel
-	Requests         RequestModel
-	Reactions        ReactionModel
-	Replies          ReplyModel
-	Groups           GroupModel
-	GroupInvitations GroupInvitationModel
-	GroupMembers     GroupMemberModel
-	GroupRequests    GroupRequestModel
-	GroupEvents      GroupEventModel
+	Users              UserModel
+	Tokens             TokenModel
+	Posts              PostModel
+	Followers          FollowerModel
+	Requests           RequestModel
+	Reactions          ReactionModel
+	Replies            ReplyModel
+	Groups             GroupModel
+	GroupInvitations   GroupInvitationModel
+	GroupMembers       GroupMemberModel
+	GroupRequests      GroupRequestModel
+	GroupEvents        GroupEventModel
+	GroupEvenetMembers GroupEventMembersModel
 }
 
 func NewModels(db *sql.DB) Models {

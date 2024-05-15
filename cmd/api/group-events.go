@@ -21,7 +21,7 @@ func (app *application) createGroupEventHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	date, err := time.Parse("2006-01-02", input.Date)
+	date, err := time.Parse("2006-01-02T15:04", input.Date)
 	if err != nil {
 		app.badRequestResponse(w, r, err)
 		return
@@ -153,19 +153,19 @@ func (app *application) deleteGroupEventHandler(w http.ResponseWriter, r *http.R
 }
 
 func (app *application) updateGroupEventHandler(w http.ResponseWriter, r *http.Request) {
-	
+
 	user := app.contextGetUser(r)
-	
+
 	groupID, err := app.readParam(r, "id")
 	if err != nil {
-		app.notFoundResponse(w,r)
+		app.notFoundResponse(w, r)
 	}
-	
+
 	eventID, err := app.readParam(r, "eventID")
 	if err != nil {
-		app.notFoundResponse(w,r)
+		app.notFoundResponse(w, r)
 	}
-	
+
 	_, err = app.models.Groups.Get(groupID)
 	if err != nil {
 		switch {
@@ -177,7 +177,6 @@ func (app *application) updateGroupEventHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	
 	event, err := app.models.GroupEvents.Get(eventID)
 	if err != nil {
 		switch {
@@ -194,9 +193,9 @@ func (app *application) updateGroupEventHandler(w http.ResponseWriter, r *http.R
 		Date        *string `json:"date"`
 	}
 
-	err = app.readJSON(w,r, &input)
+	err = app.readJSON(w, r, &input)
 	if err != nil {
-		app.badRequestResponse(w,r,err)
+		app.badRequestResponse(w, r, err)
 		return
 	}
 
@@ -216,7 +215,7 @@ func (app *application) updateGroupEventHandler(w http.ResponseWriter, r *http.R
 	}
 
 	if input.Date != nil {
-		date, err := time.Parse("2006-01-02", *input.Date)
+		date, err := time.Parse("2006-01-02T15:04", *input.Date)
 		if err != nil {
 			app.badRequestResponse(w, r, err)
 			return
@@ -226,21 +225,67 @@ func (app *application) updateGroupEventHandler(w http.ResponseWriter, r *http.R
 
 	event.UpdatedAt = time.Now().Truncate(time.Second)
 
-	if data.ValidateGroupEvent(v,event); !v.Valid() {
-		app.failedValidationResponse(w,r,v.Errors)
+	if data.ValidateGroupEvent(v, event); !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
 		return
 	}
 
 	err = app.models.GroupEvents.Update(event)
 	if err != nil {
-		app.serverErrorResponse(w,r,err)
+		app.serverErrorResponse(w, r, err)
 		return
 	}
 
-	err = app.writeJSON(w,http.StatusOK, envelope{"group_event": event}, nil)
+	err = app.writeJSON(w, http.StatusOK, envelope{"group_event": event}, nil)
 	if err != nil {
-		app.serverErrorResponse(w,r,err)
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+}
+
+func (app *application) getAllGroupEventsHandler(w http.ResponseWriter, r *http.Request) {
+	user := app.contextGetUser(r)
+
+	groupID, err := app.readParam(r, "id")
+	if err != nil {
+		app.notFoundResponse(w, r)
 		return
 	}
 
+	group, err := app.models.Groups.Get(groupID)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	_, err = app.models.GroupMembers.CheckIfMember(groupID, user.ID)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			if user.ID != group.UserID {
+				app.unAuthorizedResponse(w, r)
+				return
+			}
+		default:
+			app.serverErrorResponse(w, r, err)
+			return
+		}
+	}
+
+	events, err := app.models.GroupEvents.GetAllForGroup(groupID)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusOK, envelope{"group_events": events}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
 }

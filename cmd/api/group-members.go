@@ -35,12 +35,12 @@ func (app *application) getAllGroupMembersHandler(w http.ResponseWriter, r *http
 	_, err = app.models.GroupMembers.CheckIfMember(group.ID, user.ID)
 	if err != nil {
 		if errors.Is(err, data.ErrRecordNotFound) {
-			if (group.UserID != user.ID)  {
-				app.unAuthorizedResponse(w,r)
+			if group.UserID != user.ID {
+				app.unAuthorizedResponse(w, r)
 				return
 			}
 		} else {
-			app.serverErrorResponse(w,r,err)
+			app.serverErrorResponse(w, r, err)
 			return
 		}
 	}
@@ -52,21 +52,19 @@ func (app *application) getAllGroupMembersHandler(w http.ResponseWriter, r *http
 	}
 }
 
-
 func (app *application) deleteGroupMemberHandler(w http.ResponseWriter, r *http.Request) {
-
 	// delete group member, authorized by group owner and member
 	user := app.contextGetUser(r)
 
-	deletableUserID, err := app.readParam(r,"userID")
+	deletableUserID, err := app.readParam(r, "userID")
 	if err != nil {
-		app.notFoundResponse(w,r)
+		app.notFoundResponse(w, r)
 		return
 	}
 
 	groupID, err := app.readParam(r, "id")
 	if err != nil {
-		app.notFoundResponse(w,r)
+		app.notFoundResponse(w, r)
 		return
 	}
 
@@ -74,15 +72,15 @@ func (app *application) deleteGroupMemberHandler(w http.ResponseWriter, r *http.
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
-			app.notFoundResponse(w,r)
+			app.notFoundResponse(w, r)
 		default:
-			app.serverErrorResponse(w,r,err)
+			app.serverErrorResponse(w, r, err)
 		}
 		return
 	}
 
 	if deletableUserID != user.ID && group.UserID != user.ID {
-		app.unAuthorizedResponse(w,r)
+		app.unAuthorizedResponse(w, r)
 		return
 	}
 
@@ -90,16 +88,16 @@ func (app *application) deleteGroupMemberHandler(w http.ResponseWriter, r *http.
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
-			app.notFoundResponse(w,r)
+			app.notFoundResponse(w, r)
 		default:
-			app.serverErrorResponse(w,r,err)
+			app.serverErrorResponse(w, r, err)
 		}
 		return
 	}
 
-	err = app.writeJSON(w, http.StatusOK, envelope{"group_member":"group member deleted succesfully"}, nil)
+	err = app.writeJSON(w, http.StatusOK, envelope{"group_member": "group member deleted succesfully"}, nil)
 	if err != nil {
-		app.serverErrorResponse(w,r,err)
+		app.serverErrorResponse(w, r, err)
 		return
 	}
 }
