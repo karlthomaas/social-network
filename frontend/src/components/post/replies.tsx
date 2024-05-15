@@ -9,7 +9,7 @@ export interface ReactionType {
   reply_id: string;
 }
 
-import { User, useSession } from '@/providers/user-provider';
+import { UserType, useSession } from '@/providers/user-provider';
 
 export interface ReplyType {
   id: string;
@@ -19,21 +19,19 @@ export interface ReplyType {
   image: string | null;
   created_at: string;
   updated_at: string;
-  user: User;
+  user: UserType;
   reactions: number;
   reaction: ReactionType;
 }
 
-
 export const Replies = ({ post_id, newReply }: { post_id: string; newReply: ReplyType | null }) => {
+  const [replies, setReplies] = useState<ReplyType[]>([]);
   const { user } = useSession();
 
   const { isLoading, isError, data } = useQuery({
     queryKey: ['comments', post_id],
     queryFn: () => fetcher(`/api/posts/${post_id}/reply`),
   });
-
-  const [replies, setReplies] = useState<ReplyType[]>([]);
 
   useEffect(() => {
     if (data?.replies) {
@@ -64,7 +62,7 @@ export const Replies = ({ post_id, newReply }: { post_id: string; newReply: Repl
   }
 
   return (
-    <div className='mb-5 flex flex-col space-y-3 pt-5 w-full'>
+    <div className='mb-5 flex w-full flex-col space-y-3 pt-5'>
       {replies.map((reply: ReplyType) => (
         <Reply key={reply.id} postId={post_id} reply={reply} isAuthor={user?.id === reply.user_id} />
       ))}

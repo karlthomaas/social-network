@@ -6,9 +6,10 @@ import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetcherWithOptions } from '@/lib/fetchers';
 import { LoadingSpinner } from '../ui/spinners';
+import { toast } from '../ui/use-toast';
 
 const formSchema = z.object({
   title: z.string().min(1),
@@ -17,12 +18,28 @@ const formSchema = z.object({
 });
 
 export const EventForm = ({ groupId }: { groupId: string }) => {
+  const queryClient = useQueryClient();
+
   const mutation = useMutation({
     mutationFn: (values: z.infer<typeof formSchema>) => {
       return fetcherWithOptions({
         url: `/api/groups/${groupId}/group_events`,
         method: 'POST',
         body: values,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['events', groupId] });
+      toast({
+        title: 'Success',
+        description: 'Event created',
+      });
+    },
+    onError: () => {
+      toast({
+        title: 'Error',
+        description: 'Failed to create event',
+        variant: 'destructive',
       });
     },
   });
@@ -74,7 +91,7 @@ export const EventForm = ({ groupId }: { groupId: string }) => {
             <FormItem>
               <FormLabel>Date</FormLabel>
               <FormControl>
-                <Input type='date' {...field} />
+                <Input type='datetime-local' {...field} />
               </FormControl>
             </FormItem>
           )}

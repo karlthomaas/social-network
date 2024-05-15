@@ -4,6 +4,7 @@ import { toast } from '@/components/ui/use-toast';
 import { fetcherWithOptions, fetcher } from '@/lib/fetchers';
 import { UserType } from '@/providers/user-provider';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import clsx from 'clsx';
 import { useEffect, useState, useRef } from 'react';
 
 interface JoinRequestStatusQuery {
@@ -19,9 +20,10 @@ interface JoinRequestStatus {
 
 interface RequestButtonProps {
   groupId: string;
+  className?: string;
 }
 
-export const RequestButton = ({ groupId }: RequestButtonProps) => {
+export const RequestButton = ({ groupId, className }: RequestButtonProps) => {
   const [btnText, setBtnText] = useState('');
   const queryClient = useQueryClient();
   const requestObject = useRef<JoinRequestStatus | null>();
@@ -70,12 +72,8 @@ export const RequestButton = ({ groupId }: RequestButtonProps) => {
   }, [joinRequestStatus.dataUpdatedAt]);
 
   return (
-    <Button onClick={() => mutation.mutate()} disabled={mutation.isPending}>
+    <Button className={className} onClick={() => mutation.mutate()} disabled={mutation.isPending}>
       {mutation.isPending ? <LoadingSpinner /> : btnText}
     </Button>
   );
-};
-
-export const InviteButton = () => {
-  return <Button>Invite followers</Button>;
 };
