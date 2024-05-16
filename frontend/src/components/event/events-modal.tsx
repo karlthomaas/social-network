@@ -22,6 +22,15 @@ export interface EventType {
   created_at: string;
   updated_at: string;
   user: UserType;
+  group_event_member: {
+    attendance: 0 | 1 | 2;
+    user_id : string;
+    group_event_id: string;
+  };
+  attendance: {
+    going: number;
+    not_going: number;
+  };
 }
 
 export const EventsModal = ({ group }: { group: GroupType }) => {

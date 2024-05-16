@@ -267,4 +267,8 @@ func (app *application) getGroupRequestHandler(w http.ResponseWriter, r *http.Re
 	}
 
 	err = app.writeJSON(w, http.StatusOK, envelope{"request": request}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
 }

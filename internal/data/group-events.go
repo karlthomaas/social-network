@@ -9,15 +9,17 @@ import (
 )
 
 type GroupEvent struct {
-	ID          string    `json:"id"`
-	GroupID     string    `json:"group_id"`
-	UserID      string    `json:"user_id"`
-	Title       string    `json:"title"`
-	Description string    `json:"description"`
-	Date        time.Time `json:"date"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
-	User        User      `json:"user"`
+	ID               string           `json:"id"`
+	GroupID          string           `json:"group_id"`
+	UserID           string           `json:"user_id"`
+	Title            string           `json:"title"`
+	Description      string           `json:"description"`
+	Date             time.Time        `json:"date"`
+	CreatedAt        time.Time        `json:"created_at"`
+	UpdatedAt        time.Time        `json:"updated_at"`
+	User             User             `json:"user"`
+	GroupEventMember GroupEventMember `json:"group_event_member"`
+	Attendance       Attendance       `json:"attendance"`
 }
 
 type GroupEventModel struct {
@@ -101,14 +103,16 @@ func (m *GroupEventModel) Update(ge *GroupEvent) error {
 }
 
 func (m *GroupEventModel) Get(eventID string) (*GroupEvent, error) {
-	query := `SELECT id, group_id, user_id, title, description, date, created_at, updated_at
-	FROM group_events
+	query := `SELECT ge.id, ge.group_id, ge.user_id, ge.title, ge.description, ge.date, ge.created_at, ge.updated_at,gem.attendance
+	FROM group_events ge
+	LEFT JOIN group_event_members gem ON ge.user_id = gem.user_id
 	WHERE id = ?`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
 	var event GroupEvent
+	var attendance sql.NullInt16
 
 	err := m.DB.QueryRowContext(ctx, query, eventID).Scan(
 		&event.ID,
@@ -119,6 +123,7 @@ func (m *GroupEventModel) Get(eventID string) (*GroupEvent, error) {
 		&event.Date,
 		&event.CreatedAt,
 		&event.UpdatedAt,
+		&attendance,
 	)
 	if err != nil {
 		switch {
@@ -129,13 +134,20 @@ func (m *GroupEventModel) Get(eventID string) (*GroupEvent, error) {
 		}
 	}
 
+	if !attendance.Valid {
+		event.GroupEventMember.Attendace = 2
+	} else {
+		event.GroupEventMember.Attendace = int(attendance.Int16)
+	}
+
 	return &event, err
 }
 
 func (m *GroupEventModel) GetAllForGroup(groupID string) ([]*GroupEvent, error) {
 	query := `
-	SELECT ge.id, ge.group_id, ge.user_id, ge.title, ge.description, ge.date, ge.created_at, ge.updated_at, u.first_name, u.last_name
+	SELECT ge.id, ge.group_id, ge.user_id, ge.title, ge.description, ge.date, ge.created_at, ge.updated_at, u.first_name, u.last_name, gem.attendance
 	FROM group_events ge
+	LEFT JOIN group_event_members gem ON ge.user_id = gem.user_id
 	JOIN users u ON ge.user_id = u.id
 	WHERE ge.group_id = ?
 	`
@@ -152,6 +164,7 @@ func (m *GroupEventModel) GetAllForGroup(groupID string) ([]*GroupEvent, error) 
 
 	for rows.Next() {
 		var groupEvent GroupEvent
+		var attendance sql.NullInt16
 
 		err := rows.Scan(
 			&groupEvent.ID,
@@ -164,9 +177,16 @@ func (m *GroupEventModel) GetAllForGroup(groupID string) ([]*GroupEvent, error) 
 			&groupEvent.UpdatedAt,
 			&groupEvent.User.FirstName,
 			&groupEvent.User.LastName,
+			&attendance,
 		)
 		if err != nil {
 			return nil, err
+		}
+
+		if !attendance.Valid {
+			groupEvent.GroupEventMember.Attendace = 2
+		} else {
+			groupEvent.GroupEventMember.Attendace = int(attendance.Int16)
 		}
 
 		groupEvents = append(groupEvents, &groupEvent)

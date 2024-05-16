@@ -283,6 +283,15 @@ func (app *application) getAllGroupEventsHandler(w http.ResponseWriter, r *http.
 		return
 	}
 
+	for _, event := range events {
+		attendance, err := app.models.GroupEventMembers.GetAttendance(event.ID)
+		if err != nil {
+			app.serverErrorResponse(w, r, err)
+			return
+		}
+		event.Attendance = *attendance
+	}
+
 	err = app.writeJSON(w, http.StatusOK, envelope{"group_events": events}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
