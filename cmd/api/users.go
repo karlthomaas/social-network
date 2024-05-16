@@ -209,7 +209,7 @@ func (app *application) createSession(w http.ResponseWriter, userId string) erro
 		Name:     "Token",
 		Value:    token,
 		Path:     "/",
-		Expires:  time.Now().Add(15 * time.Minute),
+		Expires:  time.Now().Add(1 * time.Minute),
 		HttpOnly: true,
 		Secure:   true,
 		SameSite: http.SameSiteLaxMode,

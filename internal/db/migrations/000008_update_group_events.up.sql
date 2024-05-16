@@ -28,6 +28,6 @@ CREATE TABLE group_event_members (
   group_event_id TEXT NOT NULL,
   attendance BOOLEAN NOT NULL,
   PRIMARY KEY (user_id, group_event_id),
-  FOREIGN KEY (user_id) REFERENCES users(id),
-  FOREIGN KEY (group_event_id) REFERENCES group_events(id)
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (group_event_id) REFERENCES group_events(id) ON DELETE CASCADE
 );
