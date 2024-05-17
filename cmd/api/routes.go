@@ -143,5 +143,8 @@ func (app *application) routes() http.Handler {
 	router.HandleFunc("POST /api/images/{options}/{id}",
 		app.ValidateJwt(app.createImageHandler))
 
+
+	router.HandleFunc("/ws", app.ValidateJwt(app.wsHandler))
+
 	return app.RecoverPanic(app.rateLimit(app.SecureHeaders(app.LogRequest(router))))
 }
