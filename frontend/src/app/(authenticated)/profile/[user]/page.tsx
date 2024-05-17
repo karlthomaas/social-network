@@ -22,7 +22,7 @@ export default function Profile({ params }: { params: { user: string } }) {
         {user?.nickname === params.user && (
           <div className='flex h-[80px] w-full items-center rounded-xl border border-border bg-background px-3'>
             <div className='aspect-square w-[50px] rounded-full bg-secondary' />
-            <CreatePost>
+            <CreatePost callback={() => {}}>
               <DialogTrigger asChild>
                 <Button className='ml-3 w-full justify-start' variant='outline'>
                   What's on your mind?
