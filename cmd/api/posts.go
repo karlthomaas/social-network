@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"social-network/internal/data"
 	"social-network/internal/validator"
