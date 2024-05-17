@@ -140,5 +140,8 @@ func (app *application) routes() http.Handler {
 	router.HandleFunc("PATCH /api/groups/{id}/group_events/{eventID}/group_event_members",
 		app.ValidateJwt(app.updateGroupEventMemberHandler))
 
+	router.HandleFunc("POST /api/images/{options}/{id}",
+		app.ValidateJwt(app.createImageHandler))
+
 	return app.RecoverPanic(app.rateLimit(app.SecureHeaders(app.LogRequest(router))))
 }

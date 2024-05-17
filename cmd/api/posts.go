@@ -4,8 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"os"
-	"path/filepath"
 	"social-network/internal/data"
 	"social-network/internal/validator"
 	"time"
@@ -14,7 +12,6 @@ import (
 func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
 		Content   string   `json:"content"`
-		Image     []byte   `json:"image"`
 		Privacy   string   `json:"privacy"`
 		VisibleTo []string `json:"visible_to"`
 	}
@@ -38,30 +35,11 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 		UserID:    user.ID,
 		Content:   input.Content,
 		GroupID:   "",
-		Image:     input.Image,
 		Privacy:   input.Privacy,
 		UpdatedAt: time.Now().Truncate(time.Second),
 	}
 
 	v := validator.New()
-
-	if len(post.Image) != 0 {
-		path := filepath.Join("internal", "images", string(post.Image))
-		file, err := os.Create(path)
-		if err != nil {
-			fmt.Println(err)
-			app.serverErrorResponse(w, r, err)
-			return
-		}
-		defer file.Close()
-
-		_, err = file.Write(post.Image)
-		if err != nil {
-			fmt.Println(err)
-			app.serverErrorResponse(w, r, err)
-			return
-		}
-	}
 
 	if data.ValidatePost(v, post); !v.Valid() {
 		app.failedValidationResponse(w, r, v.Errors)

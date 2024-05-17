@@ -424,7 +424,7 @@ func (m *PostModel) GetAllGroupPosts(groupID, loggedInUser string) ([]*Post, err
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	rows, err := m.DB.QueryContext(ctx, query, loggedInUser,groupID)
+	rows, err := m.DB.QueryContext(ctx, query, loggedInUser, groupID)
 	if err != nil {
 		return nil, err
 	}
@@ -467,6 +467,28 @@ func (m *PostModel) GetAllGroupPosts(groupID, loggedInUser string) ([]*Post, err
 	}
 
 	return posts, nil
+}
+
+func (m *PostModel) InsertImage(postID, images string) error {
+	query := `
+	UPDATE posts
+	SET image = ?
+	WHERE id = ?
+	`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	_, err:= m.DB.ExecContext(ctx, query, images, postID)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return ErrRecordNotFound
+		default:
+			return err
+		}
+	}
+	return nil
 }
 
 func ValidatePost(v *validator.Validator, post *Post) {
