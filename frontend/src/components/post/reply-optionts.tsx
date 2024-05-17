@@ -11,7 +11,6 @@ export const ReplyOptions = ({ handleDelete, handleEdit }: { handleDelete: () =>
     <DropdownMenu onOpenChange={setIsOpen}>
       <DropdownMenuTrigger
         onClick={() => {
-          console.log('click');
         }}
         className={cn('invisible group-hover:visible', isOpen && 'visible')}
       >

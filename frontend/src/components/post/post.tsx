@@ -28,13 +28,19 @@ export interface PostType {
   reactions: number;
 }
 
-export const Post = ({ post, isLoading }: { post?: PostType; isLoading: boolean }) => {
+export const Post = ({ postData, isLoading }: { postData?: PostType; isLoading: boolean }) => {
+  const [post, setPost] = useState<PostType | undefined>(postData);
   const [newReply, setNewReply] = useState<ReplyType | null>(null);
   const [showComments, setShowComments] = useState(false);
 
-  if (isLoading || !post) {
+  if (isLoading) {
     return <Skeleton className='h-[340px] w-full rounded-xl' />;
   }
+
+  if (!post) {
+    return null;
+  }
+
   const likeStatus = post.reaction.id ? true : false;
   const privacyIcon = post.privacy === 'public' ? <Globe size={15} /> : <Lock size={15} />;
 
@@ -53,7 +59,7 @@ export const Post = ({ post, isLoading }: { post?: PostType; isLoading: boolean 
             </div>
           </div>
         </div>
-        <PostOptions post={post} />
+        <PostOptions post={post} setPost={setPost} />
       </div>
       <p className='ml-1'>{post.content}</p>
       <div className='mb-3 mt-10 flex justify-evenly border-y border-border'>

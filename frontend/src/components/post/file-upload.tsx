@@ -19,7 +19,6 @@ export const FileUpload = () => {
   const fileRef = form.register('file');
 
   const onSubmit = (data: z.infer<typeof formSchema>) => {
-    console.log(data);
   };
 
   return (

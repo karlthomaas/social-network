@@ -17,6 +17,7 @@ import { privacyStore } from './privacy-view';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { fetcherWithOptions } from '@/lib/fetchers';
 import { GroupType } from '../../groups/page';
+import { on } from 'events';
 
 export const postStore = create((set) => ({
   view: 0,
@@ -28,10 +29,20 @@ export const postStore = create((set) => ({
   deincrement: () => set((state: any) => ({ view: state.view - 1 })),
 }));
 
-export const CreatePost = ({ children, post, mutationKeys=['posts'], group }: { children: React.ReactNode; post?: PostType; mutationKeys?: string[]; group?: GroupType }) => {
+export const CreatePost = ({
+  children,
+  post,
+  mutationKeys = ['posts'],
+  group,
+  callback,
+}: {
+  children: React.ReactNode;
+  post?: PostType;
+  mutationKeys?: string[];
+  group?: GroupType;
+  callback: (response: PostType, action: 'update' | 'create') => void;
+}) => {
   const [open, setOpen] = useState(false);
-
-  const queryClient = useQueryClient();
   const view = postStore((state: any) => state.view);
   const reset = postStore((state: any) => state.reset);
   const privacy = postStore((state: any) => state.privacy);
@@ -65,13 +76,11 @@ export const CreatePost = ({ children, post, mutationKeys=['posts'], group }: { 
         body: {
           content: postText,
           privacy: privacy === 'almost private' ? 'almost_private' : privacy,
-          image: null,
           visible_to: visibleTo,
         },
       });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: mutationKeys });
+    onSuccess: (data) => {
       setOpen(false);
       resetStores();
       if (post) {
@@ -79,14 +88,16 @@ export const CreatePost = ({ children, post, mutationKeys=['posts'], group }: { 
           title: 'Post updated',
           description: 'Your post has been updated',
         });
+        callback(data.post, 'update');
       } else {
         toast({
           title: 'Post created',
           description: 'Your post has been created',
         });
+        callback(data.post, 'create');
       }
     },
-    onError: () => {
+    onError: (error: any) => {
       toast({
         title: 'Something went wrong...',
         description: 'Please try again later',
@@ -107,7 +118,7 @@ export const CreatePost = ({ children, post, mutationKeys=['posts'], group }: { 
   }
 
   const handleModalState = (state: boolean) => {
-    if (post) { 
+    if (post) {
       postStore.setState({ postText: post.content });
       postStore.setState({ privacy: post.privacy });
     }

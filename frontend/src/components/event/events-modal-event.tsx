@@ -12,7 +12,6 @@ export const EventsModalEvent = ({ event }: { event: EventType }) => {
   const mutation = useMutation({
     mutationKey: ['event', event.id],
     mutationFn: (isGoing: boolean) => {
-      console.log(attendance);
       return fetcherWithOptions({
         url: `/api/groups/${event.group_id}/group_events/${event.id}/group_event_members`,
         method: attendance === '2' ? 'POST' : 'PATCH',

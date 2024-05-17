@@ -17,8 +17,7 @@ export default async function middleware(req: NextRequest) {
     if (!token) {
       throw new errors.JWTExpired('JWT is expired');
     }
-    const payload = await verifyAuth(token.value);
-    // console.log(payload);
+    await verifyAuth(token.value);
   } catch (err) {
     if (err instanceof errors.JWTExpired) {
       if (!refreshToken) {

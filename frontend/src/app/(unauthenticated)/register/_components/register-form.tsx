@@ -64,7 +64,6 @@ export const RegisterForm = () => {
   })
  
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    console.log(values);
     mutation.mutate(values);
   };
   

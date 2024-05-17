@@ -31,7 +31,6 @@ export const LikeButton = ({ reactions, postId, reactionId, likeStatus }: LikeBu
       });
     },
     onError: (error) => {
-      console.log(error);
       toast({
         title: 'Something went wrong...',
         description: 'Please try again later',

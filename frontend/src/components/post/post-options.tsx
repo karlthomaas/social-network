@@ -3,17 +3,13 @@ import type { PostType } from './post';
 import { Button } from '../ui/button';
 import { EllipsisVertical, Pencil, Trash2 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { toast } from '../ui/use-toast';
 import { fetcherWithOptions } from '@/lib/fetchers';
 import { CreatePost } from '@/app/(authenticated)/home/_components/create-post';
-import { DialogTrigger } from '@radix-ui/react-dialog';
-import { useState } from 'react';
+import { DialogTrigger } from '../ui/dialog';
 
-export const PostOptions = ({ post }: { post: PostType }) => {
-  const [postHolder, PostHolder] = useState(null);
-  const queryClient = useQueryClient();
-
+export const PostOptions = ({ post, setPost }: { post: PostType, setPost: (post: PostType | undefined) => void }) => {
   const deleteMutation = useMutation({
     mutationFn: async () => {
       return fetcherWithOptions({
@@ -23,13 +19,11 @@ export const PostOptions = ({ post }: { post: PostType }) => {
       });
     },
     onSuccess: () => {
-      // Refresh the posts feed
-      queryClient.invalidateQueries({ queryKey: ['posts'] });
-
       toast({
         title: 'Post deleted',
         description: 'Your post has been deleted',
       });
+      setPost(undefined)
     },
     onError: () => {
       toast({
@@ -41,7 +35,7 @@ export const PostOptions = ({ post }: { post: PostType }) => {
   });
 
   return (
-    <CreatePost post={post}>
+    <CreatePost post={post} callback={setPost}>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant='ghost' size='icon'>
