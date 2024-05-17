@@ -1,13 +1,14 @@
-
 interface LayoutProps {
-    children: React.ReactNode
+  children: React.ReactNode;
 }
 
+import Navbar from '@/components/navbar';
 
-export default function  Layout({ children }: LayoutProps) {
-    return (
-        <div className="max-w-screen-lg w-full h-full mx-auto p-4">
-            { children }
-        </div>
-    )
+export default function Layout({ children }: LayoutProps) {
+  return (
+    <>
+      <Navbar />
+      <div className='mx-auto h-full w-full max-w-screen-md p-4'>{children}</div>
+    </>
+  );
 }
