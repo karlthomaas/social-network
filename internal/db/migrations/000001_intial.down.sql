@@ -12,3 +12,4 @@ DROP TABLE IF EXISTS replies;
 DROP TABLE IF EXISTS reactions;
 DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS refresh_tokens;
+DROP TABLE IF EXISTS post_visibilities

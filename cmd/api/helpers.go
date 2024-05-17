@@ -95,8 +95,8 @@ func (app *application) generateUUID() (string, error) {
 	return uuid.String(), nil
 }
 
-func (app *application) readIDParam(r *http.Request) (string, error) {
-	id := r.PathValue("id")
+func (app *application) readParam(r *http.Request, param string) (string, error) {
+	id := r.PathValue(param)
 	if id == "" {
 		return "", errors.New("invalid id parameter")
 	}

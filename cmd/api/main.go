@@ -4,22 +4,33 @@ import (
 	"context"
 	"database/sql"
 	"flag"
-	_ "github.com/mattn/go-sqlite3"
 	"log"
-	"net/http"
 	"os"
 	"social-network/internal/data"
+	"sync"
 	"time"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
+type config struct {
+	port int
+	env  string
+}
+
 type application struct {
+	config config
 	logger *log.Logger
 	models data.Models
+	wg     sync.WaitGroup
 }
 
 func main() {
 
-	addr := flag.String("addr", ":4000", "HTTP network address")
+	var cfg config
+
+	flag.IntVar(&cfg.port, "port", 4000, "API server port")
+	flag.StringVar(&cfg.env, "emv", "development", "Environment(development|staging|production)")
 
 	flag.Parse()
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
@@ -33,26 +44,27 @@ func main() {
 	logger.Printf("database connection pool established")
 
 	app := &application{
+		config: cfg,
 		logger: logger,
 		models: data.NewModels(db),
 	}
 
-	srv := &http.Server{
-		Addr:    *addr,
-		Handler: app.routes(),
+	err = app.serve()
+	if err != nil {
+		logger.Fatal(err, nil)
 	}
 
-	// hide it
-	os.Setenv("JWT_SECRET", "c4fc4d2a47ae3cbcdbc8817feab1577095a97a10a7dddf87577f5d972b0a09f8")
-
-	logger.Printf("Starting server on %s\n", *addr)
-	log.Fatal(srv.ListenAndServe())
 }
 
 func OpenDB() (*sql.DB, error) {
 	db, err := sql.Open("sqlite3", "internal/db/database.db")
 	if err != nil {
 		return nil, err
+	}
+
+	_, err = db.Exec("PRAGMA foreign_keys = ON;")
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	db.SetMaxOpenConns(25)

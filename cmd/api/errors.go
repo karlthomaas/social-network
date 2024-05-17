@@ -26,7 +26,6 @@ func (app *application) errorResponse(w http.ResponseWriter, r *http.Request, st
 }
 
 func (app *application) invalidAuthenticationTokenResponse(w http.ResponseWriter, r *http.Request) {
-	// w.Header().Set("WWW-Authenticate", "Basic")
 	message := "invalid or missing authentication token"
 	app.errorResponse(w, r, http.StatusUnauthorized, message)
 }
@@ -37,9 +36,12 @@ func (app *application) invalidCredentialsResponse(w http.ResponseWriter, r *htt
 	app.errorResponse(w, r, http.StatusUnauthorized, message)
 }
 
+func (app *application) unqiueConstraintResponse(w http.ResponseWriter, r *http.Request, err error) {
+	app.errorResponse(w, r, http.StatusConflict, err)
+}
+
 func (app *application) serverErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
 	app.logError(r, err)
-	fmt.Println(err)
 
 	message := "the server encountered a problem and could not proccess your request"
 
@@ -64,4 +66,9 @@ func (app *application) badRequestResponse(w http.ResponseWriter, r *http.Reques
 
 func (app *application) failedValidationResponse(w http.ResponseWriter, r *http.Request, errors map[string]string) {
 	app.errorResponse(w, r, http.StatusUnprocessableEntity, errors)
+}
+func (app *application) unAuthorizedResponse(w http.ResponseWriter, r *http.Request) {
+	message := "you are not authorized to access this resource"
+
+	app.errorResponse(w, r, http.StatusUnauthorized, message)
 }

@@ -1,4 +1,5 @@
 import { jwtVerify } from 'jose';
+import { getBackendUrl } from './utils';
 
 const getJwtSecretKey = () => {
   const secret = process.env.JWT_SECRET;
@@ -8,15 +9,6 @@ const getJwtSecretKey = () => {
   }
   return secret;
 };
-
-const getBackendUrl = () => {
-  const url = process.env.BACKEND_URL;
-
-  if (!url || url.length === 0) {
-    throw new Error('BACKEND_URL not defined');
-  }
-  return url;
-}
 
 /**
  * Refreshes the user session using the provided refresh token.
