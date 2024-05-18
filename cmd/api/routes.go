@@ -143,6 +143,10 @@ func (app *application) routes() http.Handler {
 	router.HandleFunc("POST /api/images/{options}/{id}",
 		app.ValidateJwt(app.createImageHandler))
 
+	router.HandleFunc("GET /api/messages/users/{userID}",
+		app.ValidateJwt(app.getPrivateMessagesHandler))
+	router.HandleFunc("GET /api/messages/groups/{groupID}",
+		app.ValidateJwt(app.getGroupMessagesHandler))
 
 	router.HandleFunc("/ws", app.ValidateJwt(app.wsHandler))
 
