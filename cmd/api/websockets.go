@@ -3,8 +3,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"social-network/internal/data"
+	"social-network/internal/validator"
 	"sync"
 
 	"github.com/gorilla/websocket"
@@ -76,7 +78,7 @@ func (app *application) wsHandler(w http.ResponseWriter, r *http.Request) {
 	app.ChatService.addClient(client)
 	fmt.Println(app.ChatService.Clients)
 
-	go app.handleConnection(w, r, client)
+	go app.handleConnection(client, r)
 }
 
 func (cs *ChatService) addClient(nc *Client) {
@@ -102,47 +104,83 @@ func (cs *ChatService) removeClient(client *Client) {
 	cs.Clients = newClients
 }
 
-func (app *application) handleConnection(w http.ResponseWriter, r *http.Request, client *Client) {
+func (app *application) handleConnection(client *Client, r *http.Request) {
 	for {
-		mt, message, err := client.conn.ReadMessage()
+		mt, messageRaw, err := client.conn.ReadMessage()
 		if err != nil {
 			app.ChatService.removeClient(client)
 			return
 		}
 
 		var payload WSPayload
-		err = json.Unmarshal(message, &payload)
+		err = json.Unmarshal(messageRaw, &payload)
 		if err != nil {
 			fmt.Println(err)
 			continue
 		}
-		if payload.Type == "message" {
-			message := app.newChatMessage(&payload, client)
+
+		payload.Sender = app.contextGetUser(r).ID
+
+		message := app.newChatMessage(&payload, client)
+		v := validator.New()
+
+		switch payload.Type {
+		case "private_message":
+			if data.ValidateChatMessage(v, message); !v.Valid() {
+				fmt.Println("jouuu", v.Errors)
+				continue
+			}
 			err := app.models.Messages.Insert(message)
 			if err != nil {
-				app.serverErrorResponse(w, r, err)
+				fmt.Println(err)
+				return
+			}
+		case "group_message":
+			if data.ValidateGroupMessage(v, message); !v.Valid() {
+				fmt.Println("jouuu", v.Errors)
+				continue
+			}
+			_, err := app.models.GroupMembers.CheckIfMember(payload.GroupID, client.UserID)
+			if err != nil {
+				log.Println("Not a group member", err)
+				continue
+			}
+			err = app.models.Messages.Insert(message)
+			if err != nil {
+				fmt.Println(err)
 				return
 			}
 		}
-		app.ChatService.sendMessage(&payload, client, mt)
+		app.sendMessage(&payload, client, mt)
 	}
 }
 
-func (cs *ChatService) sendMessage(payload *WSPayload, currentClient *Client, messageType int) {
+func (app *application) sendMessage(payload *WSPayload, currentClient *Client, messageType int) {
 	jsonPayload, err := json.Marshal(payload)
 	if err != nil {
 		fmt.Println("krt", err)
 		return
 	}
-	for _, client := range cs.Clients {
+	for _, client := range app.ChatService.Clients {
 		if client.conn != currentClient.conn {
-			switch payload.Receiver != "" {
-			case payload.Receiver == client.UserID && payload.Type == "message":
-				client.conn.WriteMessage(messageType, jsonPayload)
-			case payload.Receiver != client.UserID:
-				continue
-			default:
-				client.conn.WriteMessage(messageType, jsonPayload)
+			switch payload.Type {
+			case "private_message":
+				if payload.Receiver == client.UserID {
+					client.conn.WriteMessage(messageType, jsonPayload)
+				}
+
+			case "group_message":
+				members, err := app.models.GroupMembers.GetAllGroupMembers(payload.GroupID)
+				if err != nil {
+					log.Println(err)
+					continue
+				}
+
+				for _, member := range members {
+					if member.UserID == client.UserID {
+						client.conn.WriteMessage(messageType, jsonPayload)
+					}
+				}
 			}
 		}
 	}
