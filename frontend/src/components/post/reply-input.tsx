@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { Button } from '../ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -29,9 +29,11 @@ export const ReplyInput = ({
   setNewReply?: (reply: ReplyType) => void;
   callback?: (data: any) => void;
 }) => {
+  const [file, setFile] = useState<File | undefined>(undefined);
+
   const formSchema = z.object({
     content: z.string().min(1),
-    // file: z.instanceof(File).optional(),
+    file: z.instanceof(FileList).optional(),
   });
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -41,6 +43,9 @@ export const ReplyInput = ({
       content: replyInput,
     },
   });
+
+  const input = form.watch('content');
+  const fileRef = form.register('file');
 
   useEffect(() => {
     // focus on textarea when rendered
@@ -76,15 +81,12 @@ export const ReplyInput = ({
   });
 
   const onSubmit = (data: z.infer<typeof formSchema>) => {
-    mutation.mutate(data);
+    console.log(file);
   };
-
-  const input = form.watch('content');
-  // const fileRef = form.register('file');
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} encType="multipart/form-data" className='mb-3 flex h-max w-full space-x-5'>
+      <form onSubmit={form.handleSubmit(onSubmit)} className='mb-3 flex h-max w-full space-x-5'>
         <div className='aspect-square h-[40px] rounded-full bg-secondary' />
         <div className='flex w-full flex-col space-y-2'>
           <FormField
@@ -101,27 +103,20 @@ export const ReplyInput = ({
             }}
           />
           <div className='flex'>
-            {/* <FormField
-              control={form.control}
-              name='file'
-              render={({ field }) => {
-                return (
-                  <FormItem>
-                    <FormControl>
-                      <Input type='file' placeholder='shadcn' accept="image/webp, image/jpeg, image/png" {...fileRef} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                );
-              }}
-            /> */}
+            <Input type='file' {...fileRef} onChange={(event) => setFile(event?.target?.files?.[0])} />
             <div className='ml-auto flex space-x-2'>
               {replyId && (
                 <Button type='button' size='sm' variant='secondary' className='w-[120px]' onClick={onCancel}>
                   Cancel
                 </Button>
               )}
-              <Button onClick={form.handleSubmit(onSubmit)}  type='submit' size='sm' className='w-[120px]' disabled={mutation.isPending || !input}>
+              <Button
+                onClick={form.handleSubmit(onSubmit)}
+                type='submit'
+                size='sm'
+                className='w-[120px]'
+                disabled={mutation.isPending || (!input && !file)}
+              >
                 {replyId ? 'Edit' : 'Reply'}
               </Button>
             </div>

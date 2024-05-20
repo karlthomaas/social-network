@@ -3,8 +3,7 @@
 import { create } from 'zustand';
 import React, { useEffect } from 'react';
 
-import { Dialog, DialogTrigger } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+import { Dialog } from '@/components/ui/dialog';
 
 import { SubmitView } from './submit-view';
 import { PrivacyView } from './privacy-view';
@@ -14,14 +13,16 @@ import { useState } from 'react';
 import { toast } from '@/components/ui/use-toast';
 import { privacyStore } from './privacy-view';
 
-import { useQueryClient, useMutation } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { fetcherWithOptions } from '@/lib/fetchers';
 import { GroupType } from '../../groups/page';
 import { on } from 'events';
+import axios from 'axios';
 
 export const postStore = create((set) => ({
   view: 0,
   postText: '',
+  postFile: undefined,
   privacy: 'public',
   visibleTo: [],
   reset: () => set({ privacy: 'public', view: 0, postText: '' }),
@@ -46,6 +47,7 @@ export const CreatePost = ({
   const view = postStore((state: any) => state.view);
   const reset = postStore((state: any) => state.reset);
   const privacy = postStore((state: any) => state.privacy);
+  const postFile = postStore((state: any) => state.postFile);
   const postText = postStore((state: any) => state.postText);
   const visibleTo = postStore((state: any) => state.visibleTo);
 
@@ -83,6 +85,10 @@ export const CreatePost = ({
     onSuccess: (data) => {
       setOpen(false);
       resetStores();
+      if (postFile) {
+        fileMutation.mutate({ postId: data.post.id, file: postFile });
+      }
+
       if (post) {
         toast({
           title: 'Post updated',
@@ -106,6 +112,21 @@ export const CreatePost = ({
     },
   });
 
+  const fileMutation = useMutation({
+    mutationFn: async ({ postId, file }: { postId: string; file: File }) => {
+      const formData = new FormData();
+      formData.append('images', file);
+
+      return axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/images/post/${postId}`, formData, {
+        withCredentials: true,
+        xsrfCookieName: 'csrftoken',
+        xsrfHeaderName: 'X-CSRFToken',
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+    },
+  });
   const resetStores = () => {
     privacyStore.setState({ radioValue: 'public', visibleTo: [] });
     reset();
