@@ -69,7 +69,7 @@ export const RequestButton = ({ groupId, className }: RequestButtonProps) => {
       setBtnText('Request to join');
       requestObject.current = null;
     }
-  }, [joinRequestStatus.dataUpdatedAt]);
+  }, [joinRequestStatus.data]);
 
   return (
     <Button className={className} onClick={() => mutation.mutate()} disabled={mutation.isPending}>

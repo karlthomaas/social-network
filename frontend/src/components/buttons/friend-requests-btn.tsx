@@ -53,7 +53,7 @@ export const FriendRequestsBtn = ({ userId }: { userId: string }) => {
             No friend requests
           </div>
         ) : (
-          data.requests.map((request: any) => <FriendRequestItem handleAccept={handleAccept} request={request} />)
+          data.requests.map((request: any, index) => <FriendRequestItem key={index} handleAccept={handleAccept} request={request} />)
         )}
       </DropdownMenuContent>
     </DropdownMenu>

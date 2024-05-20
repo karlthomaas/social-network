@@ -31,7 +31,7 @@ export const GroupJoinRequests = ({ groupId }: { groupId: string }) => {
   } else {
     content =
       data.requests.length > 0
-        ? data.requests.map((request: JoinRequestType) => <GroupJoinRequestsUser request={request} />)
+        ? data.requests.map((request: JoinRequestType, index: number) => <GroupJoinRequestsUser key={index} request={request} />)
         : 'No requests found';
   }
 

@@ -7,6 +7,7 @@ export default async function Layout({ children, params }: { children: React.Rea
     <SessionProvider>
       <Navbar authenticate={true} />
       <main className='relative mx-auto h-full w-full max-w-screen-md p-4'>{children}</main>
+      
     </SessionProvider>
   );
 }

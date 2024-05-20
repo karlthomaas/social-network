@@ -13,7 +13,7 @@ export const GroupInviteUser = ({ isInvited, groupId, follower }: { isInvited: b
 
   useEffect(() => {
     setButtonText(isInvited ? 'Cancel' : 'Invite')
-  }, []);
+  }, [isInvited]);
 
   const mutation = useMutation({
     mutationKey: ['group-invite'],
