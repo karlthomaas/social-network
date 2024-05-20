@@ -4,7 +4,6 @@ import { toast } from '@/components/ui/use-toast';
 import { fetcherWithOptions, fetcher } from '@/lib/fetchers';
 import { UserType } from '@/providers/user-provider';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import clsx from 'clsx';
 import { useEffect, useState, useRef } from 'react';
 
 interface JoinRequestStatusQuery {

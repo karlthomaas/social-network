@@ -2,7 +2,6 @@ import { capitalize } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useMutation } from '@tanstack/react-query';
 import { fetcherWithOptions } from '@/lib/fetchers';
-import { LoadingSpinner } from '@/components/ui/spinners';
 import { toast } from '@/components/ui/use-toast';
 import { FollowerType } from './group-invite-content';
 import { useEffect, useRef, useState } from 'react';

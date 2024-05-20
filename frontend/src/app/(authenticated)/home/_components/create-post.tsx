@@ -3,8 +3,7 @@
 import { create } from 'zustand';
 import React, { useEffect } from 'react';
 
-import { Dialog, DialogTrigger } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+import { Dialog } from '@/components/ui/dialog';
 
 import { SubmitView } from './submit-view';
 import { PrivacyView } from './privacy-view';
@@ -14,10 +13,9 @@ import { useState } from 'react';
 import { toast } from '@/components/ui/use-toast';
 import { privacyStore } from './privacy-view';
 
-import { useQueryClient, useMutation } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { fetcherWithOptions } from '@/lib/fetchers';
 import { GroupType } from '../../groups/page';
-import { on } from 'events';
 
 export const postStore = create((set) => ({
   view: 0,
@@ -54,7 +52,7 @@ export const CreatePost = ({
       postStore.setState({ postText: post.content });
       postStore.setState({ privacy: post.privacy });
     }
-  }, []);
+  }, [post, open]);
 
   const mutation = useMutation({
     mutationKey: mutationKeys,
@@ -97,7 +95,7 @@ export const CreatePost = ({
         callback(data.post, 'create');
       }
     },
-    onError: (error: any) => {
+    onError: () => {
       toast({
         title: 'Something went wrong...',
         description: 'Please try again later',
