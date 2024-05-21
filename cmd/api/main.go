@@ -19,10 +19,11 @@ type config struct {
 }
 
 type application struct {
-	config config
-	logger *log.Logger
-	models data.Models
-	wg     sync.WaitGroup
+	config      config
+	logger      *log.Logger
+	models      data.Models
+	wg          sync.WaitGroup
+	ChatService *ChatService
 }
 
 func main() {
@@ -44,9 +45,10 @@ func main() {
 	logger.Printf("database connection pool established")
 
 	app := &application{
-		config: cfg,
-		logger: logger,
-		models: data.NewModels(db),
+		config:      cfg,
+		logger:      logger,
+		models:      data.NewModels(db),
+		ChatService: NewChatService(&sync.Mutex{}, []*Client{}),
 	}
 
 	err = app.serve()

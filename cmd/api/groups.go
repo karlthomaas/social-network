@@ -36,6 +36,11 @@ func (app *application) createGroupHandler(w http.ResponseWriter, r *http.Reques
 		UpdatedAt:   time.Now().Truncate(time.Second),
 	}
 
+	groupMember := &data.GroupMember{
+		GroupID: group.ID,
+		UserID: user.ID,
+	}
+
 	v := validator.New()
 
 	if data.ValidateGroup(v, group); !v.Valid() {
@@ -43,9 +48,16 @@ func (app *application) createGroupHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+
 	err = app.models.Groups.Insert(group)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	err = app.models.GroupMembers.Insert(groupMember)
+	if err != nil {
+		app.serverErrorResponse(w,r,err)
 		return
 	}
 
