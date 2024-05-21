@@ -2,8 +2,12 @@
 
 import { UserType } from '@/providers/user-provider';
 import { useChatStore } from '@/hooks/stores';
+import { FollowerType } from '@/app/(authenticated)/groups/[id]/_components/group-invite-content';
 
-export const Contact = ({ user }: { user: UserType }) => {
+export const Contact = ({ follower }: { follower: FollowerType }) => {
+  const user = follower.user;
+  user.id = follower.follower_id;
+
   const handleClick = () => {
     // check if the user is already in the open chats
     const openChats = useChatStore.getState().openChats;

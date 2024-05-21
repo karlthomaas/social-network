@@ -1,49 +1,29 @@
-import { UserType } from '@/providers/user-provider';
-import { Contact } from './contact';
+'use client';
 
-const Contacts: UserType[] = [
-  {
-    id: '1',
-    first_name: 'John',
-    last_name: 'Doe',
-    email: '',
-    about_me: '',
-    date_of_birth: '',
-    nickname: '',
-    privacy: '',
-    image: null,
-  },
-  {
-    id: '2',
-    first_name: 'Jane',
-    last_name: 'Doe',
-    email: '',
-    about_me: '',
-    date_of_birth: '',
-    nickname: '',
-    privacy: '',
-    image: null,
-  },
-  {
-    id: '3',
-    first_name: 'John',
-    last_name: 'Smith',
-    email: '',
-    about_me: '',
-    date_of_birth: '',
-    nickname: '',
-    privacy: '',
-    image: null,
-  },
-];
+import { UserType, useSession } from '@/providers/user-provider';
+import { Contact } from './contact';
+import { useQuery } from '@tanstack/react-query';
+import { fetcher } from '@/lib/fetchers';
+import { FollowerType } from '@/app/(authenticated)/groups/[id]/_components/group-invite-content';
+
+interface QueryResponse {
+  followers: FollowerType[];
+}
 
 export const ContactList = () => {
+  const { user } = useSession();
+
+  const { data, isLoading } = useQuery<QueryResponse>({
+    queryKey: ['contacts'],
+    queryFn: async () => fetcher(`/api/users/${user?.nickname}/followers`),
+  });
+
   return (
-    <div className='h-max m-4 w-[350px] rounded-lg border border-border flex flex-col space-y-6'>
-      <h1 className='pl-4 pt-4'>Contact list</h1>
-      {Contacts.map((contact) => (
-        <Contact key={contact.id} user={contact} />
-      ))}
+    <div className='m-4 flex h-max w-[350px] flex-col space-y-6 rounded-lg border border-border py-4'>
+      <h1 className='pl-4'>Contact list</h1>
+      {isLoading || !data
+        ? [1, 2, 3, 4, 5].map(() => <div className='h-[40px] w-[90%] mx-auto animate-pulse bg-secondary rounded-lg' />)
+        : data.followers.map((contact) => <Contact key={contact.user.id} follower={contact} />)}
     </div>
   );
 };
