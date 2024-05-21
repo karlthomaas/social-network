@@ -109,10 +109,10 @@ export const CreatePost = ({
     reset();
   };
 
-  let views = [<SubmitView onSubmit={() => mutation.mutate()} isPending={mutation.isPending} showPrivacyOptions={!group} />];
+  let views = [<SubmitView key={1} onSubmit={() => mutation.mutate()} isPending={mutation.isPending} showPrivacyOptions={!group} />];
 
   if (!group) {
-    views = [...views, <PrivacyView />, <AlmostPrivateView />];
+    views = [...views, <PrivacyView key={2} />, <AlmostPrivateView key={3} />];
   }
 
   const handleModalState = (state: boolean) => {
