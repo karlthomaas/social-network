@@ -6,9 +6,8 @@ export const ChatBox = ({ messages }: { messages: MessageType[] | undefined }) =
 
   if (!messages || !user) return null;
 
-  console.log(user.id, messages);
   return (
-    <div className='min-h-[calc(100%-91px)] flex flex-col overflow-y-scroll'>
+    <div className='h-[255px] flex flex-col-reverse overflow-y-scroll'>
       {messages.map((message) => (
         <ChatMessage key={message.id} message={message} isMine={user.id === message.sender} />
       ))}

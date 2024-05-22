@@ -9,27 +9,30 @@ import { Button } from '@/components/ui/button';
 import { useChatStore } from '@/hooks/stores';
 import { Textarea } from '../ui/textarea';
 import useWebSocket, { ReadyState } from 'react-use-websocket';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { fetcher } from '@/lib/fetchers';
-import { ChatMessage } from './message';
 import { MessageType } from './message';
+import { WebSocketMessage } from './open-chats';
 
 interface MessageQuery {
   messages: MessageType[];
 }
 
-export const OpenChat = React.memo(({ user }: { user: UserType }) => {
-  const { sendMessage, lastMessage } = useWebSocket(`${process.env.NEXT_PUBLIC_BACKEND_URL}/ws`);
+export const OpenChat = React.memo(({ user, sendMessage }: { user: UserType; sendMessage: (message: WebSocketMessage) => void }) => {
+  const queryClient = useQueryClient();
+  const [messages, setMessages] = useState<MessageType[]>([]);
   const [input, setInput] = useState('');
 
-  useEffect(() => {
-    console.log('🚀 ~ OpenChat ~ lastMessage:', lastMessage);
-  }, [lastMessage]);
-
-  const { data, isLoading } = useQuery<MessageQuery>({
+  const { data } = useQuery<MessageQuery>({
     queryKey: ['chat', user.id],
     queryFn: async () => fetcher(`api/messages/users/${user.id}`),
   });
+
+  useEffect(() => {
+    if (data?.messages) {
+      setMessages(data.messages);
+    }
+  }, [data]);
 
   const handleCloseChat = () => {
     useChatStore.getState().closeChat(user);
@@ -40,14 +43,14 @@ export const OpenChat = React.memo(({ user }: { user: UserType }) => {
   };
 
   const handleSendMessage = () => {
-    const message = {
+    sendMessage({
       receiver: user.id,
       message: input,
       group_id: '',
       type: 'private_message',
-    };
+    });
 
-    sendMessage(JSON.stringify(message));
+    queryClient.refetchQueries({ queryKey: ['chat', user.id] });
     setInput('');
   };
 
@@ -67,7 +70,7 @@ export const OpenChat = React.memo(({ user }: { user: UserType }) => {
         </div>
       </div>
       <div className='h-[calc(100%-91px)]'>
-        <ChatBox messages={data?.messages} />
+        <ChatBox messages={messages} />
       </div>
       <div className='flex w-full space-x-2 px-1'>
         <div className='relative w-[calc(100%-50px)]'>
@@ -86,3 +89,5 @@ export const OpenChat = React.memo(({ user }: { user: UserType }) => {
     </div>
   );
 });
+
+OpenChat.displayName = 'OpenChat';
