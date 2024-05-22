@@ -60,7 +60,7 @@ func (m *MessageModel) GetAllPrivateMessages(user1, user2 string) ([]*Message, e
 	WHERE 
 		(m.sender = ? AND m.receiver = ?) OR 
 		(m.sender = ? AND m.receiver = ?)
-	ORDER BY m.created_at`
+	ORDER BY m.created_at DESC`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
