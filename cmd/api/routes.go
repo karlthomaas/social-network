@@ -148,6 +148,9 @@ func (app *application) routes() http.Handler {
 	router.HandleFunc("GET /api/messages/groups/{groupID}",
 		app.ValidateJwt(app.getGroupMessagesHandler))
 
+	router.HandleFunc("GET /api/notifications/me",
+		app.ValidateJwt(app.getUserNotificationsHandler))
+
 	router.HandleFunc("/ws", app.ValidateJwt(app.wsHandler))
 
 	return app.RecoverPanic(app.rateLimit(app.SecureHeaders(app.LogRequest(router))))

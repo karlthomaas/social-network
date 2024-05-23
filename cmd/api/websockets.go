@@ -104,6 +104,7 @@ func (cs *ChatService) removeClient(client *Client) {
 	cs.Clients = newClients
 }
 
+
 func (app *application) handleConnection(client *Client, r *http.Request) {
 	for {
 		mt, messageRaw, err := client.conn.ReadMessage()
@@ -121,11 +122,11 @@ func (app *application) handleConnection(client *Client, r *http.Request) {
 
 		payload.Sender = app.contextGetUser(r).ID
 
-		message := app.newChatMessage(&payload, client)
 		v := validator.New()
 
 		switch payload.Type {
 		case "private_message":
+			message := app.newChatMessage(&payload, client)
 			if data.ValidateChatMessage(v, message); !v.Valid() {
 				fmt.Println("jouuu", v.Errors)
 				continue
@@ -136,6 +137,7 @@ func (app *application) handleConnection(client *Client, r *http.Request) {
 				return
 			}
 		case "group_message":
+			message := app.newChatMessage(&payload, client)
 			if data.ValidateGroupMessage(v, message); !v.Valid() {
 				fmt.Println("jouuu", v.Errors)
 				continue
@@ -180,6 +182,22 @@ func (app *application) sendMessage(payload *WSPayload, currentClient *Client, m
 					if member.UserID == client.UserID {
 						client.conn.WriteMessage(messageType, jsonPayload)
 					}
+				}
+			case "notification":
+				if payload.Receiver == client.UserID {
+					client.conn.WriteMessage(messageType, jsonPayload)
+				} else if payload.Receiver == "" && payload.GroupID != "" {
+						members, err := app.models.GroupMembers.GetAllGroupMembers(payload.GroupID)
+				if err != nil {
+					log.Println(err)
+					continue
+				}
+
+				for _, member := range members {
+					if member.UserID == client.UserID {
+						client.conn.WriteMessage(messageType, jsonPayload)
+					}
+				}
 				}
 			}
 		}

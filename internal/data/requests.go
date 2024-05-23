@@ -8,6 +8,7 @@ import (
 )
 
 type Request struct {
+	ID         string    `json:"id"`
 	UserID     string    `json:"user_id"`
 	FollowerID string    `json:"follower_id"`
 	CreatedAt  time.Time `json:"created_at"`
@@ -20,10 +21,11 @@ type RequestModel struct {
 
 func (m *RequestModel) Insert(request *Request) error {
 	query := `
-	INSERT INTO follow_requests (user_id, follower_id)
-	VALUES (?,?)
+	INSERT INTO follow_requests (id, user_id, follower_id)
+	VALUES (?,?,?)
 	`
 	args := []interface{}{
+		request.ID,
 		request.UserID,
 		request.FollowerID,
 	}
@@ -60,7 +62,7 @@ func (m *RequestModel) Delete(userID, followerID string) error {
 }
 
 func (m *RequestModel) Get(userID, followerID string) (*Request, error) {
-	query := `SELECT user_id, follower_id, created_at
+	query := `SELECT id, user_id, follower_id, created_at
 		FROM follow_requests
 		WHERE user_id = ?
 		AND follower_id = ?`
@@ -70,6 +72,7 @@ func (m *RequestModel) Get(userID, followerID string) (*Request, error) {
 	defer cancel()
 
 	err := m.DB.QueryRowContext(ctx, query, userID, followerID).Scan(
+		&request.ID,
 		&request.UserID,
 		&request.FollowerID,
 		&request.CreatedAt,
@@ -87,7 +90,7 @@ func (m *RequestModel) Get(userID, followerID string) (*Request, error) {
 }
 
 func (m *RequestModel) GetAllRequests(userID string) ([]*Request, error) {
-	query := `SELECT r.user_id, r.follower_id, r.created_at, u.nickname, u.image
+	query := `SELECT r.id, r.user_id, r.follower_id, r.created_at, u.nickname, u.image
 	FROM follow_requests r
 	JOIN users u ON r.follower_id = u.id
 	WHERE r.user_id = ?
@@ -100,12 +103,14 @@ func (m *RequestModel) GetAllRequests(userID string) ([]*Request, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
 	requests := []*Request{}
 
 	for rows.Next() {
 		var request Request
 		rows.Scan(
+			&request.ID,
 			&request.UserID,
 			&request.FollowerID,
 			&request.CreatedAt,

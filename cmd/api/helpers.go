@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"social-network/internal/data"
 	"strings"
 
 	"github.com/gofrs/uuid"
@@ -106,4 +107,42 @@ func (app *application) readParam(r *http.Request, param string) (string, error)
 		return "", errors.New("invalid id parameter")
 	}
 	return id, nil
+}
+
+func (app *application) createNotification(notification *data.Notification) error {
+
+	id, err := app.generateUUID()
+	if err != nil {
+		return err
+	}
+
+	notification.ID = id
+
+	if notification.GroupEventID != "" {
+		groupEvent, err := app.models.GroupEvents.Get(notification.GroupEventID)
+		if err != nil {
+
+			return data.ErrRecordNotFound
+		}
+
+		groupMembers, err := app.models.GroupMembers.GetAllGroupMembers(groupEvent.GroupID)
+		if err != nil {
+			return err
+		}
+
+		for _, member := range groupMembers {
+			notification.Receiver = member.UserID
+			err := app.models.Notifications.Insert(notification)
+			if err != nil {
+				return err
+			}
+		}
+	} else {
+		err := app.models.Notifications.Insert(notification)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
