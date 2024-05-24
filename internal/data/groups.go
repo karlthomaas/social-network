@@ -162,6 +162,38 @@ func (m *GroupModel) GetAll() ([]*Group, error) {
 
 }
 
+func (m GroupModel) GetAllForUser(userID string) ([]*Group, error) {
+    query := `
+        SELECT g.id, g.title, g.description, g.updated_at
+        FROM groups g
+        INNER JOIN group_members gm ON g.id = gm.group_id
+        WHERE gm.user_id = ?
+    `
+
+    rows, err := m.DB.Query(query, userID)
+    if err != nil {
+        return nil, err
+    }
+    defer rows.Close()
+
+    var groups []*Group
+
+    for rows.Next() {
+        var group Group
+        err := rows.Scan(&group.ID, &group.Title, &group.Description, &group.UpdatedAt)
+        if err != nil {
+            return nil, err
+        }
+        groups = append(groups, &group)
+    }
+
+    if err = rows.Err(); err != nil {
+        return nil, err
+    }
+
+    return groups, nil
+}
+
 func ValidateGroup(v *validator.Validator, group *Group) {
 
 	v.Check(group.ID != "", "id", "must not be empty")

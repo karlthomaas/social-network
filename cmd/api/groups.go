@@ -214,3 +214,18 @@ func (app *application) getAllGroups(w http.ResponseWriter, r *http.Request) {
 		app.serverErrorResponse(w,r,err)
 	}
 }
+
+func (app *application) getAllGroupsForUserHandler(w http.ResponseWriter, r *http.Request) {
+    user := app.contextGetUser(r)
+
+    groups, err := app.models.Groups.GetAllForUser(user.ID)
+    if err != nil {
+        app.serverErrorResponse(w, r, err)
+        return
+    }
+
+    err = app.writeJSON(w, http.StatusOK, envelope{"groups": groups}, nil)
+    if err != nil {
+        app.serverErrorResponse(w, r, err)
+    }
+}

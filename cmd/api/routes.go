@@ -90,6 +90,8 @@ func (app *application) routes() http.Handler {
 		app.ValidateJwt(app.updateGroupHandler))
 	router.HandleFunc("GET /api/groups",
 		app.ValidateJwt(app.getAllGroups))
+	router.HandleFunc("GET /api/groups/users/me",
+		app.ValidateJwt(app.getAllGroupsForUserHandler))
 
 	router.HandleFunc("POST /api/groups/{id}/users/{userID}",
 		app.ValidateJwt(app.inviteToGroupHandler))
