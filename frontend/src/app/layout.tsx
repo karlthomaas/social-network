@@ -4,13 +4,13 @@ import { Toaster } from '@/components/ui/toaster';
 import './globals.css';
 
 import { TanstackProvider } from '@/providers/tanstack-provider';
+import StoreProvider from './StoreProvider';
 
 const poppins = Poppins({
   weight: ['400', '500', '600'],
   subsets: ['latin'],
   variable: '--font-poppins',
 });
-
 
 export const metadata: Metadata = {
   title: 'Create Next App',
@@ -25,7 +25,9 @@ export default function RootLayout({
   return (
     <html lang='en'>
       <body className={poppins.className}>
-        <TanstackProvider>{children}</TanstackProvider>
+        <StoreProvider>
+          <TanstackProvider>{children}</TanstackProvider>
+        </StoreProvider>
         <Toaster />
       </body>
     </html>

@@ -1,5 +1,3 @@
-"use client";
-
 import { MinimizedChats } from "./minimized-chats";
 import { OpenChats } from "./open-chats";
 

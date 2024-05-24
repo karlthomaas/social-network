@@ -1,27 +1,29 @@
 'use client';
 
-import { UserType } from '@/providers/user-provider';
-import { useChatStore } from '@/hooks/stores';
 import { FollowerType } from '@/app/(authenticated)/groups/[id]/_components/group-invite-content';
+import { useAppSelector, useAppDispatch } from '@/lib/hooks';
+import { selectMinimizedChats, selectOpenChats } from '@/lib/features/chats/chatsSlice';
 
 export const Contact = ({ follower }: { follower: FollowerType }) => {
   const user = follower.user;
   user.id = follower.follower_id;
 
+  const openChats = useAppSelector(selectOpenChats);
+  const minimizedChats = useAppSelector(selectMinimizedChats);
+  
   const handleClick = () => {
-    // check if the user is already in the open chats
-    const openChats = useChatStore.getState().openChats;
-    const isChatOpen = openChats.some((chat) => chat.id === user.id);
+    console.log(openChats);
+    const isChatOpen = Object.values(openChats).some((chat) => chat.id === user.id);
 
     if (isChatOpen) return;
 
-    const minChats = useChatStore.getState().minChats;
-    const isChatMinimized = minChats.some((chat) => chat.id === user.id);
+    const isChatMinimized = minimizedChats.some((chat) => chat.id === user.id);
 
     if (isChatMinimized) {
-      useChatStore.getState().reOpenChat(user);
+    //   useChatStore.getState().reOpenChat(user);
     } else {
-      useChatStore.getState().openChat(user);
+      useAppDispatch();
+    //   useChatStore.getState().openChat(user);
     }
   };
 

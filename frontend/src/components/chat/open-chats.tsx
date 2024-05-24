@@ -5,6 +5,9 @@ import { useChatStore } from '@/hooks/stores';
 import { OpenChat } from './open-chat';
 import React, { useCallback, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { selectOpenChats } from '@/lib/features/chats/chatsSlice';
+import { useSelector } from 'react-redux';
+import { useAppSelector } from '@/lib/hooks';
 
 export interface WebSocketMessage {
   receiver: string;
@@ -14,7 +17,7 @@ export interface WebSocketMessage {
 }
 
 interface ReceivedWebSocketMessage {
-  gropu_id: string;
+  group_id: string;
   message: string;
   online: string;
   receiver: string;
@@ -37,10 +40,9 @@ export const OpenChats = () => {
     if (!lastMessage || !lastMessage.data) return;
     const message: ReceivedWebSocketMessage = JSON.parse(lastMessage.data);
     queryClient.refetchQueries({ queryKey: ['chat', message.sender] });
-    
   }, [lastMessage, queryClient]);
 
-  const openChats = useChatStore((state) => state.openChats);
+  const openChats = useAppSelector(selectOpenChats);
 
   return (
     <div className='fixed bottom-0 right-[100px] flex space-x-2'>

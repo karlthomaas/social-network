@@ -26,7 +26,7 @@ export default function GroupsPage() {
 
 
   useEffect(() => {
-    if (data) {
+    if (data?.groups) {
       setGroups(data.groups);
     }
   }, [data]);
@@ -36,6 +36,7 @@ export default function GroupsPage() {
     const filteredGroups = data.groups.filter((group: GroupType) => group.title.toLowerCase().includes(search.toLocaleLowerCase()));
     setGroups(filteredGroups);
   };
+
   return (
     <div className='flex flex-col '>
       <div className='flex space-x-2'>
