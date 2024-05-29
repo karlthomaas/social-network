@@ -36,6 +36,11 @@ func (app *application) createGroupHandler(w http.ResponseWriter, r *http.Reques
 		UpdatedAt:   time.Now().Truncate(time.Second),
 	}
 
+	groupMember := &data.GroupMember{
+		GroupID: group.ID,
+		UserID: user.ID,
+	}
+
 	v := validator.New()
 
 	if data.ValidateGroup(v, group); !v.Valid() {
@@ -43,9 +48,16 @@ func (app *application) createGroupHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+
 	err = app.models.Groups.Insert(group)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	err = app.models.GroupMembers.Insert(groupMember)
+	if err != nil {
+		app.serverErrorResponse(w,r,err)
 		return
 	}
 
@@ -201,4 +213,19 @@ func (app *application) getAllGroups(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		app.serverErrorResponse(w,r,err)
 	}
+}
+
+func (app *application) getAllGroupsForUserHandler(w http.ResponseWriter, r *http.Request) {
+    user := app.contextGetUser(r)
+
+    groups, err := app.models.Groups.GetAllForUser(user.ID)
+    if err != nil {
+        app.serverErrorResponse(w, r, err)
+        return
+    }
+
+    err = app.writeJSON(w, http.StatusOK, envelope{"groups": groups}, nil)
+    if err != nil {
+        app.serverErrorResponse(w, r, err)
+    }
 }

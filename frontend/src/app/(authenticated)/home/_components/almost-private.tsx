@@ -1,8 +1,7 @@
-import { DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+import { DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { ArrowLeftIcon } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { RadioGroup } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { postStore } from './create-post';
 import { privacyStore } from './privacy-view';
@@ -10,8 +9,9 @@ import { useQuery } from '@tanstack/react-query';
 import { fetcher } from '@/lib/fetchers';
 import { useSession } from '@/providers/user-provider';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Button } from '@/components/ui/button';
 
-export const AlmostPrivateView = ({}) => {
+export const AlmostPrivateView = ({ }) => {
   // todo improve this view when users and relationships are implemented
   const back = postStore((state: any) => state.deincrement);
   const visibleTo = privacyStore((state: any) => state.visibleTo);
