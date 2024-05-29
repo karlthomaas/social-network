@@ -19,4 +19,8 @@ RUN mkdir /appbin
 RUN go get github.com/githubnemo/CompileDaemon
 RUN go install github.com/githubnemo/CompileDaemon
 
+# Get gorilla/websocket
+RUN go get github.com/gorilla/websocket
+RUN go install github.com/gorilla/websocket
+
 ENTRYPOINT CompileDaemon --build="go build -o /appbin/main ./cmd/api" --command="/appbin/main"

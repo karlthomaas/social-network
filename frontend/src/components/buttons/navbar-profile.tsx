@@ -16,17 +16,13 @@ import { useRouter } from 'next/navigation';
 import { useSession } from '@/providers/user-provider';
 
 export const NavbarProfile = () => {
-  const { user } = useSession();
-
-  if (!user) {
-    return null
-  }
-  
-  const toastId = 'logout-toast';
   const queryClient = useQueryClient();
+  const { user } = useSession();
   const { toast } = useToast();
   const router = useRouter();
-
+  
+  const toastId = 'logout-toast';
+  
   const mutation = useMutation({
     mutationKey: ['session'],
     mutationFn: async () => {
@@ -54,6 +50,10 @@ export const NavbarProfile = () => {
       });
     },
   });
+
+  if (!user) {
+    return null
+  }
 
   return (
     <DropdownMenu>

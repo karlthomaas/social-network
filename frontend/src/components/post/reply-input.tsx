@@ -1,9 +1,9 @@
 "use client";
 
 import { Button } from '../ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { fetcherWithOptions } from '@/lib/fetchers';
 import { Textarea } from '../ui/textarea';
 import type { ReplyType } from './replies';
@@ -12,15 +12,14 @@ import { toast } from '../ui/use-toast';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Input } from '../ui/input';
 
 export const ReplyInput = ({
   postId,
   replyId,
   replyInput = '',
   setNewReply,
-  callback = () => {},
-  onCancel = () => {},
+  callback = () => { },
+  onCancel = () => { },
 }: {
   postId: string;
   replyId?: string;
@@ -121,7 +120,7 @@ export const ReplyInput = ({
                   Cancel
                 </Button>
               )}
-              <Button onClick={form.handleSubmit(onSubmit)}  type='submit' size='sm' className='w-[120px]' disabled={mutation.isPending || !input}>
+              <Button onClick={form.handleSubmit(onSubmit)} type='submit' size='sm' className='w-[120px]' disabled={mutation.isPending || !input}>
                 {replyId ? 'Edit' : 'Reply'}
               </Button>
             </div>
