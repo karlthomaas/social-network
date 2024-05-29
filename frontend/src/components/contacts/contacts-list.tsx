@@ -6,10 +6,6 @@ import { FollowerType } from '@/app/(authenticated)/groups/[id]/_components/grou
 import { useGetSessionUserGroupsQuery, useGetUserFollowersQuery } from '@/services/backend/backendApi';
 import { skipToken } from '@reduxjs/toolkit/query';
 
-interface ContactsQueryResponse {
-  followers: FollowerType[];
-}
-
 export const ContactList = () => {
   const { user } = useAppSelector((state) => state.auth)
 
