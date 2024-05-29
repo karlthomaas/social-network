@@ -11,13 +11,6 @@ export const backendApi = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: `${backendUrl}/api/`, credentials: 'include' }),
   tagTypes: ['Chat', 'Groups'],
   endpoints: (builder) => ({
-    login: builder.mutation<{ message: string }, LoginFormProps>({
-      query: ({ email, password }) => ({
-        url: 'login',
-        method: 'POST',
-        headers: { Authorization: 'Basic ' + btoa(`${email}:${password}`) },
-      }),
-    }),
     register: builder.mutation<{ message: string }, RegisterFormProps>({
       query: (values) => {
         const { confirmPassword, ...rest } = values;
@@ -28,6 +21,20 @@ export const backendApi = createApi({
         };
       },
     }),
+
+    login: builder.mutation<{ message: string }, LoginFormProps>({
+      query: ({ email, password }) => ({
+        url: 'login',
+        method: 'POST',
+        headers: { Authorization: 'Basic ' + btoa(`${email}:${password}`) },
+      }),
+    }),
+    logout: builder.mutation<{ message: string }, void>({
+      query: () => ({
+        url: 'logout',
+        method: 'POST',
+      }),
+    }),
     getSessionUser: builder.query<any, null>({
       query: () => 'users/me',
     }),
@@ -37,7 +44,7 @@ export const backendApi = createApi({
     getSessionUserGroups: builder.query<getGroupsQuery, void>({
       query: () => 'groups/users/me',
       providesTags: ['Groups'],
-      transformResponse: (response: any) => response.groups ?? { groups: [] },
+      transformResponse: (response: any) => response.groups ? response :  { groups: [] },
     }),
 
     getChatMessages: builder.query<getChatMessagesQuery, string>({
@@ -52,8 +59,9 @@ export const backendApi = createApi({
 });
 
 export const {
-  useLoginMutation,
   useRegisterMutation,
+  useLoginMutation,
+  useLogoutMutation,
 
   useGetChatMessagesQuery,
   useGetUserFollowersQuery,

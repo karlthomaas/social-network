@@ -1,4 +1,4 @@
-import { configureStore } from '@reduxjs/toolkit';
+import { combineReducers, configureStore } from '@reduxjs/toolkit';
 import { backendApi } from '@/services/backend/backendApi';
 
 import chatsReducer from '@/features/chats/chatsSlice';
@@ -7,13 +7,25 @@ import authReducer from '@/features/auth/authSlice';
 import { socketMiddleware } from './middlware/socket';
 import { Socket } from './lib/socket';
 
+
+const appReducer = combineReducers({
+  chat: chatsReducer,
+  auth: authReducer,
+  [backendApi.reducerPath]: backendApi.reducer,
+});
+
+const rootReducer = (state: any, action: any) => {
+  if (action.type === 'auth/logout') {
+    // reset the state of a redux store on logout
+    state = undefined;
+  }
+
+  return appReducer(state, action);
+};
+
 export const makeStore = () => {
   return configureStore({
-    reducer: {
-      chat: chatsReducer,
-      auth: authReducer,
-      [backendApi.reducerPath]: backendApi.reducer,
-    },
+    reducer: rootReducer,
     middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(backendApi.middleware).concat(socketMiddleware(new Socket())),
   });
 };
