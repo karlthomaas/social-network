@@ -105,7 +105,7 @@ func (m *MessageModel) GetAllGroupMessages(groupID string) ([]*Message, error) {
 	FROM messages m
 	LEFT JOIN users sender ON m.sender = sender.id
 	WHERE m.group_id = ?
-	ORDER BY m.created_at`
+	ORDER BY m.created_at DESC`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
