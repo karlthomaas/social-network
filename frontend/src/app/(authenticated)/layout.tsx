@@ -9,7 +9,7 @@ export default async function Layout({ children, params }: { children: React.Rea
     <SessionProvider>
       <Navbar authenticate={true} />
       <div className='flex justify-center'>
-        <div className='w-[350px] m-4'>Menu</div>
+        <div className='w-[350px] m-4 hidden lg:block'>Menu</div>
         <main className='relative h-full w-full max-w-screen-md p-4'>{children}</main>
         <ContactList />
         <Chats />

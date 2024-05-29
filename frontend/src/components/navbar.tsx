@@ -10,13 +10,16 @@ import { LoginButton } from './buttons/login-btn';
 import { FriendRequestsBtn } from './buttons/friend-requests-btn';
 import { NotificationBtn } from './buttons/notifications-btn';
 import { useAppDispatch } from '@/lib/hooks';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+
+import { Sidebar } from '@/components/sidebar';
 
 export default function Navbar({ authenticate = false }) {
-  const dispatch = useAppDispatch();
-  
-  useEffect(() => {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
     if (!authenticate) return;
 
     // initialize socket connection
@@ -29,6 +32,10 @@ export default function Navbar({ authenticate = false }) {
 
   const { user, isLoading } = useSession();
 
+  const handleCloseSidebar = () => {
+    setSidebarOpen(false);
+  };
+
   const navbarButtons = useMemo(() => {
     if (!authenticate) {
       return <LoginButton />;
@@ -36,33 +43,38 @@ export default function Navbar({ authenticate = false }) {
       return <div className='aspect-square w-[40px] animate-pulse rounded-full bg-secondary' />;
     } else if (user) {
       return (
-        <li className='items-center flex space-x-5'>
-          <NotificationBtn />
-          <FriendRequestsBtn userId={user.id} />
-          <NavbarProfile />
-        </li>
+        <>
+          <div className='hidden items-center space-x-5 lg:flex'>
+            <NotificationBtn />
+            <FriendRequestsBtn userId={user.id} />
+            <NavbarProfile />
+          </div>
+          <Button size='sm' variant='ghost' className='lg:hidden' onClick={() => setSidebarOpen(!sidebarOpen)}>
+            <Menu size={25} />
+          </Button>
+        </>
       );
     } else {
       return <LoginButton />;
     }
-  }, [authenticate, isLoading, user]);
+  }, [authenticate, isLoading, user, sidebarOpen]);
 
   return (
-    <nav className='h-[65px] w-full border-b-[1px] border-border'>
-      <ul className='mx-auto flex h-full max-w-screen-md items-center justify-between p-4'>
-        <li>
-          <Link href='/' className='flex items-center space-x-4'>
-            <div className='h-[30px] w-[30px] rounded-lg bg-secondary' />
-            <p className='text-lg'>Social Network</p>
-          </Link>
-        </li>
-        <li className='md:hidden'>
-          <Button size='sm' variant='ghost'>
-            <Menu size={25} />
-          </Button>
-        </li>
-        {navbarButtons}
-      </ul>
-    </nav>
+    <>
+      <nav className='h-[65px] w-full border-b-[1px] border-border'>
+        <ul className='mx-auto flex h-full max-w-screen-md items-center justify-between p-4'>
+          <li>
+            <Link href='/' className='flex items-center space-x-4'>
+              <div className='h-[30px] w-[30px] rounded-lg bg-secondary' />
+              <p className='text-lg'>Social Network</p>
+            </Link>
+          </li>
+          {navbarButtons}
+        </ul>
+      </nav>
+      <Sidebar handleClose={handleCloseSidebar} isOpen={sidebarOpen}>
+        Bruh
+      </Sidebar>
+    </>
   );
 }
