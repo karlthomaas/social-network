@@ -1,15 +1,15 @@
 import { UserType, useSession } from '@/providers/user-provider';
 import { ChatMessage, MessageType } from './message';
 
-export const ChatBox = ({ messages }: { messages: MessageType[] | undefined }) => {
+export const ChatBox = ({ messages, showHandles = false }: { messages: MessageType[] | undefined; showHandles: boolean }) => {
   const { user } = useSession();
 
   if (!messages || !user) return null;
 
   return (
-    <div className='h-[255px] flex flex-col-reverse overflow-y-scroll'>
+    <div className='flex h-[255px] flex-col-reverse overflow-y-scroll pb-2'>
       {messages.map((message) => (
-        <ChatMessage key={message.id} message={message} isMine={user.id === message.sender} />
+        <ChatMessage showHandle={showHandles} key={message.id} message={message} isMine={user.id === message.sender} />
       ))}
     </div>
   );

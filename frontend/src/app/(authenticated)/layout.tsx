@@ -4,7 +4,6 @@ import { SessionProvider } from '@/providers/user-provider';
 import { ContactList } from '@/components/contacts/contacts-list';
 import { Chats } from '@/components/chat/chats';
 
-
 export default async function Layout({ children, params }: { children: React.ReactNode; params: any }) {
   return (
     <SessionProvider>

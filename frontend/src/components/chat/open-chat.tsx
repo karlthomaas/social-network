@@ -3,74 +3,68 @@
 import { ChevronDown, SendHorizonal, X } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 
-import { UserType } from '@/providers/user-provider';
-import { ChatBox } from '@/components/chat/chat-box';
 import { Button } from '@/components/ui/button';
-import { useChatStore } from '@/hooks/stores';
-import { Textarea } from '../ui/textarea';
-import useWebSocket, { ReadyState } from 'react-use-websocket';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { fetcher } from '@/lib/fetchers';
-import { MessageType } from './message';
-import { WebSocketMessage } from './open-chats';
+import { Textarea } from '@/components/ui/textarea';
+import { ChatBox } from '@/components/chat/chat-box';
+import { MessageType } from '@/components/chat/message';
 
-interface MessageQuery {
-  messages: MessageType[];
-}
+import { useAppDispatch } from '@/lib/hooks';
+import { WebSocketMessage } from '@/types/socket';
+import { useGetChatMessagesQuery, useGetGroupMessagesQuery } from '@/services/backendApi';
+import { ChatType, closeChat, minimizeChat } from '@/features/chats/chatsSlice';
 
-export const OpenChat = React.memo(({ user, sendMessage }: { user: UserType; sendMessage: (message: WebSocketMessage) => void }) => {
-  const queryClient = useQueryClient();
+export const OpenChat = React.memo(({ chat, sendMessage }: { chat: ChatType; sendMessage: (message: WebSocketMessage) => void }) => {
   const [messages, setMessages] = useState<MessageType[]>([]);
   const [input, setInput] = useState('');
 
-  const { data } = useQuery<MessageQuery>({
-    queryKey: ['chat', user.id],
-    queryFn: async () => fetcher(`api/messages/users/${user.id}`),
+  const dispatch = useAppDispatch();
+
+  const chatMessages = useGetChatMessagesQuery(chat.id, {
+    skip: chat.type === 'group', // skip if chat is a group type
+  });
+
+  const groupMessages = useGetGroupMessagesQuery(chat.id, {
+    skip: chat.type === 'private', // skip if chat is a private type
   });
 
   useEffect(() => {
-    if (data?.messages) {
-      setMessages(data.messages);
-    }
-  }, [data]);
-
-  const handleCloseChat = () => {
-    useChatStore.getState().closeChat(user);
-  };
-
-  const handleMinimizeChat = () => {
-    useChatStore.getState().minimizeChat(user);
-  };
+    const data = chat.type === 'group' ? groupMessages.data : chatMessages.data;
+    if (data) setMessages(data.messages);
+  }, [chatMessages, groupMessages, chat.type]);
 
   const handleSendMessage = () => {
     sendMessage({
-      receiver: user.id,
+      receiver: chat.type === 'private' ? chat.id : '',
       message: input,
-      group_id: '',
-      type: 'private_message',
+      group_id: chat.type === 'group' ? chat.id : '',
+      type: chat.type === 'private' ? 'private_message' : 'group_message',
     });
 
-    queryClient.refetchQueries({ queryKey: ['chat', user.id] });
+    // update chat because backend doesn't return message object
+    if (chat.type === 'private') {
+      chatMessages.refetch();
+    } else {
+      groupMessages.refetch();
+    }
+
     setInput('');
   };
 
   return (
     <div className='h-[350px] w-[300px] rounded-lg rounded-b-none border border-border bg-background'>
       <div className='flex h-[50px] w-full items-center justify-between border-b border-border px-2 '>
-        <h3>
-          {user.first_name} {user.last_name}
-        </h3>
+        <h3>{chat.name}</h3>
         <div>
-          <Button size='icon' variant='ghost' onClick={handleMinimizeChat}>
+          <Button size='icon' variant='ghost' onClick={() => dispatch(minimizeChat(chat.id))}>
             <ChevronDown />
           </Button>
-          <Button size='icon' variant='ghost' onClick={handleCloseChat}>
+          <Button size='icon' variant='ghost' onClick={() => dispatch(closeChat(chat.id))}>
             <X />
           </Button>
         </div>
       </div>
       <div className='h-[calc(100%-91px)]'>
-        <ChatBox messages={messages} />
+        <ChatBox showHandles={chat.type === 'group'} messages={messages} />
       </div>
       <div className='flex w-full space-x-2 px-1'>
         <div className='relative w-[calc(100%-50px)]'>

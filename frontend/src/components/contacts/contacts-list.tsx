@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { fetcher } from '@/lib/fetchers';
 import { FollowerType } from '@/app/(authenticated)/groups/[id]/_components/group-invite-content';
 import { GroupType } from '@/app/(authenticated)/groups/page';
+import { useGetSessionUserGroupsQuery } from '@/services/backendApi';
 
 interface ContactsQueryResponse {
   followers: FollowerType[];
@@ -18,14 +19,11 @@ interface GroupsQueryResponse {
 export const ContactList = () => {
   const { user } = useSession();
 
+  const groupsQuery = useGetSessionUserGroupsQuery();
+
   const contactsQuery = useQuery<ContactsQueryResponse>({
     queryKey: ['contacts'],
     queryFn: async () => fetcher(`/api/users/${user?.nickname}/followers`),
-  });
-
-  const groupsQuery = useQuery<GroupsQueryResponse>({
-    queryKey: ['groups'],
-    queryFn: async () => fetcher(`/api/groups/users/me`),
   });
 
   return (
@@ -33,9 +31,19 @@ export const ContactList = () => {
       <h1 className='pl-4 font-medium'>Contacts</h1>
       {contactsQuery.isLoading || !contactsQuery.data
         ? [1, 2, 3, 4, 5].map((item) => <div key={item} className='mx-auto h-[40px] w-[90%] animate-pulse rounded-lg bg-secondary' />)
-        : contactsQuery.data.followers.map((contact, index) => <Contact key={contact.follower_id} follower={contact} />)}
+        : contactsQuery.data.followers.map((contact) => (
+            <Contact
+              key={contact.follower_id}
+              id={contact.follower_id}
+              type='private'
+              name={`${contact.user.first_name} ${contact.user.last_name}`}
+            />
+          ))}
       <div className='h-[2px] w-full bg-secondary' />
       <h1 className='pl-4 font-medium'>Group conversations</h1>
+      {groupsQuery.isLoading || !groupsQuery.data
+        ? [1, 2, 3, 4, 5].map((item) => <div key={item} className='mx-auto h-[40px] w-[90%] animate-pulse rounded-lg bg-secondary' />)
+        : groupsQuery.data.groups.map((group) => <Contact key={group.id} id={group.id} type='group' name={group.title} />)}
     </div>
   );
 };

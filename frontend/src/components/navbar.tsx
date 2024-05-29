@@ -9,8 +9,24 @@ import { useMemo } from 'react';
 import { LoginButton } from './buttons/login-btn';
 import { FriendRequestsBtn } from './buttons/friend-requests-btn';
 import { NotificationBtn } from './buttons/notifications-btn';
+import { useAppDispatch } from '@/lib/hooks';
+import { useEffect } from 'react';
 
 export default function Navbar({ authenticate = false }) {
+  const dispatch = useAppDispatch();
+  
+  useEffect(() => {
+
+    if (!authenticate) return;
+
+    // initialize socket connection
+    dispatch({ type: 'socket/connect' });
+
+    return () => {
+      dispatch({ type: 'socket/disconnect' });
+    };
+  }, [dispatch, authenticate]);
+
   const { user, isLoading } = useSession();
 
   const navbarButtons = useMemo(() => {

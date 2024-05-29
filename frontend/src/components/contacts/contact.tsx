@@ -1,35 +1,30 @@
 'use client';
 
-import { FollowerType } from '@/app/(authenticated)/groups/[id]/_components/group-invite-content';
+import { GroupType } from '@/app/(authenticated)/groups/page';
+import { openChat, selectOpenChats } from '@/features/chats/chatsSlice';
 import { useAppSelector, useAppDispatch } from '@/lib/hooks';
-import { selectMinimizedChats, selectOpenChats } from '@/lib/features/chats/chatsSlice';
 
-export const Contact = ({ follower }: { follower: FollowerType }) => {
-  const user = follower.user;
-  user.id = follower.follower_id;
-
+export const Contact = ({ id, name, type }: { id: string; name: string; type: 'private' | 'group' }) => {
+  const dispatch = useAppDispatch();
   const openChats = useAppSelector(selectOpenChats);
-  const minimizedChats = useAppSelector(selectMinimizedChats);
-  
+
   const handleClick = () => {
-    console.log(openChats);
-    const isChatOpen = Object.values(openChats).some((chat) => chat.id === user.id);
+    // Chat is open
+    if (Object.values(openChats).some((chat) => chat.id === id)) return;
 
-    if (isChatOpen) return;
-
-    const isChatMinimized = minimizedChats.some((chat) => chat.id === user.id);
-
-    if (isChatMinimized) {
-    //   useChatStore.getState().reOpenChat(user);
-    } else {
-      useAppDispatch();
-    //   useChatStore.getState().openChat(user);
-    }
+    dispatch(
+      openChat({
+        id: id,
+        name: name,
+        state: 'open',
+        type,
+      })
+    );
   };
 
   return (
     <div onClick={handleClick} className='flex h-[50px] w-full items-center p-4 hover:cursor-pointer hover:bg-secondary/50'>
-      {user.first_name} {user.last_name}
+      {name}
     </div>
   );
 };
