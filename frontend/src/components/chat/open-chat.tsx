@@ -10,7 +10,7 @@ import { MessageType } from '@/components/chat/message';
 
 import { useAppDispatch } from '@/lib/hooks';
 import { WebSocketMessage } from '@/types/socket';
-import { useGetChatMessagesQuery, useGetGroupMessagesQuery } from '@/services/backendApi';
+import { useGetChatMessagesQuery, useGetGroupMessagesQuery } from '@/services/backend/backendApi';
 import { ChatType, closeChat, minimizeChat } from '@/features/chats/chatsSlice';
 
 export const OpenChat = React.memo(({ chat, sendMessage }: { chat: ChatType; sendMessage: (message: WebSocketMessage) => void }) => {

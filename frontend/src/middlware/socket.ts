@@ -1,6 +1,6 @@
 import { MessageType } from '@/components/chat/message';
 import { Socket } from '@/lib/socket';
-import { backendApi } from '@/services/backendApi';
+import { backendApi } from '@/services/backend/backendApi';
 import { WebSocketMessage } from '@/types/socket';
 
 export const socketMiddleware = (socket: Socket) => (params: any) => (next: any) => (action: any) => {

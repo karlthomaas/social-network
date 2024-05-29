@@ -4,33 +4,30 @@ import { Menu } from 'lucide-react';
 import { Button } from './ui/button';
 import Link from 'next/link';
 import { NavbarProfile } from './buttons/navbar-profile';
-import { useSession } from '@/providers/user-provider';
 import { useMemo } from 'react';
 import { LoginButton } from './buttons/login-btn';
 import { FriendRequestsBtn } from './buttons/friend-requests-btn';
 import { NotificationBtn } from './buttons/notifications-btn';
-import { useAppDispatch } from '@/lib/hooks';
+import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { useEffect, useState } from 'react';
 
 import { Sidebar } from '@/components/sidebar';
+import { useGetSessionUserQuery } from '@/services/backend/backendApi';
 
 export default function Navbar({ authenticate = false }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const dispatch = useAppDispatch();
+  const { user, isLoading } = useAppSelector((state) => state.auth);
+  const session = useGetSessionUserQuery(null, { pollingInterval: 1000 * 50 * 5 });
 
   useEffect(() => {
     if (!authenticate) return;
-
-    // initialize socket connection
     dispatch({ type: 'socket/connect' });
-
     return () => {
       dispatch({ type: 'socket/disconnect' });
     };
   }, [dispatch, authenticate]);
-
-  const { user, isLoading } = useSession();
 
   const handleCloseSidebar = () => {
     setSidebarOpen(false);

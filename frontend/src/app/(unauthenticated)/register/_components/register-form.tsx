@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -11,8 +11,10 @@ import { fetcherWithOptions } from '@/lib/fetchers';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/ui/use-toast';
+import { useRegisterMutation } from '@/services/backend/backendApi';
 
-const formSchema = z.object({
+const formSchema = z
+  .object({
     email: z.string().email(),
     nickname: z.string(),
     first_name: z.string(),
@@ -26,8 +28,10 @@ const formSchema = z.object({
     path: ['confirmPassword'],
   });
 
+export type RegisterFormProps = z.infer<typeof formSchema>;
+
 export const RegisterForm = () => {
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<RegisterFormProps>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       email: '',
@@ -37,147 +41,125 @@ export const RegisterForm = () => {
       date_of_birth: '',
       password: '',
       confirmPassword: '',
-    }
+    },
   });
+
+  const [register, registerStatus] = useRegisterMutation();
 
   const router = useRouter();
   const { toast } = useToast();
-  
-  const mutation = useMutation({
-    mutationFn: (values: z.infer<typeof formSchema>) => {
-      const { confirmPassword, ...newValues } = values;
-      
-      return fetcherWithOptions({
-        url: '/api/users',
-        method: 'POST',
-        body: newValues,
-      });
-    }, onSuccess: (data: any) => {
-      router.push('/home')
-    }, onError: (error: any) => {
-      toast({
-        title: 'Something web wrong!',
-        description: error.message,
-        variant: 'destructive',
-      })
-    }
-  })
- 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    mutation.mutate(values);
+
+  const onSubmit = (values: RegisterFormProps) => {
+    register(values)
+      .unwrap()
+      .then(() => router.push('/home'))
+      .catch(() =>
+        toast({
+          title: 'Something went wrong!',
+          description: 'Please try again.',
+          variant: 'destructive',
+        })
+      );
   };
-  
+
   return (
     <Form {...form}>
-      <FormDescription className='mb-3 text-lg text-center'>
-          Sign up to Social/Network!
-      </FormDescription>
+      <FormDescription className='mb-3 text-center text-lg'>Sign up to Social/Network!</FormDescription>
       <form onSubmit={form.handleSubmit(onSubmit)} className='form-control space-y-3'>
         <FormField
           control={form.control}
-          name="email"
+          name='email'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>
-                  E-mail
-              </FormLabel>
+              <FormLabel>E-mail</FormLabel>
               <FormControl>
-                <Input placeholder="email" {...field} />
+                <Input placeholder='email' {...field} />
               </FormControl>
             </FormItem>
           )}
         />
         <FormField
           control={form.control}
-          name="nickname"
+          name='nickname'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>
-                  Nickname
-              </FormLabel>
+              <FormLabel>Nickname</FormLabel>
               <FormControl>
-                <Input placeholder="Nickname" {...field} />
+                <Input placeholder='Nickname' {...field} />
               </FormControl>
             </FormItem>
           )}
         />
         <FormField
           control={form.control}
-          name="first_name"
+          name='first_name'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>
-                  First Name
-              </FormLabel>
+              <FormLabel>First Name</FormLabel>
               <FormControl>
-                <Input placeholder="First Name" {...field} />
+                <Input placeholder='First Name' {...field} />
               </FormControl>
             </FormItem>
           )}
         />
         <FormField
           control={form.control}
-          name="last_name"
+          name='last_name'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>
-                  Last Name
-              </FormLabel>
+              <FormLabel>Last Name</FormLabel>
               <FormControl>
-                <Input placeholder="Last Name" {...field} />
+                <Input placeholder='Last Name' {...field} />
               </FormControl>
             </FormItem>
           )}
         />
         <FormField
           control={form.control}
-          name="date_of_birth"
+          name='date_of_birth'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>
-                  Date of Birth
-              </FormLabel>
+              <FormLabel>Date of Birth</FormLabel>
               <FormControl>
-                <Input type="date" {...field} />
+                <Input type='date' {...field} />
               </FormControl>
             </FormItem>
           )}
         />
         <FormField
           control={form.control}
-          name="password"
+          name='password'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>
-                  Password
-              </FormLabel>
+              <FormLabel>Password</FormLabel>
               <FormControl>
-                <Input type="password" {...field} />
+                <Input type='password' {...field} />
               </FormControl>
             </FormItem>
           )}
         />
         <FormField
           control={form.control}
-          name="confirmPassword"
+          name='confirmPassword'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>
-                  Confirm Password
-              </FormLabel>
+              <FormLabel>Confirm Password</FormLabel>
               <FormControl>
-                <Input type="password" {...field} />
+                <Input type='password' {...field} />
               </FormControl>
             </FormItem>
           )}
         />
         <FormDescription className='text-sm'>
-          Already have an account? <Link href="/login" className='text-primary'>Log in</Link>
+          Already have an account?{' '}
+          <Link href='/login' className='text-primary'>
+            Log in
+          </Link>
         </FormDescription>
-        <Button type="submit">
-            Sign Up
+        <Button type='submit' disabled={registerStatus.isLoading || registerStatus.isSuccess}>
+          {registerStatus.isLoading ? 'Loading...' : 'Sign up'}
         </Button>
       </form>
     </Form>
-  )
+  );
 };
