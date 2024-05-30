@@ -8,14 +8,12 @@ import { Button } from '@/components/ui/button';
 import { DialogTrigger } from '@/components/ui/dialog';
 import { PostType } from '@/components/post/post';
 import { useEffect, useState } from 'react';
+import { useGetFeedPostsQuery } from '@/services/backend/backendApi';
 
 export default function Home() {
   const [posts, setPosts] = useState<PostType[]>([]);
 
-  const { isLoading, data } = useQuery({
-    queryKey: ['posts'],
-    queryFn: () => fetcher('/api/posts/feed'),
-  });
+  const { isLoading, data } = useGetFeedPostsQuery();
 
   useEffect(() => {
     if (data?.posts) {

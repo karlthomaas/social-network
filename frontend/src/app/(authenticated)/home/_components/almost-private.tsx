@@ -1,42 +1,53 @@
-import { DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { ArrowLeftIcon } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { useCallback } from 'react';
+
+import { deincrement, setPrivacy, setPrivacyVisibleTo } from '@/features/post/postSlice';
+import { useGetUserFollowersQuery } from '@/services/backend/backendApi';
+import { useAppDispatch, useAppSelector } from '@/lib/hooks';
+import { skipToken } from '@reduxjs/toolkit/query';
+
+import { DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { RadioGroup } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
-import { postStore } from './create-post';
-import { privacyStore } from './privacy-view';
-import { useQuery } from '@tanstack/react-query';
-import { fetcher } from '@/lib/fetchers';
 import { useSession } from '@/providers/user-provider';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
-export const AlmostPrivateView = ({ }) => {
-  // todo improve this view when users and relationships are implemented
-  const back = postStore((state: any) => state.deincrement);
-  const visibleTo = privacyStore((state: any) => state.visibleTo);
+export const AlmostPrivateView = ({}) => {
+  const dispatch = useAppDispatch();
+  const visibleTo = useAppSelector((state) => state.post.privacy.visibleTo);
+
   const { user } = useSession();
-
-  const { data, isLoading } = useQuery({
-    queryKey: ['friends'],
-    queryFn: async () => fetcher(`/api/users/${user?.nickname}/followers`),
-  });
+  const { isLoading, data } = useGetUserFollowersQuery(user?.nickname ?? skipToken, { skip: !user });
 
   const handleSave = () => {
-    postStore.setState({ visibleTo: visibleTo });
-    back();
+    dispatch(setPrivacy('almost private'))
+    dispatch(setPrivacyVisibleTo(visibleTo));
+    dispatch(deincrement());
   };
 
   const handleCancel = () => {
-    privacyStore.setState({ visibleTo: [] });
-    back();
+    dispatch(setPrivacyVisibleTo([]));
+    dispatch(deincrement());
   };
+
+  const handleSelect = useCallback(
+    (id: string) => {
+      if (visibleTo.includes(id)) {
+        dispatch(setPrivacyVisibleTo(visibleTo.filter((item) => item !== id)));
+      } else {
+        dispatch(setPrivacyVisibleTo([...visibleTo, id]));
+      }
+    },
+    [dispatch, visibleTo]
+  );
 
   return (
     <DialogContent>
       <DialogTitle className='flex items-center space-x-5'>
         <Button size='icon' variant='outline'>
-          <ArrowLeftIcon onClick={back} />
+          <ArrowLeftIcon onClick={() => dispatch(deincrement())} />
         </Button>
         <p>Specific Friends</p>
       </DialogTitle>
@@ -54,6 +65,8 @@ export const AlmostPrivateView = ({ }) => {
                 firstname={friend.user.first_name}
                 lastname={friend.user.last_name}
                 avatar={friend.image}
+                isToggled={visibleTo.includes(friend.follower_id)}
+                callback={handleSelect}
               />
             ))
           )}
@@ -71,9 +84,21 @@ export const AlmostPrivateView = ({ }) => {
   );
 };
 
-const Friend = ({ id, firstname, lastname, avatar }: { id: string; firstname: string; lastname: string; avatar: string }) => {
-  const toggleUser = privacyStore((state: any) => state.toggleVisibleToUser);
-  const visibleTo = privacyStore((state: any) => state.visibleTo);
+const Friend = ({
+  id,
+  firstname,
+  lastname,
+  avatar,
+  isToggled,
+  callback,
+}: {
+  id: string;
+  firstname: string;
+  lastname: string;
+  avatar: string;
+  isToggled: boolean;
+  callback: (id: string) => void;
+}) => {
 
   return (
     <div className='flex items-center'>
@@ -81,7 +106,7 @@ const Friend = ({ id, firstname, lastname, avatar }: { id: string; firstname: st
       <Label htmlFor='' className='ml-3'>
         {firstname} {lastname}
       </Label>
-      <Checkbox checked={visibleTo.includes(id)} onCheckedChange={() => toggleUser(id)} className='ml-auto' />
+      <Checkbox checked={isToggled} onCheckedChange={() => callback(id)} className='ml-auto' />
     </div>
   );
 };

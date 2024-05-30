@@ -1,15 +1,15 @@
-import { getChatMessagesQuery, getGroupsQuery, getUserFollowersQuery } from '@/services/backend/types';
+import { GetChatMessagesQuery, GetGroupsQuery, GetUserFollowersQuery, MakePost } from '@/services/backend/types';
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { formSchema, LoginFormProps } from '@/app/(unauthenticated)/login/_components/login-form';
+import { LoginFormProps } from '@/app/(unauthenticated)/login/_components/login-form';
 import { RegisterFormProps } from '@/app/(unauthenticated)/register/_components/register-form';
-import { FollowerType } from '@/app/(authenticated)/groups/[id]/_components/group-invite-content';
+import { PostType } from '@/components/post/post';
 
 const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 export const backendApi = createApi({
   reducerPath: 'backendApi',
   baseQuery: fetchBaseQuery({ baseUrl: `${backendUrl}/api/`, credentials: 'include' }),
-  tagTypes: ['Chat', 'Groups'],
+  tagTypes: ['Chat', 'Groups', 'Posts'],
   endpoints: (builder) => ({
     register: builder.mutation<{ message: string }, RegisterFormProps>({
       query: (values) => {
@@ -21,7 +21,6 @@ export const backendApi = createApi({
         };
       },
     }),
-
     login: builder.mutation<{ message: string }, LoginFormProps>({
       query: ({ email, password }) => ({
         url: 'login',
@@ -35,25 +34,63 @@ export const backendApi = createApi({
         method: 'POST',
       }),
     }),
+
+    // User actions ->
     getSessionUser: builder.query<any, null>({
       query: () => 'users/me',
     }),
-    getUserFollowers: builder.query<getUserFollowersQuery, string>({
+    getUserFollowers: builder.query<GetUserFollowersQuery, string>({
       query: (nickname: string) => `users/${nickname}/followers`,
     }),
-    getSessionUserGroups: builder.query<getGroupsQuery, void>({
+    getSessionUserGroups: builder.query<GetGroupsQuery, void>({
       query: () => 'groups/users/me',
       providesTags: ['Groups'],
-      transformResponse: (response: any) => response.groups ? response :  { groups: [] },
+      transformResponse: (response: any) => (response.groups ? response : { groups: [] }),
     }),
 
-    getChatMessages: builder.query<getChatMessagesQuery, string>({
+    // Messages ->
+    getChatMessages: builder.query<GetChatMessagesQuery, string>({
       query: (chatId: string) => `messages/users/${chatId}`,
       providesTags: (result, error, args) => [{ type: 'Chat', id: args }],
     }),
-    getGroupMessages: builder.query<getChatMessagesQuery, string>({
+    getGroupMessages: builder.query<GetChatMessagesQuery, string>({
       query: (groupId: string) => `messages/groups/${groupId}`,
       providesTags: (result, error, args) => [{ type: 'Chat', id: args }],
+    }),
+
+    // Posts ->
+    createPost: builder.mutation<{ post: PostType }, MakePost>({
+      query: (post) => ({
+        url: 'posts',
+        method: 'POST',
+        body: post,
+      }),
+    }),
+    updatePost: builder.mutation<{ post: PostType }, MakePost>({
+      query: ({ id, ...post }) => ({
+        url: `posts/${id}`,
+        method: 'PATCH',
+        body: post,
+      }),
+    }),
+    deletePost: builder.mutation<any, string>({
+      query: (id) => ({
+        url: `posts/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Posts'],
+    }),
+    createGroupPost: builder.mutation<{ post: PostType }, MakePost>({
+      query: ({ groupId, ...post }) => ({
+        url: `groups/${groupId}/posts`,
+        method: 'POST',
+        body: post,
+      }),
+      invalidatesTags: ['Posts'],
+    }),
+    getFeedPosts: builder.query<any, void>({
+      query: () => 'posts/feed',
+      providesTags: ['Posts'],
     }),
   }),
 });
@@ -68,4 +105,10 @@ export const {
   useGetSessionUserGroupsQuery,
   useGetGroupMessagesQuery,
   useGetSessionUserQuery,
+
+  useCreatePostMutation,
+  useUpdatePostMutation,
+  useDeletePostMutation,
+  useCreateGroupPostMutation,
+  useGetFeedPostsQuery,
 } = backendApi;
