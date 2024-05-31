@@ -9,71 +9,32 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import Link from 'next/link';
-import { useQueryClient } from '@tanstack/react-query';
-import { useToast } from '../ui/use-toast';
+import { toast } from '../ui/use-toast';
 import { useRouter } from 'next/navigation';
-import { useSession } from '@/providers/user-provider';
 import { useLogoutMutation } from '@/services/backend/backendApi';
-import { useAppDispatch } from '@/lib/hooks';
+import { useAppSelector, useAppDispatch } from '@/lib/hooks';
 
 export const NavbarProfile = () => {
-  const queryClient = useQueryClient();
-  const { user } = useSession();
-  const { toast } = useToast();
+  const { user } = useAppSelector((state) => state.auth);
   const router = useRouter();
 
-  const [logout, logoutStatus] = useLogoutMutation();
+  const [logout] = useLogoutMutation();
   const dispatch = useAppDispatch();
   const toastId = 'logout-toast';
 
-  const handleLogout = () => {
-    logout()
-      .unwrap()
-      .then(() => {
-        dispatch({ type: 'socket/disconnect' });
-        dispatch({ type: 'auth/logout' });
-        router.push('/login');
-
-        toast({
-          itemID: toastId,
-          title: 'Logged out',
-        });
-      })
-      .catch(() => {
-        toast({
-          itemID: toastId,
-          title: 'Something went wrong',
-        });
+  const handleLogout = async () => {
+    try {
+      await logout().unwrap();
+      dispatch({ type: 'socket/disconnect' });
+      dispatch({ type: 'auth/logout' });
+      router.push('/login');
+    } catch (error) {
+      toast({
+        itemID: toastId,
+        title: 'Something went wrong',
       });
+    }
   };
-
-  // const mutation = useMutation({
-  //   mutationKey: ['session'],
-  //   mutationFn: async () => {
-  //     return fetcherWithOptions({ url: '/api/logout', method: 'POST', body: {} });
-  //   },
-  //   onMutate: () => {
-  //     toast({
-  //       itemID: toastId,
-  //       title: 'Logging out...',
-  //       description: 'Please wait',
-  //     });
-  //   },
-  //   onSuccess: () => {
-  //     toast({
-  //       itemID: toastId,
-  //       title: 'Logged out',
-  //     });
-  //     queryClient.invalidateQueries({ queryKey: ['session'] });
-  //     router.push('/login');
-  //   },
-  //   onError: () => {
-  //     toast({
-  //       itemID: toastId,
-  //       title: 'Something went wrong',
-  //     });
-  //   },
-  // });
 
   if (!user) {
     return null;

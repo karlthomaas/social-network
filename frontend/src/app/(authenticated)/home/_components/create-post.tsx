@@ -10,7 +10,6 @@ import { AlmostPrivateView } from './almost-private';
 import { PostType } from '@/components/post/post';
 import { useState } from 'react';
 
-import { GroupType } from '../../groups/page';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { changeText, reset, setPrivacy } from '@/features/post/postSlice';
 
@@ -21,13 +20,13 @@ export const CreatePost = memo(
   ({
     children,
     post,
-    group,
+    groupId,
     callback,
   }: {
     children: React.ReactNode;
     post?: PostType;
     mutationKeys?: string[];
-    group?: GroupType;
+    groupId?: string;
     callback: (response: PostType, action: 'update' | 'create') => void;
   }) => {
     const [open, setOpen] = useState(false);
@@ -55,8 +54,8 @@ export const CreatePost = memo(
 
       let newPost: PostType;
       try {
-        if (group) {
-          const response = await createGroupPost({ groupId: group.id, ...body }).unwrap();
+        if (groupId) {
+          const response = await createGroupPost({ groupId, ...body }).unwrap();
           newPost = { ...response.post };
         } else if (post) {
           const response = await updatePost({ id: post.id, ...body }).unwrap();
@@ -88,7 +87,7 @@ export const CreatePost = memo(
     }, [
       createGroupPost,
       createPost,
-      group,
+      groupId,
       post,
       postSelector.postText,
       postSelector.privacy.value,
@@ -114,9 +113,9 @@ export const CreatePost = memo(
       setOpen(state);
     };
 
-    let views = [<SubmitView key={1} onSubmit={handleSubmit} isPending={false} showPrivacyOptions={!group} />];
+    let views = [<SubmitView key={1} onSubmit={handleSubmit} isPending={false} showPrivacyOptions={!groupId} />];
 
-    if (!group) {
+    if (!groupId) {
       views = [...views, <PrivacyView key={2} />, <AlmostPrivateView key={3} />];
     }
 

@@ -4,6 +4,7 @@ import { backendApi } from '@/services/backend/backendApi';
 import chatsReducer from '@/features/chats/chatsSlice';
 import authReducer from '@/features/auth/authSlice';
 import postReducer from '@/features/post/postSlice';
+import groupsReducer from '@/features/groups/groupsSlice';
 
 import { socketMiddleware } from './middlware/socket';
 import { Socket } from './lib/socket';
@@ -13,6 +14,7 @@ const appReducer = combineReducers({
   chat: chatsReducer,
   auth: authReducer,
   post: postReducer,
+  groups: groupsReducer,
   [backendApi.reducerPath]: backendApi.reducer,
 });
 

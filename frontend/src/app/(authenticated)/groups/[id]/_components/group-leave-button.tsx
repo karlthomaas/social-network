@@ -1,37 +1,40 @@
 import { Button } from '@/components/ui/button';
+import { LoadingSpinner } from '@/components/ui/spinners';
 import { toast } from '@/components/ui/use-toast';
-import { fetcherWithOptions } from '@/lib/fetchers';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useGroupLeaveMutation } from '@/services/backend/backendApi';
+import { useAppDispatch, useAppSelector } from '@/lib/hooks';
+import { setRole } from '@/features/groups/groupsSlice';
 
-export const GroupLeaveButton = ({ groupId, userId }: { groupId: string; userId: string | undefined }) => {
-  const queryClient = useQueryClient();
+export const GroupLeaveButton = ({ id }: { id: string }) => {
+  const { group } = useAppSelector((state) => state.groups.groups[id]);
+  const { user } = useAppSelector((state) => state.auth);
 
-  const mutation = useMutation({
-    mutationFn: async () => {
-      await fetcherWithOptions({
-        url: `/api/groups/${groupId}/members/users/${userId}`,
-        body: {},
-        method: 'DELETE',
-      });
-    },
-    onSuccess: () => {
-      queryClient.resetQueries({ queryKey: ['isMember']});
+  const [leaveGroup, { isLoading }] = useGroupLeaveMutation();
+  const dispatch = useAppDispatch();
+
+  const handleLeaveGroup = async () => {
+    if (!user?.id) return;
+
+    try {
+      await leaveGroup({ groupId: group.id, userId: user.id }).unwrap();
       toast({
         title: 'Success',
         description: 'You have left the group',
       });
-    },
-    onError: () => {
+
+      dispatch(setRole({ groupId: id, role: null }));
+    } catch (error) {
       toast({
         title: 'Error',
         description: 'Failed to leave group',
         variant: 'destructive',
       });
-    },
-  });
+    }
+  };
+
   return (
-    <Button disabled={!userId} onClick={() => mutation.mutate()} className='w-max'>
-      Leave group
+    <Button disabled={!user?.id || isLoading} onClick={handleLeaveGroup} className='w-max'>
+      {isLoading ? <LoadingSpinner /> : 'Leave group'}
     </Button>
   );
 };

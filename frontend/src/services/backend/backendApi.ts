@@ -1,17 +1,20 @@
-import { GetChatMessagesQuery, GetGroupsQuery, GetUserFollowersQuery, MakePost } from '@/services/backend/types';
+import type { GetChatMessagesQuery, GetGroupsQuery, GetUserFollowersQuery, GroupType, MakePost, EventType, InvitationType } from '@/services/backend/types';
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { LoginFormProps } from '@/app/(unauthenticated)/login/_components/login-form';
 import { RegisterFormProps } from '@/app/(unauthenticated)/register/_components/register-form';
 import { PostType } from '@/components/post/post';
 import { ReactionType, ReplyType } from '@/components/post/replies';
 import { ReplyFormProps } from '@/components/post/reply-input';
+import { GroupFormProps } from '@/app/(authenticated)/groups/_components/group-modal';
+import { PrivacyStates } from '@/app/(authenticated)/profile/[user]/_components/privacy';
+import { EventFormProps } from '@/components/event/event-form';
 
 const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 export const backendApi = createApi({
   reducerPath: 'backendApi',
   baseQuery: fetchBaseQuery({ baseUrl: `${backendUrl}/api/`, credentials: 'include' }),
-  tagTypes: ['Chat', 'Groups', 'Posts', 'JoinRequestStatus'],
+  tagTypes: ['Chat', 'Groups', 'Posts', 'GroupJoinRequests', 'Group', 'Events'],
   endpoints: (builder) => ({
     register: builder.mutation<{ message: string }, RegisterFormProps>({
       query: (values) => {
@@ -48,6 +51,16 @@ export const backendApi = createApi({
       query: () => 'groups/users/me',
       providesTags: ['Groups'],
       transformResponse: (response: any) => (response.groups ? response : { groups: [] }),
+    }),
+    updatePrivacy: builder.mutation<any, PrivacyStates>({
+      query: (privacy) => ({
+        url: 'users/me',
+        method: 'PATCH',
+        body: { privacy: privacy },
+      }),
+    }),
+    getUserGroupInvitations: builder.query<{ invitations: InvitationType[] }, string>({
+      query: (userId) => `users/${userId}/group_invitations`,
     }),
 
     // Messages ->
@@ -153,24 +166,147 @@ export const backendApi = createApi({
       }),
     }),
 
-    // Groups ->
-    groupRequestStatus : builder.query<any, string>({
+    // Group ->
+    createGroup: builder.mutation<{ group: GroupType }, GroupFormProps>({
+      query: (values) => ({
+        url: 'groups',
+        method: 'POST',
+        body: values,
+      }),
+      invalidatesTags: ['Groups'],
+    }),
+    getGroups: builder.query<GetGroupsQuery, void>({
+      query: () => 'groups',
+      providesTags: ['Groups'],
+    }),
+    groupLeave: builder.mutation<any, { groupId: string; userId: string }>({
+      query: ({ groupId, userId }) => ({
+        url: `groups/${groupId}/members/users/${userId}`,
+        method: 'DELETE',
+      }),
+    }),
+    groupDetails: builder.query<{ group: GroupType }, string>({
+      query: (groupId) => `groups/${groupId}`,
+    }),
+    isGroupMember: builder.query<any, string>({
+      query: (groupId) => `groups/${groupId}/members`,
+      providesTags: (result, error, args) => [{ type: 'Group', id: args }],
+    }),
+    // Groups Join Requests ->
+    groupRequestStatus: builder.query<any, string>({
       query: (groupId) => `groups/${groupId}/join-request-status`,
-      providesTags: (result, error, args) => [{ type: 'JoinRequestStatus', id: args }],
     }),
     createGroupRequest: builder.mutation<any, string>({
       query: (groupId) => ({
         url: `groups/${groupId}/requests`,
         method: 'POST',
       }),
-      // invalidatesTags: ['JoinRequestStatus'],
     }),
-    deleteGroupRequest: builder.mutation<any, { groupId: string, userId: string}>({
+    deleteGroupRequest: builder.mutation<any, { groupId: string; userId: string }>({
       query: ({ groupId, userId }) => ({
         url: `groups/${groupId}/requests/users/${userId}`,
         method: 'DELETE',
       }),
-      // invalidatesTags: ['JoinRequestStatus'],
+    }),
+
+    // Group Invitations ->
+    createGroupInvitation: builder.mutation<any, { groupId: string; userId: string }>({
+      query: ({ groupId, userId }) => ({
+        url: `groups/${groupId}/users/${userId}`,
+        method: 'POST',
+      }),
+    }),
+    deleteGroupUserInvitation: builder.mutation<any, { groupId: string; userId: string }>({
+      query: ({ groupId, userId }) => ({
+        url: `groups/${groupId}/group_invitations/users/${userId}`,
+        method: 'DELETE',
+      }),
+    }),
+
+    // Group Join Requests ->
+    groupJoinRequests: builder.query<any, string>({
+      query: (groupId) => `groups/${groupId}/requests`,
+      providesTags: (result, error, args) => [{ type: 'GroupJoinRequests', id: args }],
+    }),
+    acceptGroupJoinRequest: builder.mutation<any, { groupId: string; userId: string }>({
+      query: ({ groupId, userId }) => ({
+        url: `groups/${groupId}/requests/users/${userId}`,
+        method: 'POST',
+      }),
+      invalidatesTags: (result, error, { groupId }) => [{ type: 'GroupJoinRequests', id: groupId }],
+    }),
+    deleteGroupJoinRequest: builder.mutation<any, { groupId: string; userId: string }>({
+      query: ({ groupId, userId }) => ({
+        url: `groups/${groupId}/requests/users/${userId}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: (result, error, { groupId }) => [{ type: 'GroupJoinRequests', id: groupId }],
+    }),
+    getGroupInvitations: builder.query<{ invitations: InvitationType[]}, string>({
+      query: (groupId) => `groups/${groupId}/group_invitations`,
+    }),
+    acceptGroupInvitation: builder.mutation<any, { groupId: string }>({
+      query: ({ groupId }) => ({
+        url: `groups/${groupId}/group_invitations`,
+        method: 'POST',
+      }),
+    }),
+    deleteGroupInvitation: builder.mutation<any, { groupId: string }>({
+      query: ({ groupId }) => ({
+        url: `groups/${groupId}/group_invitations`,
+        method: 'DELETE',
+      }),
+    }),
+
+    // Group events ->
+    getGroupEvents: builder.query<{ group_events: EventType[] }, string>({
+      query: (groupId) => `groups/${groupId}/group_events`,
+      providesTags: (result, error, args) => [{ type: 'Events', id: args }],
+    }),
+    createGroupEvent: builder.mutation<any, EventFormProps>({
+      query: ({ id, ...rest }) => ({
+        url: `groups/${id}/group_events`,
+        method: 'POST',
+        body: rest,
+      }),
+      invalidatesTags: (result, error, { id }) => [{ type: 'Events', id }],
+    }),
+    attendGroupEvent: builder.mutation<any, { groupId: string; eventId: string; attendance: number }>({
+      query: ({ groupId, eventId, attendance }) => ({
+        url: `groups/${groupId}/group_events/${eventId}/group_event_members`,
+        method: 'POST',
+        body: { attendance },
+      }),
+    }),
+    changeGroupEventAttendance: builder.mutation<any, { groupId: string; eventId: string; attendance: number }>({
+      query: ({ groupId, eventId, attendance }) => ({
+        url: `groups/${groupId}/group_events/${eventId}/group_event_members`,
+        method: 'PATCH',
+        body: { attendance },
+      }),
+    }),
+
+    // Followers ->
+    getUserFollowStatus: builder.query<any, string>({
+      query: (userId) => `users/${userId}/follow_status`,
+    }),
+    followUser: builder.mutation<any, string>({
+      query: (userId) => ({
+        url: `users/${userId}/followers`,
+        method: 'POST',
+      }),
+    }),
+    unfollowUser: builder.mutation<any, string>({
+      query: (userId) => ({
+        url: `users/${userId}/followers`,
+        method: 'DELETE',
+      }),
+    }),
+    deleteFollowRequest: builder.mutation<any, string>({
+      query: (userId) => ({
+        url: `users/${userId}/follow_requests`,
+        method: 'DELETE',
+      }),
     }),
   }),
 });
@@ -185,6 +321,8 @@ export const {
   useGetSessionUserGroupsQuery,
   useGetGroupMessagesQuery,
   useGetSessionUserQuery,
+  useUpdatePrivacyMutation,
+  useGetUserGroupInvitationsQuery,
 
   useCreatePostMutation,
   useUpdatePostMutation,
@@ -203,7 +341,31 @@ export const {
   useCreateReplyReactionMutation,
   useDeleteReplyReactionMutation,
 
+  useCreateGroupMutation,
+  useGroupLeaveMutation,
+  useGetGroupsQuery,
+  useGroupDetailsQuery,
+  useIsGroupMemberQuery,
+
   useGroupRequestStatusQuery,
   useCreateGroupRequestMutation,
   useDeleteGroupRequestMutation,
+  useCreateGroupInvitationMutation,
+  useAcceptGroupInvitationMutation,
+  useDeleteGroupInvitationMutation,
+
+  useGroupJoinRequestsQuery,
+  useAcceptGroupJoinRequestMutation,
+  useDeleteGroupJoinRequestMutation,
+  useGetGroupInvitationsQuery,
+
+  useGetGroupEventsQuery,
+  useCreateGroupEventMutation,
+  useAttendGroupEventMutation,
+  useChangeGroupEventAttendanceMutation,
+
+  useGetUserFollowStatusQuery,
+  useFollowUserMutation,
+  useUnfollowUserMutation,
+  useDeleteFollowRequestMutation,
 } = backendApi;

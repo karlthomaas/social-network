@@ -76,7 +76,7 @@ func (m *GroupInvitationModel) Delete(groupID, userID string) error {
 
 func (m *GroupInvitationModel) Get(groupID, userID string) (*GroupInvitation, error) {
 	query := `
-	SELECT gi.group_id, gi.invited_by, gi.user_id, gi.created_at, u.first.name, u.last_name
+	SELECT gi.group_id, gi.invited_by, gi.user_id, gi.created_at, u.first_name, u.last_name
 	FROM group_invitations gi
 	JOIN users u ON gi.user_id = u.id
 	WHERE gi.group_id = ?

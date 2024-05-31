@@ -1,11 +1,9 @@
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTrigger, DialogHeader } from '@/components/ui/dialog';
 import { LoadingSpinner } from '@/components/ui/spinners';
-import { fetcher } from '@/lib/fetchers';
-import { useQuery } from '@tanstack/react-query';
 import { GroupJoinRequestsUser } from './group-join-requests-user';
 import { UserType } from '@/providers/user-provider';
-import { GroupType } from '../../page';
+import { useGroupJoinRequestsQuery } from '@/services/backend/backendApi';
 
 export interface JoinRequestType {
   group_id: string;
@@ -16,11 +14,8 @@ export interface JoinRequestType {
   group: GroupType;
 }
 
-export const GroupJoinRequests = ({ groupId }: { groupId: string }) => {
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ['group-join-requests'],
-    queryFn: async () => fetcher(`/api/groups/${groupId}/requests`),
-  });
+export const GroupJoinRequests = ({ id }: { id: string }) => {
+  const { data, isLoading, isError, refetch } = useGroupJoinRequestsQuery(id);
 
   let content;
 
@@ -38,7 +33,7 @@ export const GroupJoinRequests = ({ groupId }: { groupId: string }) => {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant='outline' className='w-[250px]'>
+        <Button variant='outline' className='w-[250px]' onClick={() => refetch()}>
           View join requests
         </Button>
       </DialogTrigger>
