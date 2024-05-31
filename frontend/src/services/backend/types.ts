@@ -21,3 +21,4 @@ export interface MakePost {
   privacy: string;
   visible_to: string[];
 }
+

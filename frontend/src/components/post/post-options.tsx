@@ -8,31 +8,27 @@ import { toast } from '../ui/use-toast';
 import { fetcherWithOptions } from '@/lib/fetchers';
 import { CreatePost } from '@/app/(authenticated)/home/_components/create-post';
 import { DialogTrigger } from '../ui/dialog';
+import { useDeletePostMutation } from '@/services/backend/backendApi';
 
 export const PostOptions = ({ post, setPost }: { post: PostType, setPost: (post: PostType | undefined) => void }) => {
-  const deleteMutation = useMutation({
-    mutationFn: async () => {
-      return fetcherWithOptions({
-        url: `/api/posts/${post.id}`,
-        method: 'DELETE',
-        body: {},
-      });
-    },
-    onSuccess: () => {
+  const [deletePost] = useDeletePostMutation();
+
+  const handleDelete = async () => {
+    try {
+      await deletePost(post.id).unwrap();
       toast({
         title: 'Post deleted',
         description: 'Your post has been deleted',
       });
-      setPost(undefined)
-    },
-    onError: () => {
+      setPost(undefined);
+    } catch (err) {
       toast({
         title: 'Something went wrong...',
         description: 'Please try again later',
         variant: 'destructive',
       });
-    },
-  });
+    }
+  };
 
   return (
     <CreatePost post={post} callback={setPost}>
@@ -48,7 +44,7 @@ export const PostOptions = ({ post, setPost }: { post: PostType, setPost: (post:
               <Pencil size={17} className='mr-2' /> Edit
             </DropdownMenuItem>
           </DialogTrigger>
-          <DropdownMenuItem className='text-red-700 hover:cursor-pointer focus:text-red-600' onClick={() => deleteMutation.mutate()}>
+          <DropdownMenuItem className='text-red-700 hover:cursor-pointer focus:text-red-600' onClick={handleDelete}>
             <Trash2 size={17} className='mr-2' />
             Delete
           </DropdownMenuItem>

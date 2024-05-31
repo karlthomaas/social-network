@@ -1,6 +1,5 @@
 import { GroupType } from '@/app/(authenticated)/groups/page';
 import { UserType } from '@/providers/user-provider';
-import { DropdownMenuItem } from '../ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Check, X } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
