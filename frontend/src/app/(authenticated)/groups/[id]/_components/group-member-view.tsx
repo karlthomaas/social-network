@@ -7,11 +7,10 @@ import { DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { GroupFeed } from './group-feed';
 import { EventsModal } from '@/components/event/events-modal';
-import { useQuery } from '@tanstack/react-query';
-import { fetcher } from '@/lib/fetchers';
 import { PostType } from '@/components/post/post';
 import { useEffect, useState } from 'react';
 import { useAppSelector } from '@/lib/hooks';
+import { useGetGroupPostsQuery } from '@/services/backend/backendApi';
 
 interface GroupFeedResponse {
   group_posts: PostType[];
@@ -25,10 +24,7 @@ export const GroupMemberView = ({ id }: { id: string }) => {
   const isOwner = group.group.user_id === user?.id;
 
   const [posts, setPosts] = useState<PostType[]>([]);
-  const { data } = useQuery<GroupFeedResponse>({
-    queryKey: ['group-feed', groupId],
-    queryFn: () => fetcher(`/api/groups/${groupId}/posts`),
-  });
+  const { data } = useGetGroupPostsQuery(groupId);
 
   useEffect(() => {
     if (data?.group_posts) {

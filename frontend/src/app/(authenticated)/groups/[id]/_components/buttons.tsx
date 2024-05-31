@@ -1,15 +1,9 @@
 import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/ui/spinners';
 import { toast } from '@/components/ui/use-toast';
-import { fetcherWithOptions, fetcher } from '@/lib/fetchers';
-import { UserType } from '@/providers/user-provider';
+import type { UserType } from '@/features/auth/types';
 import { useCreateGroupRequestMutation, useDeleteGroupRequestMutation, useGroupRequestStatusQuery } from '@/services/backend/backendApi';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useState, useRef } from 'react';
-
-interface JoinRequestStatusQuery {
-  request: JoinRequestStatus;
-}
+import { useEffect, useState } from 'react';
 
 interface JoinRequestStatus {
   group_id: string;
@@ -24,12 +18,10 @@ interface RequestButtonProps {
 }
 
 export const RequestButton = ({ groupId, className }: RequestButtonProps) => {
+  const [requestStatus, setRequestStatus] = useState<JoinRequestStatus | null>(null);
   const [createRequest, { isLoading: isLoadingCreate }] = useCreateGroupRequestMutation();
   const [deleteRequest, { isLoading: isLoadingDelete }] = useDeleteGroupRequestMutation();
   const joinRequestStatus = useGroupRequestStatusQuery(groupId);
-
-  const [requestStatus, setRequestStatus] = useState<JoinRequestStatus | null>(null);
-  const requestObject = useRef<JoinRequestStatus | null>();
 
   const handleRequest = async () => {
     try {
@@ -38,7 +30,7 @@ export const RequestButton = ({ groupId, className }: RequestButtonProps) => {
         setRequestStatus(null);
       } else {
         const response = await createRequest(groupId).unwrap();
-        setRequestStatus({...response.request});
+        setRequestStatus({ ...response.request });
       }
     } catch (err) {
       toast({
@@ -51,7 +43,7 @@ export const RequestButton = ({ groupId, className }: RequestButtonProps) => {
 
   useEffect(() => {
     if (joinRequestStatus.data) {
-      setRequestStatus({...joinRequestStatus.data.request});
+      setRequestStatus({ ...joinRequestStatus.data.request });
     }
   }, [joinRequestStatus.data]);
 

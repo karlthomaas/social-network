@@ -1,5 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { UserType } from '@/providers/user-provider';
+import { UserType } from '@/features/auth/types';
 import { RootState } from '@/store';
 import { set } from 'date-fns';
 

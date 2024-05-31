@@ -1,11 +1,11 @@
-import type { InvitationType } from '@/services/backend/types';
+import type { GroupInvitationType } from '@/services/backend/types';
 import { Button } from '@/components/ui/button';
 import { Check, X } from 'lucide-react';
-import { useAcceptGroupInvitationMutation, useDeleteGroupInvitationMutation } from '@/services/backend/backendApi';
+import { useAcceptGroupInvitationMutation, useDeleteGroupUserInvitationMutation } from '@/services/backend/backendApi';
 import { toast } from '../ui/use-toast';
 
-export const GroupInvitation = ({ invitation, removeInvitation }: { invitation: InvitationType, removeInvitation: (invitation: InvitationType) => void }) => {
-  const [declineRequest] = useDeleteGroupInvitationMutation();
+export const GroupInvitation = ({ invitation, removeInvitation }: { invitation: GroupInvitationType, removeInvitation: (invitation: GroupInvitationType) => void }) => {
+  const [declineRequest] = useDeleteGroupUserInvitationMutation();
   const [acceptRequest] = useAcceptGroupInvitationMutation();
 
   const handleMutate = async (accept: boolean) => {
@@ -13,7 +13,7 @@ export const GroupInvitation = ({ invitation, removeInvitation }: { invitation: 
       if (accept) {
         await acceptRequest({ groupId: invitation.group_id });
       } else {
-        await declineRequest({ groupId: invitation.group_id });
+        await declineRequest({ groupId: invitation.group_id, userId: invitation.user_id });
       }
       removeInvitation(invitation);
     } catch (error) {

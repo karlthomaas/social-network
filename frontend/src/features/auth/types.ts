@@ -6,7 +6,7 @@ export interface UserType {
     first_name: string;
     last_name: string;
     nickname: string;
-    privacy: string;
+    privacy: 'public' | 'private';
     image: string | null;
   }
   

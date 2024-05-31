@@ -8,7 +8,6 @@ import { skipToken } from '@reduxjs/toolkit/query';
 
 import { DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { RadioGroup } from '@/components/ui/radio-group';
-import { useSession } from '@/providers/user-provider';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,8 +16,7 @@ import { Label } from '@/components/ui/label';
 export const AlmostPrivateView = ({}) => {
   const dispatch = useAppDispatch();
   const visibleTo = useAppSelector((state) => state.post.privacy.visibleTo);
-
-  const { user } = useSession();
+  const { user } = useAppSelector((state) => state.auth);
   const { isLoading, data } = useGetUserFollowersQuery(user?.nickname ?? skipToken, { skip: !user });
 
   const handleSave = () => {

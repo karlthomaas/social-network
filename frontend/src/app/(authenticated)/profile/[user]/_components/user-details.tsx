@@ -1,19 +1,15 @@
-import { useQuery } from '@tanstack/react-query';
-import { fetcher } from '@/lib/fetchers';
 import { ProfilePicture } from './pfp';
 import { FollowBtn } from '@/components/buttons/follow-btn';
 import { PrivacyBtn } from './privacy';
-import { useSession } from '@/providers/user-provider';
+import { useGetUserDetailsQuery } from '@/services/backend/backendApi';
+import { useAppSelector } from '@/lib/hooks';
 
 export const UserDetails = ({ username }: { username: string }) => {
-  const { user } = useSession();
-
-  const { data, isLoading } = useQuery({
-    queryKey: ['user'],
-    queryFn: async () => fetcher(`/api/users/${username}`),
-  });
+  const { user } = useAppSelector((state) => state.auth);
+  const { data, isLoading } = useGetUserDetailsQuery(username);
 
   if (isLoading || !data || !data.user) {
+    // todo add loading state
     return (
       null
     );

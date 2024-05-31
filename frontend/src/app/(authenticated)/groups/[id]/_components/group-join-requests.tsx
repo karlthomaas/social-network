@@ -2,8 +2,9 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTrigger, DialogHeader } from '@/components/ui/dialog';
 import { LoadingSpinner } from '@/components/ui/spinners';
 import { GroupJoinRequestsUser } from './group-join-requests-user';
-import { UserType } from '@/providers/user-provider';
+import type { UserType } from '@/features/auth/types';
 import { useGroupJoinRequestsQuery } from '@/services/backend/backendApi';
+import type { GroupType } from '@/services/backend/types';
 
 export interface JoinRequestType {
   group_id: string;

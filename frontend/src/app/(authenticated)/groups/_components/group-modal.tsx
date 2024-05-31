@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -23,7 +22,6 @@ export type GroupFormProps = z.infer<typeof formSchema>;
 export const GroupModal = ({ children }: { children: React.ReactNode }) => {
   const [createGroup, { isLoading }] = useCreateGroupMutation();
   const [open, setOpen] = useState(false);
-  const queryClient = useQueryClient();
 
   const form = useForm<GroupFormProps>({
     resolver: zodResolver(formSchema),

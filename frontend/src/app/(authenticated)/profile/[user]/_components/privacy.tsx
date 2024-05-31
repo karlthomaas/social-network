@@ -5,7 +5,7 @@ import { useUpdatePrivacyMutation } from '@/services/backend/backendApi';
 
 export type PrivacyStates = 'public' | 'private';
 
-export const PrivacyBtn = ({ privacy_state }: { privacy_state: PrivacyStates }) => {
+export const PrivacyBtn = ({ privacy_state }: { privacy_state: 'public' | 'private' }) => {
   const [privacyState, setPrivacyState] = useState(privacy_state);
   const [updatePrivacy] = useUpdatePrivacyMutation();
 

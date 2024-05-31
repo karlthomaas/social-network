@@ -1,7 +1,5 @@
-import { MessageType } from '@/components/chat/message';
-import { FollowerType } from '@/app/(authenticated)/groups/[id]/_components/group-invite-content';
-import { PostType } from '@/components/post/post';
-import { UserType } from '@/providers/user-provider';
+import type { MessageType } from '@/components/chat/message';
+import type { UserType } from '@/features/auth/types';
 export interface GetChatMessagesQuery {
   messages: MessageType[];
 }
@@ -52,7 +50,7 @@ export interface EventType {
   };
 }
 
-export interface InvitationType {
+export interface GroupInvitationType {
   group_id: string;
   invited_by: string;
   user_id: string;
@@ -60,3 +58,11 @@ export interface InvitationType {
   user: UserType;
   group: GroupType;
 }
+
+export interface FollowerType {
+  user_id: string;
+  follower_id: string;
+  created_at: string;
+  user: UserType;
+}
+

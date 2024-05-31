@@ -1,7 +1,6 @@
 'use client';
 
 import { CreatePost } from './_components/create-post';
-import { useQuery } from '@tanstack/react-query';
 import { fetcher } from '@/lib/fetchers';
 import { Post } from '@/components/post/post';
 import { Button } from '@/components/ui/button';

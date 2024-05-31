@@ -1,4 +1,4 @@
-import { UserType } from '@/providers/user-provider';
+import type { UserType } from '@/features/auth/types';
 import clsx from 'clsx';
 
 interface ChatMessageProps {

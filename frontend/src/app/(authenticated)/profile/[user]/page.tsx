@@ -5,12 +5,12 @@ import { UserDetails } from './_components/user-details';
 import { ProfilePosts } from './_components/posts';
 import { FollowersCount } from './_components/followers-count';
 import { CreatePost } from '../../home/_components/create-post';
-import { useSession } from '@/providers/user-provider';
 import { Button } from '@/components/ui/button';
 import { DialogTrigger } from '@radix-ui/react-dialog';
+import { useAppSelector } from '@/lib/hooks';
 
 export default function Profile({ params }: { params: { user: string } }) {
-  const { user } = useSession();
+  const { user } = useAppSelector((state) => state.auth);
   return (
     <div>
       <Banner />

@@ -6,8 +6,6 @@ import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetcherWithOptions } from '@/lib/fetchers';
 import { LoadingSpinner } from '../ui/spinners';
 import { toast } from '../ui/use-toast';
 import { useCreateGroupEventMutation } from '@/services/backend/backendApi';

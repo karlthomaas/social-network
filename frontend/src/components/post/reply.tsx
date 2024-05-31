@@ -1,14 +1,12 @@
 'use client';
 
-import { ReplyType, ReactionType } from './replies';
+import { ReplyType } from './replies';
 
 import { formatDistanceToNowStrict } from 'date-fns';
 import { ThumbsUp } from 'lucide-react';
-import { useState, useReducer } from 'react';
+import { useReducer } from 'react';
 import { cn } from '@/lib/utils';
-import { fetcherWithOptions } from '@/lib/fetchers';
 
-import { useMutation } from '@tanstack/react-query';
 import { toast } from '../ui/use-toast';
 import { ReplyInput } from './reply-input';
 import { useRef } from 'react';

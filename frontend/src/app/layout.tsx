@@ -3,7 +3,6 @@ import { Poppins } from 'next/font/google';
 import { Toaster } from '@/components/ui/toaster';
 import './globals.css';
 
-import { TanstackProvider } from '@/providers/tanstack-provider';
 import StoreProvider from './StoreProvider';
 
 const poppins = Poppins({
@@ -25,9 +24,7 @@ export default function RootLayout({
   return (
     <html lang='en'>
       <body className={poppins.className}>
-        <StoreProvider>
-          <TanstackProvider>{children}</TanstackProvider>
-        </StoreProvider>
+        <StoreProvider>{children}</StoreProvider>
         <Toaster />
       </body>
     </html>

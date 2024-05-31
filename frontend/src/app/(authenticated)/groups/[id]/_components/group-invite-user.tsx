@@ -1,9 +1,9 @@
 import { capitalize } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
-import { FollowerType } from './group-invite-content';
+import { FollowerType } from '@/services/backend/types';
 import { useState } from 'react';
-import { useCreateGroupInvitationMutation, useDeleteGroupInvitationMutation } from '@/services/backend/backendApi';
+import { useCreateGroupUserInvitationMutation, useDeleteGroupUserInvitationMutation } from '@/services/backend/backendApi';
 
 export const GroupInviteUser = ({
   isInvited: inviteStatus,
@@ -14,8 +14,8 @@ export const GroupInviteUser = ({
   groupId: string;
   follower: FollowerType;
 }) => {
-  const [createGroupInvitation, { isLoading: isLoadingCreate, isSuccess: isSuccessCreate }] = useCreateGroupInvitationMutation();
-  const [deleteGroupInvitation, { isLoading: isLoadingDelete, isSuccess: isSuccessDelete }] = useDeleteGroupInvitationMutation();
+  const [createGroupInvitation, { isLoading: isLoadingCreate, isSuccess: isSuccessCreate }] = useCreateGroupUserInvitationMutation();
+  const [deleteGroupInvitation, { isLoading: isLoadingDelete, isSuccess: isSuccessDelete }] = useDeleteGroupUserInvitationMutation();
 
   const [isInvited, setIsInvited] = useState(inviteStatus);
   const [buttonText, setButtonText] = useState(isInvited ? 'Invited' : 'Invite');

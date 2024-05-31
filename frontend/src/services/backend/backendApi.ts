@@ -1,4 +1,4 @@
-import type { GetChatMessagesQuery, GetGroupsQuery, GetUserFollowersQuery, GroupType, MakePost, EventType, InvitationType } from '@/services/backend/types';
+import type { GetChatMessagesQuery, GetGroupsQuery, GetUserFollowersQuery, GroupType, MakePost, EventType, GroupInvitationType, FollowerType } from '@/services/backend/types';
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { LoginFormProps } from '@/app/(unauthenticated)/login/_components/login-form';
 import { RegisterFormProps } from '@/app/(unauthenticated)/register/_components/register-form';
@@ -8,13 +8,14 @@ import { ReplyFormProps } from '@/components/post/reply-input';
 import { GroupFormProps } from '@/app/(authenticated)/groups/_components/group-modal';
 import { PrivacyStates } from '@/app/(authenticated)/profile/[user]/_components/privacy';
 import { EventFormProps } from '@/components/event/event-form';
+import { UserType } from '@/features/auth/types';
 
 const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 export const backendApi = createApi({
   reducerPath: 'backendApi',
   baseQuery: fetchBaseQuery({ baseUrl: `${backendUrl}/api/`, credentials: 'include' }),
-  tagTypes: ['Chat', 'Groups', 'Posts', 'GroupJoinRequests', 'Group', 'Events'],
+  tagTypes: ['Chat', 'Groups', 'Posts', 'GroupJoinRequests', 'Group', 'Events', 'Followers'],
   endpoints: (builder) => ({
     register: builder.mutation<{ message: string }, RegisterFormProps>({
       query: (values) => {
@@ -59,8 +60,11 @@ export const backendApi = createApi({
         body: { privacy: privacy },
       }),
     }),
-    getUserGroupInvitations: builder.query<{ invitations: InvitationType[] }, string>({
+    getUserGroupInvitations: builder.query<{ invitations: GroupInvitationType[] }, string>({
       query: (userId) => `users/${userId}/group_invitations`,
+    }),
+    getUserDetails: builder.query<{ user: UserType}, string>({
+      query: (userId) => `users/${userId}`,
     }),
 
     // Messages ->
@@ -74,6 +78,15 @@ export const backendApi = createApi({
     }),
 
     // Posts ->
+    getGroupPosts: builder.query<{group_posts: PostType[]}, string>({
+      query: (groupId) => `groups/${groupId}/posts`,
+      providesTags: (result, error, args) => [{ type: 'Posts', id: args }],
+    }),
+    getUserPosts: builder.query<{ posts: PostType[] }, string>({
+      query: (userId) => `users/${userId}/posts`,
+      providesTags: (result, error, args) => [{ type: 'Posts', id: args }],
+    }),
+
     createPost: builder.mutation<{ post: PostType }, MakePost>({
       query: (post) => ({
         url: 'posts',
@@ -210,7 +223,7 @@ export const backendApi = createApi({
     }),
 
     // Group Invitations ->
-    createGroupInvitation: builder.mutation<any, { groupId: string; userId: string }>({
+    createGroupUserInvitation: builder.mutation<any, { groupId: string; userId: string }>({
       query: ({ groupId, userId }) => ({
         url: `groups/${groupId}/users/${userId}`,
         method: 'POST',
@@ -221,6 +234,15 @@ export const backendApi = createApi({
         url: `groups/${groupId}/group_invitations/users/${userId}`,
         method: 'DELETE',
       }),
+    }),
+    getMyGroupInvitations: builder.query<{ invitations: GroupInvitationType[] }, string>({
+      // Get my created group invitations
+      query: (groupId) => `/groups/${groupId}/invitations`
+    }),
+    getGroupInvitableUsers: builder.query<{ users: FollowerType[] }, string>({
+      // Returns followers that are not in the group
+      query: (groupId) => `groups/${groupId}/invitable_users`,
+      providesTags: ['Followers']
     }),
 
     // Group Join Requests ->
@@ -242,7 +264,7 @@ export const backendApi = createApi({
       }),
       invalidatesTags: (result, error, { groupId }) => [{ type: 'GroupJoinRequests', id: groupId }],
     }),
-    getGroupInvitations: builder.query<{ invitations: InvitationType[]}, string>({
+    getGroupInvitations: builder.query<{ invitations: GroupInvitationType[]}, string>({
       query: (groupId) => `groups/${groupId}/group_invitations`,
     }),
     acceptGroupInvitation: builder.mutation<any, { groupId: string }>({
@@ -290,6 +312,9 @@ export const backendApi = createApi({
     getUserFollowStatus: builder.query<any, string>({
       query: (userId) => `users/${userId}/follow_status`,
     }),
+    getUserFollowRequests: builder.query<{ requests: FollowerType[]}, string>({
+      query: (userId) => `users/${userId}/follow_requests`,
+    }),
     followUser: builder.mutation<any, string>({
       query: (userId) => ({
         url: `users/${userId}/followers`,
@@ -308,6 +333,12 @@ export const backendApi = createApi({
         method: 'DELETE',
       }),
     }),
+    acceptFollowRequest: builder.mutation<any, string>({
+      query: (userId) => ({
+        url: `users/${userId}/follow_requests`,
+        method: 'POST',
+    }),
+  }),
   }),
 });
 
@@ -323,7 +354,10 @@ export const {
   useGetSessionUserQuery,
   useUpdatePrivacyMutation,
   useGetUserGroupInvitationsQuery,
+  useGetUserDetailsQuery,
 
+  useGetGroupPostsQuery,
+  useGetUserPostsQuery,
   useCreatePostMutation,
   useUpdatePostMutation,
   useDeletePostMutation,
@@ -350,7 +384,10 @@ export const {
   useGroupRequestStatusQuery,
   useCreateGroupRequestMutation,
   useDeleteGroupRequestMutation,
-  useCreateGroupInvitationMutation,
+  useCreateGroupUserInvitationMutation,
+  useDeleteGroupUserInvitationMutation,
+  useGetMyGroupInvitationsQuery,
+  useGetGroupInvitableUsersQuery,
   useAcceptGroupInvitationMutation,
   useDeleteGroupInvitationMutation,
 
@@ -365,7 +402,9 @@ export const {
   useChangeGroupEventAttendanceMutation,
 
   useGetUserFollowStatusQuery,
+  useGetUserFollowRequestsQuery,
   useFollowUserMutation,
   useUnfollowUserMutation,
   useDeleteFollowRequestMutation,
+  useAcceptFollowRequestMutation,
 } = backendApi;

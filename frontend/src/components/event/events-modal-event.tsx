@@ -1,7 +1,5 @@
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useMutation } from '@tanstack/react-query';
-import { fetcherWithOptions } from '@/lib/fetchers';
-import { useEffect, useState, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { useAttendGroupEventMutation, useChangeGroupEventAttendanceMutation } from '@/services/backend/backendApi';
 import type { EventType } from '@/services/backend/types';
 import { toast } from '../ui/use-toast';
@@ -33,7 +31,7 @@ export const EventsModalEvent = ({ event }: { event: EventType }) => {
       if (Number(value) === 1) {
         setAttendanceCount(attendanceCount + 1);
       }
-      
+
     } catch (error) {
       toast({
         title: 'Failed to change attendance',

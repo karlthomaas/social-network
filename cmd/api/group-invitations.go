@@ -264,7 +264,7 @@ func (app *application) getInvitableUsersHandler(w http.ResponseWriter, r *http.
 
 	fmt.Println(invitable)
 
-	err = app.writeJSON(w, http.StatusOK, envelope{"user": invitable}, nil)
+	err = app.writeJSON(w, http.StatusOK, envelope{"users": invitable}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return

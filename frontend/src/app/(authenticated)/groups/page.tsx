@@ -9,7 +9,6 @@ import { useGetGroupsQuery } from '@/services/backend/backendApi';
 
 export default function GroupsPage() {
   const [groups, setGroups] = useState<GroupType[]>([]);
-
   const { data } = useGetGroupsQuery();
 
   useEffect(() => {

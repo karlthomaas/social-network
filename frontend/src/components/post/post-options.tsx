@@ -3,7 +3,6 @@ import type { PostType } from './post';
 import { Button } from '../ui/button';
 import { EllipsisVertical, Pencil, Trash2 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { useMutation } from '@tanstack/react-query';
 import { toast } from '../ui/use-toast';
 import { fetcherWithOptions } from '@/lib/fetchers';
 import { CreatePost } from '@/app/(authenticated)/home/_components/create-post';

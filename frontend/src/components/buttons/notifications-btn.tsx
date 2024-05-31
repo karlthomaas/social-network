@@ -12,13 +12,13 @@ import { Bell } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { GroupInvitation } from '../notifications/group_invitation';
 import clsx from 'clsx';
-import type { InvitationType } from '@/services/backend/types';
+import type { GroupInvitationType } from '@/services/backend/types';
 import { useGetUserGroupInvitationsQuery } from '@/services/backend/backendApi';
 import { useAppSelector } from '@/lib/hooks';
 import { skipToken } from '@reduxjs/toolkit/query';
 
 export const NotificationBtn = () => {
-  const [invitations, setInvitations] = useState<InvitationType[]>([]);
+  const [invitations, setInvitations] = useState<GroupInvitationType[]>([]);
   const { user } = useAppSelector((state) => state.auth);
   const invitationsQuery = useGetUserGroupInvitationsQuery(user?.id ?? skipToken, { skip: !user?.id });
   console.log("🚀 ~ NotificationBtn ~ invitationsQuery:", invitationsQuery)
@@ -29,7 +29,7 @@ export const NotificationBtn = () => {
     }
   }, [invitationsQuery.data]);
 
-  const removeInvitation = (invitation: InvitationType) => {
+  const removeInvitation = (invitation: GroupInvitationType) => {
     if (!invitations) return;
 
     setInvitations(invitations.filter((inv) => inv !== invitation));
@@ -52,7 +52,7 @@ export const NotificationBtn = () => {
       <DropdownMenuContent>
         <DropdownMenuLabel>Notifications</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {invitations.map((invitation: InvitationType, index) => (
+        {invitations.map((invitation: GroupInvitationType, index) => (
           <GroupInvitation removeInvitation={removeInvitation} key={index} invitation={invitation} />
         ))}
       </DropdownMenuContent>
