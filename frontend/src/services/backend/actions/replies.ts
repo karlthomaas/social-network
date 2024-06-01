@@ -47,6 +47,7 @@ const extendedRepliesApi = backendApi.injectEndpoints({
       }),
     }),
   }),
+  overrideExisting: false,
 });
 
 export const {

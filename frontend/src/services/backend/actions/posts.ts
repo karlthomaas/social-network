@@ -58,6 +58,7 @@ const expandedPostsApi = backendApi.injectEndpoints({
       }),
     }),
   }),
+  overrideExisting: false,
 });
 
 export const {

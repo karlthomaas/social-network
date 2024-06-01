@@ -26,6 +26,7 @@ export const extendedUserApi = backendApi.injectEndpoints({
       query: (userId) => `users/${userId}`,
     }),
   }),
+  overrideExisting: false,
 });
 
 export const {

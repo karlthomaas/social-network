@@ -12,6 +12,7 @@ const extendedMessagesApi = backendApi.injectEndpoints({
       providesTags: (result, error, args) => [{ type: 'Chat', id: args }],
     }),
   }),
+  overrideExisting: false,
 });
 
 export const { useGetChatMessagesQuery, useGetGroupMessagesQuery } = extendedMessagesApi;

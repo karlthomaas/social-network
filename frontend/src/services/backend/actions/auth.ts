@@ -28,6 +28,7 @@ const extendedAuthApi = backendApi.injectEndpoints({
       }),
     }),
   }),
+  overrideExisting: false,
 });
 
 export const { useRegisterMutation, useLoginMutation, useLogoutMutation } = extendedAuthApi;

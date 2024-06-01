@@ -34,6 +34,7 @@ const extendedFollowersApi = backendApi.injectEndpoints({
       }),
     }),
   }),
+  overrideExisting: false,
 });
 
 export const {
