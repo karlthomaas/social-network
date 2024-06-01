@@ -13,7 +13,7 @@ import { useState } from 'react';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { changeText, reset, setPrivacy } from '@/features/post/postSlice';
 
-import { useCreatePostMutation, useUpdatePostMutation, useCreateGroupPostMutation } from '@/services/backend/backendApi';
+import { useCreatePostMutation, useUpdatePostMutation, useCreateGroupPostMutation } from '@/services/backend/actions/posts';
 import { toast } from '@/components/ui/use-toast';
 
 export const CreatePost = memo(

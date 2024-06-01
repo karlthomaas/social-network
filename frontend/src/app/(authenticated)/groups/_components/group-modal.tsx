@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
-import { useCreateGroupMutation } from '@/services/backend/backendApi';
+import { useCreateGroupMutation } from '@/services/backend/actions/groups';
 
 const formSchema = z.object({
   title: z.string().min(3),

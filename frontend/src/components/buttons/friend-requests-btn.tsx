@@ -10,7 +10,7 @@ import {
   useAcceptFollowRequestMutation,
   useDeleteFollowRequestMutation,
   useGetUserFollowRequestsQuery,
-} from '@/services/backend/backendApi';
+} from '@/services/backend/actions/followers';
 import { FollowerType } from '@/services/backend/types';
 import { Users2 } from 'lucide-react';
 import { Check, X } from 'lucide-react';

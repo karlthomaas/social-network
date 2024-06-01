@@ -2,7 +2,7 @@ import { Button } from '../ui/button';
 import { ThumbsUp, MessageSquare, Forward } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { useToast } from '../ui/use-toast';
-import { useCreatePostReactionMutation, useDeletePostReactionMutation } from '@/services/backend/backendApi';
+import { useCreatePostReactionMutation, useDeletePostReactionMutation } from '@/services/backend/actions/posts';
 
 interface LikeButtonProps {
   postId: string;

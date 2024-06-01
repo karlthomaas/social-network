@@ -10,7 +10,7 @@ import { toast } from '../ui/use-toast';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useCreatePostReplyMutation, useUpdatePostReplyMutation } from '@/services/backend/backendApi';
+import { useCreatePostReplyMutation, useUpdatePostReplyMutation } from '@/services/backend/actions/replies';
 
 const formSchema = z.object({
   postId: z.string().optional(),

@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/ui/spinners';
 import { toast } from '@/components/ui/use-toast';
-import { useGroupLeaveMutation } from '@/services/backend/backendApi';
+import { useLeaveGroupMutation } from '@/services/backend/actions/groups';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { setRole } from '@/features/groups/groupsSlice';
 
@@ -9,7 +9,7 @@ export const GroupLeaveButton = ({ id }: { id: string }) => {
   const { group } = useAppSelector((state) => state.groups.groups[id]);
   const { user } = useAppSelector((state) => state.auth);
 
-  const [leaveGroup, { isLoading }] = useGroupLeaveMutation();
+  const [leaveGroup, { isLoading }] = useLeaveGroupMutation();
   const dispatch = useAppDispatch();
 
   const handleLeaveGroup = async () => {

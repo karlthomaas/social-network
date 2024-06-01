@@ -1,7 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { UserType } from '@/features/auth/types';
-import { backendApi } from '@/services/backend/backendApi';
-
+import { extendedUserApi } from '@/services/backend/actions/user';
 interface AuthState {
   user: null | UserType;
   isLoading: boolean;
@@ -18,14 +17,14 @@ export const authSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      .addMatcher(backendApi.endpoints.getSessionUser.matchPending, (state) => {
+      .addMatcher(extendedUserApi.endpoints.getSessionUser.matchPending, (state) => {
         state.isLoading = true;
       })
-      .addMatcher(backendApi.endpoints.getSessionUser.matchFulfilled, (state, action) => {
+      .addMatcher(extendedUserApi.endpoints.getSessionUser.matchFulfilled, (state, action) => {
         state.user = action.payload.user;
         state.isLoading = false;
       })
-      .addMatcher(backendApi.endpoints.getSessionUser.matchRejected, (state) => {
+      .addMatcher(extendedUserApi.endpoints.getSessionUser.matchRejected, (state) => {
         state.user = null;
         state.isLoading = false;
       });

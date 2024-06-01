@@ -6,7 +6,7 @@ import { GroupDetails } from './_components/group-details';
 import { GroupMemberView } from './_components/group-member-view';
 import { GroupNotMemberView } from './_components/group-not-member-view';
 
-import { useIsGroupMemberQuery, useGroupDetailsQuery } from '@/services/backend/backendApi';
+import { useGetGroupMemberStatusQuery, useGetGroupDetailsQuery } from '@/services/backend/actions/groups';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { skipToken } from '@reduxjs/toolkit/query/react';
 import { selectRole, setRole } from '@/features/groups/groupsSlice';
@@ -16,8 +16,8 @@ export default function GroupPage({ params }: { params: { id: string } }) {
   const { user } = useAppSelector((state) => state.auth);
   const role = useAppSelector((state) => selectRole(state, params.id));
 
-  const groupQuery = useGroupDetailsQuery(params.id);
-  const isMemberQuery = useIsGroupMemberQuery(params.id, { skip: !groupQuery.data ?? skipToken });
+  const groupQuery = useGetGroupDetailsQuery(params.id);
+  const isMemberQuery = useGetGroupMemberStatusQuery(params.id, { skip: !groupQuery.data ?? skipToken });
 
   useEffect(() => {
     if (isMemberQuery.data) {
@@ -42,11 +42,7 @@ export default function GroupPage({ params }: { params: { id: string } }) {
   return (
     <div className='flex flex-col space-y-5'>
       <GroupDetails id={params.id} />
-      {role === 'member' || role === 'owner' ? (
-        <GroupMemberView id={params.id} />
-      ) : (
-        <GroupNotMemberView id={params.id} />
-      )}
+      {role === 'member' || role === 'owner' ? <GroupMemberView id={params.id} /> : <GroupNotMemberView id={params.id} />}
     </div>
   );
 }

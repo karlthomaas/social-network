@@ -7,7 +7,7 @@ import { toast } from '../ui/use-toast';
 import { fetcherWithOptions } from '@/lib/fetchers';
 import { CreatePost } from '@/app/(authenticated)/home/_components/create-post';
 import { DialogTrigger } from '../ui/dialog';
-import { useDeletePostMutation } from '@/services/backend/backendApi';
+import { useDeletePostMutation } from '@/services/backend/actions/posts';
 
 export const PostOptions = ({ post, setPost }: { post: PostType, setPost: (post: PostType | undefined) => void }) => {
   const [deletePost] = useDeletePostMutation();

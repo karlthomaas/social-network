@@ -1,5 +1,5 @@
 import { Skeleton } from '@/components/ui/skeleton';
-import { useGetUserFollowersQuery } from '@/services/backend/backendApi';
+import { useGetUserFollowersQuery } from '@/services/backend/actions/user';
 
 export const FollowersCount = ({ username }: { username: string }) => {
   const { data, isLoading, isError } = useGetUserFollowersQuery(username);

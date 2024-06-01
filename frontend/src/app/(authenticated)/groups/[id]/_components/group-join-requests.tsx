@@ -2,9 +2,10 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTrigger, DialogHeader } from '@/components/ui/dialog';
 import { LoadingSpinner } from '@/components/ui/spinners';
 import { GroupJoinRequestsUser } from './group-join-requests-user';
-import type { UserType } from '@/features/auth/types';
-import { useGroupJoinRequestsQuery } from '@/services/backend/backendApi';
+import { useGetGroupJoinRequestsQuery } from '@/services/backend/actions/groups';
+
 import type { GroupType } from '@/services/backend/types';
+import type { UserType } from '@/features/auth/types';
 
 export interface JoinRequestType {
   group_id: string;
@@ -16,7 +17,7 @@ export interface JoinRequestType {
 }
 
 export const GroupJoinRequests = ({ id }: { id: string }) => {
-  const { data, isLoading, isError, refetch } = useGroupJoinRequestsQuery(id);
+  const { data, isLoading, isError, refetch } = useGetGroupJoinRequestsQuery(id);
 
   let content;
 

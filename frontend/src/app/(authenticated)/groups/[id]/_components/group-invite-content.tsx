@@ -1,6 +1,6 @@
 import { GroupInviteUser } from './group-invite-user';
 
-import { useGetGroupInvitableUsersQuery, useGetMyGroupInvitationsQuery } from '@/services/backend/backendApi';
+import { useGetGroupInvitableUsersQuery, useGetMyGroupInvitationsQuery } from '@/services/backend/actions/groups';
 import type { GroupInvitationType, FollowerType } from '@/services/backend/types';
 
 export const GroupInviteContent = ({ groupId }: { groupId: string }) => {

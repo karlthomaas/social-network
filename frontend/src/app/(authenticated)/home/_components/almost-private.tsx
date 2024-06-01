@@ -2,7 +2,7 @@ import { ArrowLeftIcon } from 'lucide-react';
 import { useCallback } from 'react';
 
 import { deincrement, setPrivacy, setPrivacyVisibleTo } from '@/features/post/postSlice';
-import { useGetUserFollowersQuery } from '@/services/backend/backendApi';
+import { useGetUserFollowersQuery } from '@/services/backend/actions/user';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { skipToken } from '@reduxjs/toolkit/query';
 

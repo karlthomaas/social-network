@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import type { JoinRequestType } from './group-join-requests';
 import { toast } from '@/components/ui/use-toast';
 import { capitalize } from '@/lib/utils';
-import { useAcceptGroupJoinRequestMutation, useDeleteGroupJoinRequestMutation } from '@/services/backend/backendApi';
+import { useAcceptGroupJoinRequestMutation, useDeleteGroupJoinRequestMutation } from '@/services/backend/actions/groups';
 export const GroupJoinRequestsUser = ({ request }: { request: JoinRequestType }) => {
   const [acceptGroupJoinRequest] = useAcceptGroupJoinRequestMutation();
   const [deleteGroupJoinRequest] = useDeleteGroupJoinRequestMutation();

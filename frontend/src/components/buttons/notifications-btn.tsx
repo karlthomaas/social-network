@@ -13,7 +13,7 @@ import { useEffect, useState } from 'react';
 import { GroupInvitation } from '../notifications/group_invitation';
 import clsx from 'clsx';
 import type { GroupInvitationType } from '@/services/backend/types';
-import { useGetUserGroupInvitationsQuery } from '@/services/backend/backendApi';
+import { useGetUserGroupInvitationsQuery } from '@/services/backend/actions/user';
 import { useAppSelector } from '@/lib/hooks';
 import { skipToken } from '@reduxjs/toolkit/query';
 
@@ -21,7 +21,6 @@ export const NotificationBtn = () => {
   const [invitations, setInvitations] = useState<GroupInvitationType[]>([]);
   const { user } = useAppSelector((state) => state.auth);
   const invitationsQuery = useGetUserGroupInvitationsQuery(user?.id ?? skipToken, { skip: !user?.id });
-  console.log("🚀 ~ NotificationBtn ~ invitationsQuery:", invitationsQuery)
 
   useEffect(() => {
     if (invitationsQuery.data) {

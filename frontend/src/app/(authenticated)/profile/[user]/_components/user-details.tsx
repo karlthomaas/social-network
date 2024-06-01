@@ -1,7 +1,7 @@
 import { ProfilePicture } from './pfp';
 import { FollowBtn } from '@/components/buttons/follow-btn';
 import { PrivacyBtn } from './privacy';
-import { useGetUserDetailsQuery } from '@/services/backend/backendApi';
+import { useGetUserDetailsQuery } from '@/services/backend/actions/user';
 import { useAppSelector } from '@/lib/hooks';
 
 export const UserDetails = ({ username }: { username: string }) => {
@@ -10,9 +10,7 @@ export const UserDetails = ({ username }: { username: string }) => {
 
   if (isLoading || !data || !data.user) {
     // todo add loading state
-    return (
-      null
-    );
+    return null;
   }
 
   const profileUser = data.user;

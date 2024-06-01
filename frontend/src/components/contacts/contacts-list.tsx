@@ -2,15 +2,15 @@
 
 import { Contact } from './contact';
 import { useAppSelector } from '@/lib/hooks';
-import { FollowerType } from '@/app/(authenticated)/groups/[id]/_components/group-invite-content';
-import { useGetSessionUserGroupsQuery, useGetUserFollowersQuery } from '@/services/backend/backendApi';
+import { useGetSessionUserGroupsQuery } from '@/services/backend/actions/groups';
+import { useGetUserFollowersQuery } from '@/services/backend/actions/user';
 import { skipToken } from '@reduxjs/toolkit/query';
 
 export const ContactList = () => {
-  const { user } = useAppSelector((state) => state.auth)
+  const { user } = useAppSelector((state) => state.auth);
 
   const groupsQuery = useGetSessionUserGroupsQuery();
-  const contactsQuery =  useGetUserFollowersQuery(user?.nickname ?? skipToken, {skip: !user});
+  const contactsQuery = useGetUserFollowersQuery(user?.nickname ?? skipToken, { skip: !user });
 
   return (
     <div className='sticky top-0 m-4 hidden h-max w-[350px] flex-col space-y-6 rounded-lg border border-border py-4 lg:flex'>

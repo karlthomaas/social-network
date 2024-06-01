@@ -11,7 +11,11 @@ import { toast } from '../ui/use-toast';
 import { ReplyInput } from './reply-input';
 import { useRef } from 'react';
 import { ReplyOptions } from './reply-optionts';
-import { useCreateReplyReactionMutation, useDeletePostReplyMutation, useDeleteReplyReactionMutation } from '@/services/backend/backendApi';
+import {
+  useCreateReplyReactionMutation,
+  useDeletePostReplyMutation,
+  useDeleteReplyReactionMutation,
+} from '@/services/backend/actions/replies';
 
 enum ReplyActionTypes {
   LIKE = 'LIKE',

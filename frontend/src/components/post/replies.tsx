@@ -2,7 +2,7 @@ import { LoadingSpinner } from '../ui/spinners';
 import { useEffect, useState } from 'react';
 import { Reply } from './reply';
 
-import { useGetPostRepliesQuery } from '@/services/backend/backendApi';
+import { useGetPostRepliesQuery } from '@/services/backend/actions/replies';
 import { useAppSelector } from '@/lib/hooks';
 import { UserType } from '@/features/auth/types';
 

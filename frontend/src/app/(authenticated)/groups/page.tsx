@@ -5,7 +5,7 @@ import { CreateGroupBtn } from './_components/group-create-btn';
 import { ChangeEvent, useEffect, useState } from 'react';
 import { Groups } from './_components/groups';
 import { GroupType } from '@/services/backend/types';
-import { useGetGroupsQuery } from '@/services/backend/backendApi';
+import { useGetGroupsQuery } from '@/services/backend/actions/groups';
 
 export default function GroupsPage() {
   const [groups, setGroups] = useState<GroupType[]>([]);

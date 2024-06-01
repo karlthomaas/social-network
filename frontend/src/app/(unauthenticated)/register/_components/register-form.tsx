@@ -6,11 +6,10 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { fetcherWithOptions } from '@/lib/fetchers';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/ui/use-toast';
-import { useRegisterMutation } from '@/services/backend/backendApi';
+import { useRegisterMutation } from '@/services/backend/actions/auth';
 
 const formSchema = z
   .object({

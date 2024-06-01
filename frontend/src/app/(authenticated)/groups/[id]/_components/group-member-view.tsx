@@ -10,7 +10,7 @@ import { EventsModal } from '@/components/event/events-modal';
 import { PostType } from '@/components/post/post';
 import { useEffect, useState } from 'react';
 import { useAppSelector } from '@/lib/hooks';
-import { useGetGroupPostsQuery } from '@/services/backend/backendApi';
+import { useGetGroupPostsQuery } from '@/services/backend/actions/posts';
 
 interface GroupFeedResponse {
   group_posts: PostType[];

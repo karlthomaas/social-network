@@ -1,7 +1,9 @@
-import { createSlice } from '@reduxjs/toolkit';
-import type { PayloadAction } from '@reduxjs/toolkit';
-import { backendApi } from '@/services/backend/backendApi';
 import { RootState } from '@/store';
+import { createSlice } from '@reduxjs/toolkit';
+
+import { backendApi } from '@/services/backend/backendApi';
+import { extendedGroupsApi } from '@/services/backend/actions/groups';
+import type { PayloadAction } from '@reduxjs/toolkit';
 
 interface GroupType {
   role: 'owner' | 'member' | null;
@@ -30,12 +32,12 @@ export const groupsSlice = createSlice({
     setGroup: (state, action: PayloadAction<GroupType>) => {
       state.groups[action.payload.group.id] = action.payload;
     },
-    setRole: (state, action: PayloadAction<{ groupId: string; role: 'owner' | 'member' | null}>) => {
+    setRole: (state, action: PayloadAction<{ groupId: string; role: 'owner' | 'member' | null }>) => {
       state.groups[action.payload.groupId].role = action.payload.role;
     },
   },
   extraReducers: (builder) => {
-    builder.addMatcher(backendApi.endpoints.groupDetails.matchFulfilled, (state, action) => {
+    builder.addMatcher(extendedGroupsApi.endpoints.getGroupDetails.matchFulfilled, (state, action) => {
       state.groups[action.payload.group.id] = { group: action.payload.group, role: null };
     });
   },

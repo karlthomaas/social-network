@@ -6,7 +6,7 @@ import authReducer from '@/features/auth/authSlice';
 import postReducer from '@/features/post/postSlice';
 import groupsReducer from '@/features/groups/groupsSlice';
 
-import { socketMiddleware } from './middlware/socket';
+import { socketMiddleware } from './middleware/socket';
 import { Socket } from './lib/socket';
 
 

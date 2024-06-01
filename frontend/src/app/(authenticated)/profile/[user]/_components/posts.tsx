@@ -1,5 +1,5 @@
 import { Post } from '@/components/post/post';
-import { useGetUserPostsQuery } from '@/services/backend/backendApi';
+import { useGetUserPostsQuery } from '@/services/backend/actions/posts';
 
 export const ProfilePosts = ({ username }: { username: string }) => {
   const { isLoading, data } = useGetUserPostsQuery(username);

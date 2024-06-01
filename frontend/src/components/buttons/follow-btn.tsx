@@ -5,7 +5,7 @@ import {
   useFollowUserMutation,
   useGetUserFollowStatusQuery,
   useUnfollowUserMutation,
-} from '@/services/backend/backendApi';
+} from '@/services/backend/actions/followers';
 import { toast } from '../ui/use-toast';
 import { Skeleton } from '../ui/skeleton';
 

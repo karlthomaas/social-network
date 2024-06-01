@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { DialogTrigger } from '@/components/ui/dialog';
 import { PostType } from '@/components/post/post';
 import { useEffect, useState } from 'react';
-import { useGetFeedPostsQuery } from '@/services/backend/backendApi';
+import { useGetFeedPostsQuery } from '@/services/backend/actions/posts';
 
 export default function Home() {
   const [posts, setPosts] = useState<PostType[]>([]);

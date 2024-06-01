@@ -1,7 +1,7 @@
 import type { GroupInvitationType } from '@/services/backend/types';
 import { Button } from '@/components/ui/button';
 import { Check, X } from 'lucide-react';
-import { useAcceptGroupInvitationMutation, useDeleteGroupUserInvitationMutation } from '@/services/backend/backendApi';
+import { useAcceptGroupInvitationMutation, useDeleteGroupUserInvitationMutation } from '@/services/backend/actions/groups';
 import { toast } from '../ui/use-toast';
 
 export const GroupInvitation = ({ invitation, removeInvitation }: { invitation: GroupInvitationType, removeInvitation: (invitation: GroupInvitationType) => void }) => {

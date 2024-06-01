@@ -1,6 +1,6 @@
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useState, useRef } from 'react';
-import { useAttendGroupEventMutation, useChangeGroupEventAttendanceMutation } from '@/services/backend/backendApi';
+import { useAttendGroupEventMutation, useChangeGroupEventAttendanceMutation } from '@/services/backend/actions/groups';
 import type { EventType } from '@/services/backend/types';
 import { toast } from '../ui/use-toast';
 

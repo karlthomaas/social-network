@@ -11,7 +11,7 @@ import {
 import Link from 'next/link';
 import { toast } from '../ui/use-toast';
 import { useRouter } from 'next/navigation';
-import { useLogoutMutation } from '@/services/backend/backendApi';
+import { useLogoutMutation } from '@/services/backend/actions/auth';
 import { useAppSelector, useAppDispatch } from '@/lib/hooks';
 
 export const NavbarProfile = () => {

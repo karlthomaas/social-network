@@ -3,7 +3,7 @@ import { Button } from '../ui/button';
 import { useEffect, useState } from 'react';
 import { EventsModalEvent } from './events-modal-event';
 import { LoadingSpinner } from '../ui/spinners';
-import { useGetGroupEventsQuery } from '@/services/backend/backendApi';
+import { useGetGroupEventsQuery } from '@/services/backend/actions/groups';
 import type { EventType, GroupType } from '@/services/backend/types';
 
 export const EventsModal = ({ group }: { group: GroupType }) => {

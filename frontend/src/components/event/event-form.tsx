@@ -8,7 +8,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from '@/components/ui/input';
 import { LoadingSpinner } from '../ui/spinners';
 import { toast } from '../ui/use-toast';
-import { useCreateGroupEventMutation } from '@/services/backend/backendApi';
+import { useCreateGroupEventMutation } from '@/services/backend/actions/groups';
 
 const formSchema = z.object({
   id: z.string(),

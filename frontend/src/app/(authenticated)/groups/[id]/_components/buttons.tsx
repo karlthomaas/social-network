@@ -2,7 +2,9 @@ import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/ui/spinners';
 import { toast } from '@/components/ui/use-toast';
 import type { UserType } from '@/features/auth/types';
-import { useCreateGroupRequestMutation, useDeleteGroupRequestMutation, useGroupRequestStatusQuery } from '@/services/backend/backendApi';
+
+import { useGetGroupRequestStatusQuery } from '@/services/backend/actions/groups';
+import { useCreateGroupRequestMutation, useDeleteGroupRequestMutation } from '@/services/backend/actions/groups';
 import { useEffect, useState } from 'react';
 
 interface JoinRequestStatus {
@@ -21,7 +23,7 @@ export const RequestButton = ({ groupId, className }: RequestButtonProps) => {
   const [requestStatus, setRequestStatus] = useState<JoinRequestStatus | null>(null);
   const [createRequest, { isLoading: isLoadingCreate }] = useCreateGroupRequestMutation();
   const [deleteRequest, { isLoading: isLoadingDelete }] = useDeleteGroupRequestMutation();
-  const joinRequestStatus = useGroupRequestStatusQuery(groupId);
+  const joinRequestStatus = useGetGroupRequestStatusQuery(groupId);
 
   const handleRequest = async () => {
     try {

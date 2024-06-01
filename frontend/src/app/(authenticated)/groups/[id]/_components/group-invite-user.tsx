@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
 import { FollowerType } from '@/services/backend/types';
 import { useState } from 'react';
-import { useCreateGroupUserInvitationMutation, useDeleteGroupUserInvitationMutation } from '@/services/backend/backendApi';
+import { useCreateGroupUserInvitationMutation, useDeleteGroupUserInvitationMutation } from '@/services/backend/actions/groups';
 
 export const GroupInviteUser = ({
   isInvited: inviteStatus,

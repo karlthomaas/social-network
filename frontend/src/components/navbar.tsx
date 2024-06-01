@@ -12,14 +12,14 @@ import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { useEffect, useState } from 'react';
 
 import { Sidebar } from '@/components/sidebar';
-import { useGetSessionUserQuery } from '@/services/backend/backendApi';
+import { useGetSessionUserQuery } from '@/services/backend/actions/user';
 
 export default function Navbar({ authenticate = false }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const dispatch = useAppDispatch();
   const { user, isLoading } = useAppSelector((state) => state.auth);
-  const session = useGetSessionUserQuery(null, { pollingInterval: 1000 * 50 * 5 });
+  useGetSessionUserQuery(null, { pollingInterval: 1000 * 50 * 5 });
 
   useEffect(() => {
     if (!authenticate) return;
