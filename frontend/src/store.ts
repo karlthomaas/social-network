@@ -8,6 +8,7 @@ import groupsReducer from '@/features/groups/groupsSlice';
 
 import { socketMiddleware } from './middleware/socket';
 import { Socket } from './lib/socket';
+import { authMiddleware } from './middleware/authMiddleware';
 
 
 const appReducer = combineReducers({
@@ -30,7 +31,7 @@ const rootReducer = (state: any, action: any) => {
 export const makeStore = () => {
   return configureStore({
     reducer: rootReducer,
-    middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(backendApi.middleware).concat(socketMiddleware(new Socket())),
+    middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(backendApi.middleware).concat(socketMiddleware(new Socket())).concat(authMiddleware),
   });
 };
 
