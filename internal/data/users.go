@@ -41,7 +41,7 @@ type User struct {
 }
 
 func (m *UserModel) Insert(user *User) error {
-	query := `INSERT INTO Users (id, email, password, first_name, last_name, date_of_birth, image, nickname, about_me, privacy) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+	query := `INSERT INTO users (id, email, password, first_name, last_name, date_of_birth, image, nickname, about_me, privacy) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
@@ -113,16 +113,19 @@ func (m *UserModel) Update(user *User) error {
 	}
 
 	_, err := m.DB.ExecContext(ctx, query, args...)
-	switch {
-	case errors.Is(err, sql.ErrNoRows):
-		return ErrRecordNotFound
-	case err.Error() == "UNIQUE constraint failed: users.nickname":
-		return ErrDuplicateNickname
-	case err.Error() == "UNIQUE constraint failed: users.email":
-		return ErrDuplicateEmail
-	default:
-		return err
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return ErrRecordNotFound
+		case err.Error() == "UNIQUE constraint failed: users.nickname":
+			return ErrDuplicateNickname
+		case err.Error() == "UNIQUE constraint failed: users.email":
+			return ErrDuplicateEmail
+		default:
+			return err
+		}
 	}
+	return nil
 }
 
 func (m *UserModel) Delete(id string) error {

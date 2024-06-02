@@ -102,11 +102,11 @@ func (m *GroupEventModel) Update(ge *GroupEvent) error {
 	return err
 }
 
-func (m *GroupEventModel) Get(eventID string) (*GroupEvent, error) {
+func (m *GroupEventModel) Get(eventID, userID string) (*GroupEvent, error) {
 	query := `SELECT ge.id, ge.group_id, ge.user_id, ge.title, ge.description, ge.date, ge.created_at, ge.updated_at,gem.attendance
 	FROM group_events ge
-	LEFT JOIN group_event_members gem ON ge.user_id = gem.user_id
-	WHERE id = ?`
+	LEFT JOIN group_event_members gem ON gem.user_id = ? AND gem.group_event_id = ge.id
+	WHERE ge.id = ?`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -114,7 +114,7 @@ func (m *GroupEventModel) Get(eventID string) (*GroupEvent, error) {
 	var event GroupEvent
 	var attendance sql.NullInt16
 
-	err := m.DB.QueryRowContext(ctx, query, eventID).Scan(
+	err := m.DB.QueryRowContext(ctx, query, userID, eventID).Scan(
 		&event.ID,
 		&event.GroupID,
 		&event.UserID,
@@ -143,11 +143,11 @@ func (m *GroupEventModel) Get(eventID string) (*GroupEvent, error) {
 	return &event, err
 }
 
-func (m *GroupEventModel) GetAllForGroup(groupID string) ([]*GroupEvent, error) {
+func (m *GroupEventModel) GetAllForGroup(groupID, userID string) ([]*GroupEvent, error) {
 	query := `
 	SELECT ge.id, ge.group_id, ge.user_id, ge.title, ge.description, ge.date, ge.created_at, ge.updated_at, u.first_name, u.last_name, gem.attendance
 	FROM group_events ge
-	LEFT JOIN group_event_members gem ON ge.user_id = gem.user_id
+	LEFT JOIN group_event_members gem ON gem.user_id = ? AND gem.group_event_id = ge.id
 	JOIN users u ON ge.user_id = u.id
 	WHERE ge.group_id = ?
 	`
@@ -155,7 +155,7 @@ func (m *GroupEventModel) GetAllForGroup(groupID string) ([]*GroupEvent, error) 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	rows, err := m.DB.QueryContext(ctx, query, groupID)
+	rows, err := m.DB.QueryContext(ctx, query, userID, groupID)
 	if err != nil {
 		return nil, err
 	}

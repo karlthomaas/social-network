@@ -177,7 +177,7 @@ func (app *application) updateGroupEventHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	event, err := app.models.GroupEvents.Get(eventID)
+	event, err := app.models.GroupEvents.Get(eventID, user.ID)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
@@ -277,7 +277,7 @@ func (app *application) getAllGroupEventsHandler(w http.ResponseWriter, r *http.
 		}
 	}
 
-	events, err := app.models.GroupEvents.GetAllForGroup(groupID)
+	events, err := app.models.GroupEvents.GetAllForGroup(groupID, user.ID)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
