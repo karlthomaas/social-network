@@ -12,6 +12,8 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+// todo: add validator to eventType
+
 type WSPayload struct {
 	Sender   string `json:"sender"`
 	Receiver string `json:"receiver"`
@@ -19,6 +21,7 @@ type WSPayload struct {
 	GroupID  string `json:"group_id"`
 	Online   string `json:"online"`
 	Type     string `json:"type"`
+	EventType string `json:"event_type"`
 }
 
 type Client struct {
@@ -158,6 +161,7 @@ func (app *application) handleConnection(client *Client, r *http.Request) {
 
 func (app *application) sendMessage(payload *WSPayload, currentClient *Client, messageType int) {
 	jsonPayload, err := json.Marshal(payload)
+	fmt.Println("🤖", jsonPayload)
 	if err != nil {
 		fmt.Println("krt", err)
 		return
@@ -184,6 +188,7 @@ func (app *application) sendMessage(payload *WSPayload, currentClient *Client, m
 				}
 			case "notification":
 				if payload.Receiver == client.UserID {
+					fmt.Println("notification", payload.Receiver, client.UserID)
 					client.conn.WriteMessage(messageType, jsonPayload)
 				} else if payload.Receiver == "" && payload.GroupID != "" {
 					members, err := app.models.GroupMembers.GetAllGroupMembers(payload.GroupID)

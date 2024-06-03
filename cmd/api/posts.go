@@ -51,6 +51,8 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	// notifyWithWebhook(post)
+
 	if post.Privacy == "almost_private" && len(input.VisibleTo) > 0 {
 		err := app.models.Posts.AddPostVisibilities(postID, input.VisibleTo)
 		if err != nil {

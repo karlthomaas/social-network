@@ -80,7 +80,9 @@ func (m *NotificationModel) GetAllForUser(userID string) ([]*Notification, error
 		SELECT n.id, n.sender, n.receiver, n.follow_request_id, n.group_invitation_id, n.group_request_id, n.group_event_id, n.created_at, u.first_name, u.last_name
 		FROM notifications n
 		LEFT JOIN users u ON n.sender = u.id
-		WHERE receiver = ?`
+		WHERE receiver = ?
+		ORDER BY n.created_at DESC
+		`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()

@@ -351,6 +351,56 @@ func (app *application) deleteGroupInvitationHandler(w http.ResponseWriter, r *h
 		return
 	}
 
+	err = app.writeJSON(w, http.StatusOK, envelope{"message": "invitation cancelled"}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+}
+
+
+func (app *application) declineGroupInvitationHandler(w http.ResponseWriter, r *http.Request) {
+	user := app.contextGetUser(r)
+
+	groupID, err := app.readParam(r, "id")
+	if err != nil {
+		app.notFoundResponse(w, r)
+		return
+	}
+
+	userID, err := app.readParam(r, "userID")
+	if err != nil {
+		app.notFoundResponse(w, r)
+		return
+	}
+
+	invitation, err := app.models.GroupInvitations.Get(groupID, userID)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	if invitation.UserID != user.ID {
+		app.unAuthorizedResponse(w, r)
+		return
+	}
+
+	err = app.models.GroupInvitations.Delete(groupID, userID)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
 	err = app.models.Notifications.DeleteByType(invitation.ID)
 	if err != nil {
 		switch {
@@ -359,11 +409,6 @@ func (app *application) deleteGroupInvitationHandler(w http.ResponseWriter, r *h
 		default:
 			app.serverErrorResponse(w, r, err)
 		}
-	}
-
-	err = app.writeJSON(w, http.StatusOK, envelope{"message": "invitation cancelled"}, nil)
-	if err != nil {
-		app.serverErrorResponse(w, r, err)
 		return
 	}
 }

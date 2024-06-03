@@ -98,10 +98,12 @@ func (app *application) generateUUID() (string, error) {
 
 func (app *application) readParam(r *http.Request, param string) (string, error) {
 	id := r.PathValue(param)
+	res := fmt.Sprintf("invalid %s param", param)
 	if id == "" {
-		return "", errors.New("invalid id parameter")
+		return "", errors.New(res)
 	}
 
+	
 	_, err := uuid.FromString(id)
 	if err != nil {
 		return "", errors.New("invalid id parameter")

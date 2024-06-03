@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"social-network/internal/data"
 	"social-network/internal/validator"
@@ -281,6 +282,7 @@ func (app *application) removeFollowerHandler(w http.ResponseWriter, r *http.Req
 }
 
 func (app *application) cancelRequestHandler(w http.ResponseWriter, r *http.Request) {
+
 	currentUser := app.contextGetUser(r)
 	targetID, err := app.readParam(r, "id")
 	if err != nil {
@@ -288,38 +290,42 @@ func (app *application) cancelRequestHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	request, err := app.models.Requests.Get(currentUser.ID, targetID)
-	if err != nil {
-		switch {
-		case errors.Is(err, data.ErrRecordNotFound):
-			app.notFoundResponse(w, r)
-		default:
-			app.serverErrorResponse(w, r, err)
-		}
-		return
+	var request *data.Request
+
+	option := r.PathValue("option")
+	fmt.Println(option)
+	if option != "cancel" && option != "decline" {
+		app.badRequestResponse(w, r, errors.New("invalid option parameter"))
 	}
 
-	request, err = app.models.Requests.Get(currentUser.ID, targetID)
-	if err != nil {
-		switch {
-		case errors.Is(err, data.ErrRecordNotFound):
-			app.notFoundResponse(w, r)
-		default:
-			app.serverErrorResponse(w, r, err)
-		}
-		return
-	}
+	var current, target string
+	switch option {
+    case "decline":
+        current, target = currentUser.ID, targetID
+    case "cancel":
+        current, target = targetID, currentUser.ID
+    }
 
-	err = app.models.Requests.Delete(currentUser.ID, targetID)
-	if err != nil {
-		switch {
-		case errors.Is(err, data.ErrRecordNotFound):
-			app.notFoundResponse(w, r)
-		default:
-			app.serverErrorResponse(w, r, err)
+	request, err = app.models.Requests.Get(current, target)
+		if err != nil {
+			switch {
+			case errors.Is(err, data.ErrRecordNotFound):
+				app.notFoundResponse(w, r)
+			default:
+				app.serverErrorResponse(w, r, err)
+			}
+			return
 		}
-		return
-	}
+		err = app.models.Requests.Delete(current, target)
+		if err != nil {
+			switch {
+			case errors.Is(err, data.ErrRecordNotFound):
+				app.notFoundResponse(w, r)
+			default:
+				app.serverErrorResponse(w, r, err)
+			}
+			return
+		}
 
 	err = app.models.Notifications.DeleteByType(request.ID)
 	if err != nil {
