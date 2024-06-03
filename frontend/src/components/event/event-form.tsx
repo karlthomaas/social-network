@@ -19,7 +19,7 @@ const formSchema = z.object({
 
 export type EventFormProps = z.infer<typeof formSchema>;
 
-export const EventForm = ({ groupId }: { groupId: string }) => {
+export const EventForm = ({ groupId, onSuccess }: { groupId: string, onSuccess: () => void }) => {
   const [createEvent, { isLoading, isSuccess }] = useCreateGroupEventMutation();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -40,6 +40,7 @@ export const EventForm = ({ groupId }: { groupId: string }) => {
         title: 'Success',
         description: 'Event created',
       });
+      onSuccess();
     } catch (error) {
       toast({
         title: 'Error',
