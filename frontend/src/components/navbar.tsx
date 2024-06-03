@@ -38,7 +38,7 @@ export default function Navbar({ authenticate = false }) {
       return <LoginButton />;
     } else if (isLoading) {
       return <div className='aspect-square w-[40px] animate-pulse rounded-full bg-secondary' />;
-    } else if (user) {
+    } else if (user?.id) {
       return (
         <>
           <div className='hidden items-center space-x-5 lg:flex'>
