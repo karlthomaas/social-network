@@ -13,25 +13,31 @@ export const EventsModalEvent = ({ event }: { event: EventType }) => {
 
   const handleSelect = async (value: string) => {
     const isFirstPick = event.group_event_member.attendance === 2;
-    attendance.current = value;
-
+    
     const body = {
       eventId: event.id,
       groupId: event.group_id,
       attendance: Number(value),
     };
-
+    
     try {
       if (isFirstPick) {
         await attendEvent(body);
       } else {
         await changeAttendance(body);
       }
-
+      
+      // if user is going to the event -> increment attendance count
       if (Number(value) === 1) {
         setAttendanceCount(attendanceCount + 1);
       }
-
+      
+      // if user is not going and was going before -> decrement attendance count
+      if (Number(value) === 0 && attendance.current === '1') {
+        setAttendanceCount(attendanceCount - 1);
+      }
+      
+      attendance.current = value;
     } catch (error) {
       toast({
         title: 'Failed to change attendance',
@@ -55,6 +61,7 @@ export const EventsModalEvent = ({ event }: { event: EventType }) => {
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
+              <SelectItem value='2'>Choose option</SelectItem>
               <SelectItem value='1' className='flex items-center'>
                 Going
               </SelectItem>
