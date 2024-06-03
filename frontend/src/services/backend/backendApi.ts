@@ -1,5 +1,5 @@
 import { Mutex } from 'async-mutex';
-import { login, logout } from '@/features/auth/authSlice';
+import { logout } from '@/features/auth/authSlice';
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from '@reduxjs/toolkit/query';
 

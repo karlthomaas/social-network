@@ -6,7 +6,7 @@ import { Chats } from '@/components/chat/chats';
 export default async function Layout({ children, params }: { children: React.ReactNode; params: any }) {
   return (
     <>
-      <Navbar authenticate={true} />
+      <Navbar />
       <div className='flex justify-center'>
         <div className='w-[350px] m-4 hidden lg:block'>Menu</div>
         <main className='relative h-full w-full max-w-screen-md p-4'>{children}</main>
