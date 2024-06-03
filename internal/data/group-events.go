@@ -159,7 +159,6 @@ func (m *GroupEventModel) GetAllForGroup(groupID, userID string) ([]*GroupEvent,
 	if err != nil {
 		return nil, err
 	}
-
 	groupEvents := []*GroupEvent{}
 
 	for rows.Next() {

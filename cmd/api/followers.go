@@ -60,7 +60,7 @@ func (app *application) addFollowerHandler(w http.ResponseWriter, r *http.Reques
 			return
 		}
 
-		err = app.createNotification(notification)
+		err = app.createNotification(notification, r)
 		if err != nil {
 			switch {
 			case errors.Is(err, data.ErrRecordNotFound):

@@ -109,7 +109,7 @@ func (app *application) inviteToGroupHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	err = app.createNotification(notification)
+	err = app.createNotification(notification, r)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):

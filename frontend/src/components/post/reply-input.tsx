@@ -50,7 +50,7 @@ export const ReplyInput = ({
   });
 
   const input = form.watch('content');
-  const fileRef = form.register('file');
+  // const fileRef = form.register('file');
 
   const onSubmit = async (data: ReplyFormProps) => {
     try {
@@ -73,7 +73,6 @@ export const ReplyInput = ({
     }
   };
 
-  const input = form.watch('content');
 
   useEffect(() => {
     // focus on textarea when rendered
@@ -100,7 +99,7 @@ export const ReplyInput = ({
             }}
           />
           <div className='flex'>
-            <Input type='file' {...fileRef} onChange={(event) => setFile(event?.target?.files?.[0])} />
+            {/* <Input type='file' {...fileRef} onChange={(event) => setFile(event?.target?.files?.[0])} /> */}
             <div className='ml-auto flex space-x-2'>
               {replyId && (
                 <Button type='button' size='sm' variant='secondary' className='w-[120px]' onClick={onCancel}>

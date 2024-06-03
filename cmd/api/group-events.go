@@ -59,7 +59,6 @@ func (app *application) createGroupEventHandler(w http.ResponseWriter, r *http.R
 		}
 	}
 
-
 	id, err := app.generateUUID()
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
@@ -90,8 +89,8 @@ func (app *application) createGroupEventHandler(w http.ResponseWriter, r *http.R
 	}
 
 	notification := &data.Notification{
-		Sender:          user.ID,
-		Receiver:        id,
+		Sender:       user.ID,
+		Receiver:     id,
 		GroupEventID: id,
 	}
 
@@ -100,7 +99,7 @@ func (app *application) createGroupEventHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	err = app.createNotification(notification)
+	err = app.createNotification(notification, r)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
@@ -110,7 +109,6 @@ func (app *application) createGroupEventHandler(w http.ResponseWriter, r *http.R
 		}
 		return
 	}
-
 
 	err = app.writeJSON(w, http.StatusCreated, envelope{"group_event": g}, nil)
 	if err != nil {

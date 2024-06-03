@@ -109,7 +109,9 @@ func (app *application) readParam(r *http.Request, param string) (string, error)
 	return id, nil
 }
 
-func (app *application) createNotification(notification *data.Notification) error {
+func (app *application) createNotification(notification *data.Notification, r *http.Request) error {
+
+	user := app.contextGetUser(r)
 
 	id, err := app.generateUUID()
 	if err != nil {
@@ -119,7 +121,7 @@ func (app *application) createNotification(notification *data.Notification) erro
 	notification.ID = id
 
 	if notification.GroupEventID != "" {
-		groupEvent, err := app.models.GroupEvents.Get(notification.GroupEventID)
+		groupEvent, err := app.models.GroupEvents.Get(notification.GroupEventID, user.ID)
 		if err != nil {
 
 			return data.ErrRecordNotFound
