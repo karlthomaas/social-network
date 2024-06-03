@@ -70,13 +70,11 @@ func (app *application) wsHandler(w http.ResponseWriter, r *http.Request) {
 
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-
 		fmt.Println(err)
 	}
 
 	client := NewClient(user.ID, conn)
 	app.ChatService.addClient(client)
-	fmt.Println(app.ChatService.Clients)
 
 	go app.handleConnection(client, r)
 }
@@ -127,7 +125,6 @@ func (app *application) handleConnection(client *Client, r *http.Request) {
 		switch payload.Type {
 		case "private_message":
 			if data.ValidateChatMessage(v, message); !v.Valid() {
-				fmt.Println("jouuu", v.Errors)
 				continue
 			}
 			err := app.models.Messages.Insert(message)
@@ -137,7 +134,6 @@ func (app *application) handleConnection(client *Client, r *http.Request) {
 			}
 		case "group_message":
 			if data.ValidateGroupMessage(v, message); !v.Valid() {
-				fmt.Println("jouuu", v.Errors)
 				continue
 			}
 			_, err := app.models.GroupMembers.CheckIfMember(payload.GroupID, client.UserID)
@@ -158,7 +154,6 @@ func (app *application) handleConnection(client *Client, r *http.Request) {
 func (app *application) sendMessage(payload *WSPayload, currentClient *Client, messageType int) {
 	jsonPayload, err := json.Marshal(payload)
 	if err != nil {
-		fmt.Println("krt", err)
 		return
 	}
 	for _, client := range app.ChatService.Clients {

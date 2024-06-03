@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"social-network/internal/data"
 	"social-network/internal/validator"
@@ -124,8 +123,6 @@ func (app *application) acceptInvitationHandler(w http.ResponseWriter, r *http.R
 		GroupID: invitedUser.GroupID,
 		UserID:  invitedUser.UserID,
 	}
-
-	fmt.Println(groupMember)
 
 	err = app.models.GroupMembers.Insert(groupMember)
 	if err != nil {
@@ -261,8 +258,6 @@ func (app *application) getInvitableUsersHandler(w http.ResponseWriter, r *http.
 			}
 		}
 	}
-
-	fmt.Println(invitable)
 
 	err = app.writeJSON(w, http.StatusOK, envelope{"users": invitable}, nil)
 	if err != nil {
