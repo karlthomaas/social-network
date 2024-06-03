@@ -40,20 +40,27 @@ export const NotificationBtn = () => {
         <div className='relative'>
           <Bell size={24} />
           <div
-            className={clsx('absolute -right-2 -top-2 hidden size-4 rounded-full bg-red-600 text-[10px]', {
+            className={clsx('absolute -right-2 -top-2 h-[20px] w-[20px] rounded-full bg-red-600', {
               block: invitations.length !== 0,
+              hidden: invitations.length === 0,
             })}
           >
             {invitations.length}
           </div>
         </div>
       </DropdownMenuTrigger>
-      <DropdownMenuContent>
+      <DropdownMenuContent className='w-[350px]'>
         <DropdownMenuLabel>Notifications</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {invitations.map((invitation: GroupInvitationType, index) => (
-          <GroupInvitation removeInvitation={removeInvitation} key={index} invitation={invitation} />
-        ))}
+        {invitationsQuery.isLoading ? (
+          <>Loading...</>
+        ) : invitations.length === 0 ? (
+          <div className='p-4'>No requests</div>
+        ) : (
+          invitations.map((invitation: GroupInvitationType, index) => (
+            <GroupInvitation removeInvitation={removeInvitation} key={index} invitation={invitation} />
+          ))
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

@@ -21,12 +21,13 @@ export const extendedUserApi = backendApi.injectEndpoints({
     }),
     getUserGroupInvitations: builder.query<{ invitations: GroupInvitationType[] }, string>({
       query: (userId) => `users/${userId}/group_invitations`,
+      providesTags: ['GroupInvitations'],
     }),
     getUserDetails: builder.query<{ user: UserType }, string>({
       query: (userId) => `users/${userId}`,
     }),
   }),
-  overrideExisting: false,
+  overrideExisting: true,
 });
 
 export const {

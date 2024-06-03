@@ -2,11 +2,14 @@ import { MessageType } from '@/components/chat/message';
 import { Socket } from '@/lib/socket';
 import { backendApi } from '@/services/backend/backendApi';
 
-export interface WebSocketMessage {
+export interface WSPayload {
+  sender?: string;
   receiver: string;
   message: string;
-  group_id: string;
-  type: string;
+  group_id?: string;
+  online?: string;
+  type: 'private_message' | 'group_message' | 'notification';
+  event_type?: 'group_request' | 'follow_request';
 }
 
 export const socketMiddleware = (socket: Socket) => (params: any) => (next: any) => (action: any) => {
@@ -24,6 +27,7 @@ export const socketMiddleware = (socket: Socket) => (params: any) => (next: any)
       break;
 
     case 'socket/send_message':
+      console.log(action.payload);
       socket.send(action.payload);
       break;
 
@@ -35,14 +39,16 @@ export const socketMiddleware = (socket: Socket) => (params: any) => (next: any)
 };
 
 const handleSocketRecieve = (message: MessageEvent, dispatch: any) => {
-  switch (message.type) {
-    case 'message':
-      const messageData: MessageType = JSON.parse(message.data);
-      const id = messageData.group_id ? messageData.group_id : messageData.sender;
-      dispatch(backendApi.util.invalidateTags([{ type: 'Chat', id }]));
-      break;
+  const data: WSPayload = JSON.parse(message.data);
 
-    default:
-      break;
+  if (message.type !== 'message') return
+
+  if (data.type === 'private_message') {
+    const id = data.group_id ? data.group_id : data.sender;
+    dispatch(backendApi.util.invalidateTags([{ type: 'Chat', id }]));
+  } else if (data.type === 'notification' && data.event_type === 'follow_request') {
+    dispatch(backendApi.util.invalidateTags(['FollowRequests']));
+  } else if (data.type === 'notification' && data.event_type === 'group_request') {
+    dispatch(backendApi.util.invalidateTags(['GroupInvitations']));
   }
 };

@@ -18,7 +18,7 @@ import { useEffect, useState } from 'react';
 import { toast } from '../ui/use-toast';
 
 export const FriendRequestsBtn = ({ userId }: { userId: string }) => {
-  const { data, isLoading, isError } = useGetUserFollowRequestsQuery(userId);
+  const { data, isLoading, isError, refetch } = useGetUserFollowRequestsQuery(userId);
   const [requests, setRequests] = useState<FollowerType[]>([]);
   const [acceptRequest] = useAcceptFollowRequestMutation();
   const [declineRequest] = useDeleteFollowRequestMutation();
@@ -40,13 +40,19 @@ export const FriendRequestsBtn = ({ userId }: { userId: string }) => {
     }
   };
 
+  const onDropdownOpenChange = (state: boolean) => {
+    if (state) {
+      refetch();
+    }
+  };
+
   useEffect(() => {
     if (data?.requests) {
       setRequests(data.requests);
     }
   }, [data]);
   return (
-    <DropdownMenu>
+    <DropdownMenu onOpenChange={onDropdownOpenChange}>
       <DropdownMenuTrigger className='relative'>
         {requests.length > 0 && <div className='absolute -right-2 -top-2 h-[20px] w-[20px] rounded-full bg-red-600'>{requests.length}</div>}
         <Users2 size={24} />

@@ -8,6 +8,7 @@ const extendedFollowersApi = backendApi.injectEndpoints({
     }),
     getUserFollowRequests: builder.query<{ requests: FollowerType[] }, string>({
       query: (userId) => `users/${userId}/follow_requests`,
+      providesTags: ['FollowRequests'],
     }),
     followUser: builder.mutation<any, string>({
       query: (userId) => ({
@@ -21,9 +22,15 @@ const extendedFollowersApi = backendApi.injectEndpoints({
         method: 'DELETE',
       }),
     }),
+    cancelFollowRequest: builder.mutation<any, string>({
+      query: (userId) => ({
+        url: `users/${userId}/follow_requests/cancel`,
+        method: 'DELETE',
+      }),
+    }),
     deleteFollowRequest: builder.mutation<any, string>({
       query: (userId) => ({
-        url: `users/${userId}/follow_requests`,
+        url: `users/${userId}/follow_requests/decline`,
         method: 'DELETE',
       }),
     }),
@@ -32,6 +39,7 @@ const extendedFollowersApi = backendApi.injectEndpoints({
         url: `users/${userId}/follow_requests`,
         method: 'POST',
       }),
+      invalidatesTags: ['Followers'],
     }),
   }),
   overrideExisting: false,
@@ -42,6 +50,7 @@ export const {
   useGetUserFollowRequestsQuery,
   useFollowUserMutation,
   useUnfollowUserMutation,
+  useCancelFollowRequestMutation,
   useDeleteFollowRequestMutation,
   useAcceptFollowRequestMutation,
 } = extendedFollowersApi;

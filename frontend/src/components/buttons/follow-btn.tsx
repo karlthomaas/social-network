@@ -1,13 +1,14 @@
 import { Button } from '../ui/button';
 import { useEffect, useState } from 'react';
 import {
-  useDeleteFollowRequestMutation,
+  useCancelFollowRequestMutation,
   useFollowUserMutation,
   useGetUserFollowStatusQuery,
   useUnfollowUserMutation,
 } from '@/services/backend/actions/followers';
 import { toast } from '../ui/use-toast';
 import { Skeleton } from '../ui/skeleton';
+import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 
 const translateFollowStatus = (permission: number) => {
   if (permission === 0) {
@@ -20,9 +21,12 @@ const translateFollowStatus = (permission: number) => {
 };
 
 export const FollowBtn = ({ className = '', user_id }: { className?: string; user_id: string }) => {
+  const dispatch = useAppDispatch();
+  const { user } = useAppSelector((state) => state.auth);
+
   const [followUser] = useFollowUserMutation();
   const [unfollowUser] = useUnfollowUserMutation();
-  const [deleteFollowRequest] = useDeleteFollowRequestMutation();
+  const [cancelFollowRequest] = useCancelFollowRequestMutation();
 
   const [followStatus, setFollowStatus] = useState(0);
   const { data, isLoading } = useGetUserFollowStatusQuery(user_id);
@@ -37,15 +41,26 @@ export const FollowBtn = ({ className = '', user_id }: { className?: string; use
     try {
       switch (followStatus) {
         case 0:
-          const response = await followUser(user_id);
-          setFollowStatus(response.data.privacy === 'public' ? 1 : 2);
+          const response = await followUser(user_id).unwrap();
+          setFollowStatus(response.privacy === 'public' ? 1 : 2);
+          if (response.privacy === 'private' && user) {
+            dispatch({
+              type: 'socket/send_message',
+              payload: {
+                type: 'notification',
+                receiver: user_id,
+                message: `${user.first_name} ${user.last_name} requested to follow you!`,
+                event_type: 'follow_request',
+              },
+            });
+          }
           break;
         case 1:
-          await unfollowUser(user_id);
+          await unfollowUser(user_id).unwrap();
           setFollowStatus(0);
           break;
         case 2:
-          await deleteFollowRequest(user_id);
+          await cancelFollowRequest(user_id).unwrap();
           setFollowStatus(0);
           break;
       }

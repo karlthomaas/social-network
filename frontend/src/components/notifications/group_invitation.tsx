@@ -1,11 +1,11 @@
 import type { GroupInvitationType } from '@/services/backend/types';
 import { Button } from '@/components/ui/button';
 import { Check, X } from 'lucide-react';
-import { useAcceptGroupInvitationMutation, useDeleteGroupUserInvitationMutation } from '@/services/backend/actions/groups';
+import { useAcceptGroupInvitationMutation, useDeclineGroupUserInvitationMutation } from '@/services/backend/actions/groups';
 import { toast } from '../ui/use-toast';
 
 export const GroupInvitation = ({ invitation, removeInvitation }: { invitation: GroupInvitationType, removeInvitation: (invitation: GroupInvitationType) => void }) => {
-  const [declineRequest] = useDeleteGroupUserInvitationMutation();
+  const [declineRequest] = useDeclineGroupUserInvitationMutation();
   const [acceptRequest] = useAcceptGroupInvitationMutation();
 
   const handleMutate = async (accept: boolean) => {
@@ -26,8 +26,8 @@ export const GroupInvitation = ({ invitation, removeInvitation }: { invitation: 
   };
 
   return (
-    <div className='flex items-center space-x-4 text-sm'>
-      <p>
+    <div className='flex items-center space-x-4 text-sm p-2'>
+      <p className='max-w-[65%]'>
         {invitation.user.first_name} {invitation.user.last_name} invited you to {invitation.group.title}
       </p>
       <div className='space-x-2'>

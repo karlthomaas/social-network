@@ -8,7 +8,7 @@ import type { EventType, GroupType } from '@/services/backend/types';
 
 export const EventsModal = ({ group }: { group: GroupType }) => {
   const [events, setEvents] = useState<EventType[]>([]);
-  const { data, isLoading } = useGetGroupEventsQuery(group.id);
+  const { data, isLoading, refetch } = useGetGroupEventsQuery(group.id);
 
   useEffect(() => {
     if (data?.group_events) {
@@ -16,8 +16,14 @@ export const EventsModal = ({ group }: { group: GroupType }) => {
     }
   }, [data]);
 
+  const onOpenChange = (isOpen: boolean) => {
+    if (isOpen) {
+      refetch();
+    }
+  };
+
   return (
-    <Dialog>
+    <Dialog onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
         <Button>View Events</Button>
       </DialogTrigger>
