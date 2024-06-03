@@ -1,7 +1,6 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import Link from 'next/link';
@@ -11,47 +10,42 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { fetcherWithOptions } from '@/lib/fetchers';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { useLoginMutation } from '@/services/backend/actions/auth';
 
-const formSchema = z.object({
+export const formSchema = z.object({
   email: z.string().email(),
   password: z.string().min(10, { message: 'Password must be at least 10 characters' }),
 });
 
+export type LoginFormProps = z.infer<typeof formSchema>;
+
 export const LoginForm = () => {
   const router = useRouter();
+  const [login, loginStatus] = useLoginMutation();
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<LoginFormProps>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       email: '',
       password: '',
     },
   });
-  const mutation = useMutation({
-    mutationFn: (values: z.infer<typeof formSchema>) => {
-      return fetcherWithOptions({
-        url: '/api/login',
-        method: 'POST',
-        body: {},
-        headers: { Authorization: 'Basic ' + btoa(`${values.email}:${values.password}`) },
-      });
-    },
-    onError: (error: any) => {
-      if (error.response.status === 401) {
-        form.setError('password', {
-          type: 'manual',
-          message: 'Invalid email or password',
-        });
-        form.setError('email', { type: 'manual' });
-      }
-    },
-    onSuccess: (data: any) => {
-      router.push('/home');
-    },
-  });
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    mutation.mutate(values);
+  const onSubmit = async (values: LoginFormProps) => {
+    login(values)
+      .unwrap()
+      .then(() => {
+        router.push('/home');
+      })
+      .catch((error) => {
+        if (error.status === 401) {
+          form.setError('password', {
+            type: 'manual',
+            message: 'Invalid email or password',
+          });
+          form.setError('email', { type: 'manual' });
+        }
+      });
   };
 
   return (
@@ -91,8 +85,8 @@ export const LoginForm = () => {
             Sign up
           </Link>
         </FormDescription>
-        <Button type='submit' disabled={mutation.isPending || mutation.isSuccess}>
-          {mutation.isPending ? 'Loading...' : 'Log in'}
+        <Button type='submit' disabled={loginStatus.isLoading || loginStatus.isSuccess}>
+          {loginStatus.isLoading ? 'Loading...' : 'Log in'}
         </Button>
       </form>
     </Form>

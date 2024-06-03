@@ -249,14 +249,13 @@ func (app *application) removeFollowerHandler(w http.ResponseWriter, r *http.Req
 
 func (app *application) cancelRequestHandler(w http.ResponseWriter, r *http.Request) {
 	currentUser := app.contextGetUser(r)
-
 	targetID, err := app.readParam(r, "id")
 	if err != nil {
 		app.notFoundResponse(w, r)
 		return
 	}
 
-	err = app.models.Requests.Delete(targetID, currentUser.ID)
+	err = app.models.Requests.Delete(currentUser.ID, targetID)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):

@@ -4,44 +4,38 @@ import { Menu } from 'lucide-react';
 import { Button } from './ui/button';
 import Link from 'next/link';
 import { NavbarProfile } from './buttons/navbar-profile';
-import { useSession } from '@/providers/user-provider';
-import { useMemo } from 'react';
 import { LoginButton } from './buttons/login-btn';
 import { FriendRequestsBtn } from './buttons/friend-requests-btn';
 import { NotificationBtn } from './buttons/notifications-btn';
-import { useAppDispatch } from '@/lib/hooks';
+import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { useEffect, useState } from 'react';
 
 import { Sidebar } from '@/components/sidebar';
+import { useGetSessionUserQuery } from '@/services/backend/actions/user';
 
 export default function Navbar({ authenticate = false }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const dispatch = useAppDispatch();
+  const { user, isLoading } = useAppSelector((state) => state.auth);
+  useGetSessionUserQuery(null, { pollingInterval: 1000 * 50 * 5 });
 
   useEffect(() => {
-    if (!authenticate) return;
-
-    // initialize socket connection
+    if (!user?.id) return;
     dispatch({ type: 'socket/connect' });
-
     return () => {
       dispatch({ type: 'socket/disconnect' });
     };
-  }, [dispatch, authenticate]);
-
-  const { user, isLoading } = useSession();
+  }, [dispatch, user?.id]);
 
   const handleCloseSidebar = () => {
     setSidebarOpen(false);
   };
 
-  const navbarButtons = useMemo(() => {
-    if (!authenticate) {
-      return <LoginButton />;
-    } else if (isLoading) {
+  const navButtons = () => {
+    if (isLoading) {
       return <div className='aspect-square w-[40px] animate-pulse rounded-full bg-secondary' />;
-    } else if (user) {
+    } else if (user?.id) {
       return (
         <>
           <div className='hidden items-center space-x-5 lg:flex'>
@@ -57,8 +51,8 @@ export default function Navbar({ authenticate = false }) {
     } else {
       return <LoginButton />;
     }
-  }, [authenticate, isLoading, user, sidebarOpen]);
-
+  }
+  
   return (
     <>
       <nav className='h-[65px] w-full border-b-[1px] border-border'>
@@ -69,7 +63,7 @@ export default function Navbar({ authenticate = false }) {
               <p className='text-lg'>Social Network</p>
             </Link>
           </li>
-          {navbarButtons}
+          {navButtons()}
         </ul>
       </nav>
       <Sidebar handleClose={handleCloseSidebar} isOpen={sidebarOpen}>

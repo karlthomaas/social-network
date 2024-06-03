@@ -1,8 +1,8 @@
-import { UserType, useSession } from '@/providers/user-provider';
+import { useAppSelector } from '@/lib/hooks';
 import { ChatMessage, MessageType } from './message';
 
 export const ChatBox = ({ messages, showHandles = false }: { messages: MessageType[] | undefined; showHandles: boolean }) => {
-  const { user } = useSession();
+  const { user } = useAppSelector((state) => state.auth);
 
   if (!messages || !user) return null;
 

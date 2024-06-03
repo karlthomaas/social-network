@@ -36,7 +36,7 @@ func (app *application) getAllGroupMembersHandler(w http.ResponseWriter, r *http
 	if err != nil {
 		if errors.Is(err, data.ErrRecordNotFound) {
 			if group.UserID != user.ID {
-				app.unAuthorizedResponse(w, r)
+				app.forbiddenResponse(w, r)
 				return
 			}
 		} else {

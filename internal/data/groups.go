@@ -188,7 +188,7 @@ func (m GroupModel) GetAllForUser(userID string) ([]*Group, error) {
 	}
 
 	if err = rows.Err(); err != nil {
-		return nil, err
+		return groups, err
 	}
 
 	return groups, nil

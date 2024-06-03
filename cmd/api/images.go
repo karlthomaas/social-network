@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -53,7 +52,6 @@ func (app *application) createImageHandler(w http.ResponseWriter, r *http.Reques
 	}
 	filePaths = filePaths[:len(filePaths)-1]
 
-
 	options := r.PathValue("options")
 
 	switch options {
@@ -70,12 +68,9 @@ func (app *application) createImageHandler(w http.ResponseWriter, r *http.Reques
 		}
 	}
 
-
 	err = app.writeJSON(w, http.StatusOK, envelope{"images": "image uploaded succesfully"}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
-
-	fmt.Println(filePaths[:len(filePaths)-1])
 }

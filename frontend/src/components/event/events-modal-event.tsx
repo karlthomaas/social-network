@@ -1,40 +1,49 @@
-import { EventType } from './events-modal';
-
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useMutation } from '@tanstack/react-query';
-import { fetcherWithOptions } from '@/lib/fetchers';
-import { useEffect, useState } from 'react';
+import { useState, useRef } from 'react';
+import { useAttendGroupEventMutation, useChangeGroupEventAttendanceMutation } from '@/services/backend/actions/groups';
+import type { EventType } from '@/services/backend/types';
+import { toast } from '../ui/use-toast';
 
 export const EventsModalEvent = ({ event }: { event: EventType }) => {
-  const [attendanceCount, setAttendanceCount] = useState(event.attendance.going);
-  const [attendance, setAttendance] = useState(String(event.group_event_member.attendance));
+  const [changeAttendance] = useChangeGroupEventAttendanceMutation();
+  const [attendEvent] = useAttendGroupEventMutation();
 
-  const mutation = useMutation({
-    mutationKey: ['event', event.id],
-    mutationFn: (isGoing: boolean) => {
-      return fetcherWithOptions({
-        url: `/api/groups/${event.group_id}/group_events/${event.id}/group_event_members`,
-        method: attendance === '2' ? 'POST' : 'PATCH',
-        body: {
-          attendance: isGoing ? 1 : 0,
-        },
-      });
-    },
-    onSuccess: (data, isGoing) => {
-      if (isGoing) {
-        setAttendanceCount(attendanceCount + 1);
+  const [attendanceCount, setAttendanceCount] = useState(event.attendance.going);
+  const attendance = useRef(String(event.group_event_member.attendance));
+
+  const handleSelect = async (value: string) => {
+    const isFirstPick = event.group_event_member.attendance === 2;
+    
+    const body = {
+      eventId: event.id,
+      groupId: event.group_id,
+      attendance: Number(value),
+    };
+    
+    try {
+      if (isFirstPick) {
+        await attendEvent(body);
       } else {
+        await changeAttendance(body);
+      }
+      
+      // if user is going to the event -> increment attendance count
+      if (Number(value) === 1) {
+        setAttendanceCount(attendanceCount + 1);
+      }
+      
+      // if user is not going and was going before -> decrement attendance count
+      if (Number(value) === 0 && attendance.current === '1') {
         setAttendanceCount(attendanceCount - 1);
       }
-    },
-  });
-
-  const handleSelect = (value: string) => {
-    setAttendance(value);
-    if (value === '1') {
-      mutation.mutate(true);
-    } else {
-      mutation.mutate(false);
+      
+      attendance.current = value;
+    } catch (error) {
+      toast({
+        title: 'Failed to change attendance',
+        description: 'Please try again later',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -46,12 +55,13 @@ export const EventsModalEvent = ({ event }: { event: EventType }) => {
         <p className='text-neutral-300'>{attendanceCount} members are attending</p>
       </div>
       <div className='my-auto'>
-        <Select value={attendance} onValueChange={handleSelect}>
+        <Select value={attendance.current} onValueChange={handleSelect}>
           <SelectTrigger className='w-[150px] '>
             <SelectValue placeholder='Select activity'></SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
+              <SelectItem value='2'>Choose option</SelectItem>
               <SelectItem value='1' className='flex items-center'>
                 Going
               </SelectItem>

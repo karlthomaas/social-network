@@ -1,14 +1,13 @@
 import { Button } from '../ui/button';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { fetcher, fetcherWithOptions } from '@/lib/fetchers';
+import { useEffect, useState } from 'react';
+import {
+  useDeleteFollowRequestMutation,
+  useFollowUserMutation,
+  useGetUserFollowStatusQuery,
+  useUnfollowUserMutation,
+} from '@/services/backend/actions/followers';
+import { toast } from '../ui/use-toast';
 import { Skeleton } from '../ui/skeleton';
-import { useEffect } from 'react';
-import { create } from 'zustand';
-
-const useStore = create((set) => ({
-  followStatus: 0,
-  setFollowStatus: (status: number) => set({ followStatus: status }),
-}));
 
 const translateFollowStatus = (permission: number) => {
   if (permission === 0) {
@@ -21,53 +20,50 @@ const translateFollowStatus = (permission: number) => {
 };
 
 export const FollowBtn = ({ className = '', user_id }: { className?: string; user_id: string }) => {
-  const followStatus: number = useStore((state: any) => state.followStatus);
+  const [followUser] = useFollowUserMutation();
+  const [unfollowUser] = useUnfollowUserMutation();
+  const [deleteFollowRequest] = useDeleteFollowRequestMutation();
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['followStatus'],
-    queryFn: async () => fetcher(`/api/users/${user_id}/follow_status`),
-  });
+  const [followStatus, setFollowStatus] = useState(0);
+  const { data, isLoading } = useGetUserFollowStatusQuery(user_id);
 
   useEffect(() => {
-    if (data) {
-      useStore.setState({ followStatus: data.permission });
+    if (data?.permission) {
+      setFollowStatus(data.permission);
     }
   }, [data]);
 
-  const mutation = useMutation({
-    mutationKey: ['follow'],
-    mutationFn: async () => {
-      const options: {
-        [key: number]: { url: string; method: string; body: any };
-      } = {
-        0: { url: `/api/users/${user_id}/followers`, method: 'POST', body: {} },
-        1: { url: `/api/users/${user_id}/followers`, method: 'DELETE', body: {} },
-        2: { url: `/api/users/${user_id}/follow_requests`, method: 'DELETE', body: {} },
-      };
-
-      return fetcherWithOptions(options[followStatus]);
-    },
-    onSuccess: (data: any) => {
-      // When user was already following or requested to follow -> Reset to permission 0
-      if (followStatus === 1 || followStatus === 2) {
-        useStore.setState({ followStatus: 0 });
-        return;
+  const handleFollow = async () => {
+    try {
+      switch (followStatus) {
+        case 0:
+          const response = await followUser(user_id);
+          setFollowStatus(response.data.privacy === 'public' ? 1 : 2);
+          break;
+        case 1:
+          await unfollowUser(user_id);
+          setFollowStatus(0);
+          break;
+        case 2:
+          await deleteFollowRequest(user_id);
+          setFollowStatus(0);
+          break;
       }
-
-      if (data.privacy === 'public') {
-        useStore.setState({ followStatus: 1 });
-      } else {
-        useStore.setState({ followStatus: 2 });
-      }
-    },
-  });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Please try again later',
+        variant: 'destructive',
+      });
+    }
+  };
 
   if (isLoading) {
     return <Skeleton className='h-[40px] w-[100px]' />;
   }
 
   return (
-    <Button className={className} variant='outline' onClick={() => mutation.mutate()}>
+    <Button className={className} variant='outline' onClick={handleFollow}>
       {translateFollowStatus(followStatus)}
     </Button>
   );

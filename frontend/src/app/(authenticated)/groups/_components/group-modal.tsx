@@ -1,5 +1,4 @@
-import React, { useState} from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import React, { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -10,19 +9,21 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { fetcherWithOptions } from '@/lib/fetchers';
 import { toast } from '@/components/ui/use-toast';
+import { useCreateGroupMutation } from '@/services/backend/actions/groups';
 
 const formSchema = z.object({
   title: z.string().min(3),
   description: z.string().min(3),
 });
 
-export const GroupModal = ({ children }: { children: React.ReactNode }) => {
-  const [open, setOpen] = useState(false);
-  const queryClient = useQueryClient();
+export type GroupFormProps = z.infer<typeof formSchema>;
 
-  const form = useForm<z.infer<typeof formSchema>>({
+export const GroupModal = ({ children }: { children: React.ReactNode }) => {
+  const [createGroup, { isLoading }] = useCreateGroupMutation();
+  const [open, setOpen] = useState(false);
+
+  const form = useForm<GroupFormProps>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: '',
@@ -30,28 +31,22 @@ export const GroupModal = ({ children }: { children: React.ReactNode }) => {
     },
   });
 
-  const mutation = useMutation({
-    mutationFn: (values: z.infer<typeof formSchema>) => {
-      return fetcherWithOptions({
-        url: '/api/groups',
-        method: 'POST',
-        body: values,
-      });
-    },
-
-    onSuccess: () => {
+  const onSubmit = async (values: GroupFormProps) => {
+    try {
+      await createGroup(values).unwrap();
       setOpen(false);
       toast({
         title: 'Group created',
         description: 'Your group has been created successfully',
       });
-      form.reset()
-      queryClient.invalidateQueries({ queryKey: ['groups'] });
-    },
-  });
-
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    mutation.mutate(values);
+      form.reset();
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Please try again later',
+        variant: 'destructive',
+      });
+    }
   };
 
   return (
@@ -87,8 +82,8 @@ export const GroupModal = ({ children }: { children: React.ReactNode }) => {
                 </FormItem>
               )}
             />
-            <Button type='submit' disabled={mutation.isPending} className='w-full'>
-              { mutation.isPending ? 'Creating group...' : 'Create Group'}
+            <Button type='submit' disabled={isLoading} className='w-full'>
+              {isLoading ? 'Creating group...' : 'Create Group'}
             </Button>
           </form>
         </Form>

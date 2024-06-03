@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"social-network/internal/data"
 	"social-network/internal/validator"
@@ -50,7 +49,7 @@ func (app *application) inviteToGroupHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	invitedUser, err := app.models.GroupMembers.Get(invitedUserID)
+	invitedUser, err := app.models.GroupMembers.CheckIfMember(group.ID, invitedUserID)
 	if err != nil {
 		if !errors.Is(err, data.ErrRecordNotFound) {
 			app.serverErrorResponse(w, r, err)
@@ -124,8 +123,6 @@ func (app *application) acceptInvitationHandler(w http.ResponseWriter, r *http.R
 		GroupID: invitedUser.GroupID,
 		UserID:  invitedUser.UserID,
 	}
-
-	fmt.Println(groupMember)
 
 	err = app.models.GroupMembers.Insert(groupMember)
 	if err != nil {
@@ -201,9 +198,9 @@ func (app *application) getMyInvitedUsersHandler(w http.ResponseWriter, r *http.
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
-			app.notFoundResponse(w,r)
+			app.notFoundResponse(w, r)
 		default:
-			app.serverErrorResponse(w,r,err)
+			app.serverErrorResponse(w, r, err)
 		}
 		return
 	}
@@ -257,33 +254,30 @@ func (app *application) getInvitableUsersHandler(w http.ResponseWriter, r *http.
 				if !isMember {
 					invitable = append(invitable, follower)
 				}
-				
+
 			}
 		}
-	} 
+	}
 
-	fmt.Println(invitable)
-
-	err = app.writeJSON(w, http.StatusOK, envelope{"user": invitable}, nil)
+	err = app.writeJSON(w, http.StatusOK, envelope{"users": invitable}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
 }
 
-
 func (app *application) deleteGroupInvitationHandler(w http.ResponseWriter, r *http.Request) {
 	user := app.contextGetUser(r)
 
 	groupID, err := app.readParam(r, "id")
 	if err != nil {
-		app.notFoundResponse(w,r)
+		app.notFoundResponse(w, r)
 		return
 	}
 
 	userID, err := app.readParam(r, "userID")
 	if err != nil {
-		app.notFoundResponse(w,r)
+		app.notFoundResponse(w, r)
 		return
 	}
 
@@ -291,15 +285,15 @@ func (app *application) deleteGroupInvitationHandler(w http.ResponseWriter, r *h
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
-			app.notFoundResponse(w,r)
+			app.notFoundResponse(w, r)
 		default:
-			app.serverErrorResponse(w,r,err)
+			app.serverErrorResponse(w, r, err)
 		}
 		return
 	}
 
 	if invitation.InvitedBy != user.ID {
-		app.unAuthorizedResponse(w,r)
+		app.unAuthorizedResponse(w, r)
 		return
 	}
 
@@ -307,16 +301,16 @@ func (app *application) deleteGroupInvitationHandler(w http.ResponseWriter, r *h
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
-			app.notFoundResponse(w,r)
+			app.notFoundResponse(w, r)
 		default:
-			app.serverErrorResponse(w,r,err)
+			app.serverErrorResponse(w, r, err)
 		}
 		return
 	}
 
-	err = app.writeJSON(w, http.StatusOK, envelope{"message":"invitation cancelled"},nil)
+	err = app.writeJSON(w, http.StatusOK, envelope{"message": "invitation cancelled"}, nil)
 	if err != nil {
-		app.serverErrorResponse(w,r,err)
+		app.serverErrorResponse(w, r, err)
 		return
 	}
 }

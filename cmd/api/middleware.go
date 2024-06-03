@@ -114,7 +114,7 @@ func (app *application) rateLimit(next http.Handler) http.Handler {
 
 		// Add Client IP to the map if it doesn't exist.
 		if _, found := clients[ip]; !found {
-			clients[ip] = &client{limiter: rate.NewLimiter(4, 8)}
+			clients[ip] = &client{limiter: rate.NewLimiter(20, 20)}
 		}
 
 		clients[ip].lastSeen = time.Now()

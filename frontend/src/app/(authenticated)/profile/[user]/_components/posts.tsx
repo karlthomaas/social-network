@@ -1,18 +1,15 @@
-import { useQuery } from '@tanstack/react-query';
-import { fetcher } from '@/lib/fetchers';
 import { Post } from '@/components/post/post';
+import { useGetUserPostsQuery } from '@/services/backend/actions/posts';
+
 export const ProfilePosts = ({ username }: { username: string }) => {
-  const { isLoading, data } = useQuery({
-    queryKey: ['posts'],
-    queryFn: () => fetcher(`/api/users/${username}/posts`),
-  });
+  const { isLoading, data } = useGetUserPostsQuery(username);
 
   if (isLoading) {
     return (
       <div className='flex flex-col space-y-5'>
         <Post isLoading={true} />
-        <Post  isLoading={true} />
-        <Post  isLoading={true} />
+        <Post isLoading={true} />
+        <Post isLoading={true} />
       </div>
     );
   }

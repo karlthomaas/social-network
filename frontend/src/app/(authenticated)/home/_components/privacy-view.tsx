@@ -5,57 +5,35 @@ import { Globe2, Lock, Users2 } from 'lucide-react';
 import { LucideIcon } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { create } from 'zustand';
 import { capitalize } from '@/lib/utils';
-import { postStore } from './create-post';
-
-export const privacyStore = create((set) => ({
-  radioValue: 'public',
-  visibleTo: [],
-  toggleVisibleToUser: (id: string) => {
-    set((state: any) => {
-      const index = state.visibleTo.indexOf(id);
-      if (index === -1) {
-        return { visibleTo: [...state.visibleTo, id] };
-      } else {
-        return { visibleTo: state.visibleTo.filter((user: string) => user !== id) };
-      }
-    });
-  },
-  setValue: (value: string) => set({ radioValue: value }),
-}));
+import { useAppDispatch, useAppSelector } from '@/lib/hooks';
+import { setPrivacy, increment, deincrement } from '@/features/post/postSlice';
+import { useState } from 'react';
 
 export const PrivacyView = ({}: {}) => {
-  const radioValue = privacyStore((state: any) => state.radioValue);
-  const setValue = privacyStore((state: any) => state.setValue);
-  const visibleTo = privacyStore((state: any) => state.visibleTo);
-
-  const next = postStore((state: any) => state.increment);
-  const back = postStore((state: any) => state.deincrement);
-  const privacy = postStore((state: any) => state.privacy);
+  const dispatch = useAppDispatch();
+  const postSelector = useAppSelector((state) => state.post);
+  const [tempPrivacy, setTempPrivacy] = useState(postSelector.privacy.value);
 
   const handlePrivacyChange = (value: string) => {
-    // set current component state
-    setValue(value);
+    setTempPrivacy(value);
     if (value === 'almost private') {
-      next();
+      dispatch(increment());
     }
   };
 
   const handleSave = () => {
-    // save privacy to parent component
-    if (radioValue === 'almost private' && visibleTo.length === 0) {
-      next();
+    if (tempPrivacy === 'almost private' && postSelector.privacy.visibleTo.length === 0) {
+      dispatch(increment());
       return;
     }
-    postStore.setState({ privacy: radioValue });
-    back();
+
+    dispatch(setPrivacy(tempPrivacy));
+    dispatch(deincrement());
   };
 
   const handleCancel = () => {
-    // reset current component state
-    setValue(privacy);
-    back();
+    dispatch(deincrement());
   };
 
   return (
@@ -68,7 +46,7 @@ export const PrivacyView = ({}: {}) => {
           <p>Select Post Privacy</p>
         </DialogTitle>
       </DialogHeader>
-      <RadioGroup value={radioValue}>
+      <RadioGroup value={tempPrivacy}>
         <PrivacyItem callback={handlePrivacyChange} Icon={Globe2} value='public' description='Anyone can see your post' />
         <PrivacyItem callback={handlePrivacyChange} Icon={Users2} value='private' description='Only friends can see your post' />
         <PrivacyItem
@@ -82,7 +60,9 @@ export const PrivacyView = ({}: {}) => {
         <Button variant='outline' onClick={handleCancel}>
           Cancel
         </Button>
-        <Button onClick={handleSave}>{radioValue === 'almost private' && visibleTo.length === 0 ? 'Next' : 'Done'}</Button>
+        <Button onClick={handleSave}>
+          {tempPrivacy === 'almost private' && postSelector.privacy.visibleTo.length === 0 ? 'Next' : 'Done'}
+        </Button>
       </div>
     </DialogContent>
   );

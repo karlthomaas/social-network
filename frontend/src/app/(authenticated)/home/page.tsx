@@ -1,21 +1,18 @@
 'use client';
 
 import { CreatePost } from './_components/create-post';
-import { useQuery } from '@tanstack/react-query';
 import { fetcher } from '@/lib/fetchers';
 import { Post } from '@/components/post/post';
 import { Button } from '@/components/ui/button';
 import { DialogTrigger } from '@/components/ui/dialog';
 import { PostType } from '@/components/post/post';
 import { useEffect, useState } from 'react';
+import { useGetFeedPostsQuery } from '@/services/backend/actions/posts';
 
 export default function Home() {
   const [posts, setPosts] = useState<PostType[]>([]);
 
-  const { isLoading, data } = useQuery({
-    queryKey: ['posts'],
-    queryFn: () => fetcher('/api/posts/feed'),
-  });
+  const { isLoading, data } = useGetFeedPostsQuery();
 
   useEffect(() => {
     if (data?.posts) {

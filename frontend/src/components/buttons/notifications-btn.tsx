@@ -8,26 +8,19 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { fetcher } from '@/lib/fetchers';
-import { useSession } from '@/providers/user-provider';
-import { useQuery } from '@tanstack/react-query';
 import { Bell } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { GroupInvitation, InvitationType } from '../notifications/group_invitaion';
+import { GroupInvitation } from '../notifications/group_invitation';
 import clsx from 'clsx';
-
-interface InvitationsQueryResponse {
-  invitations: InvitationType[];
-}
+import type { GroupInvitationType } from '@/services/backend/types';
+import { useGetUserGroupInvitationsQuery } from '@/services/backend/actions/user';
+import { useAppSelector } from '@/lib/hooks';
+import { skipToken } from '@reduxjs/toolkit/query';
 
 export const NotificationBtn = () => {
-  const [invitations, setInvitations] = useState<InvitationType[]>([]);
-  const { user } = useSession();
-  const invitationsQuery = useQuery<InvitationsQueryResponse>({
-    queryKey: ['incoming-requests'],
-    queryFn: async () => fetcher(`/api/users/${user?.id}/group_invitations`),
-    enabled: !!user,
-  });
+  const [invitations, setInvitations] = useState<GroupInvitationType[]>([]);
+  const { user } = useAppSelector((state) => state.auth);
+  const invitationsQuery = useGetUserGroupInvitationsQuery(user?.id ?? skipToken, { skip: !user?.id });
 
   useEffect(() => {
     if (invitationsQuery.data) {
@@ -35,14 +28,14 @@ export const NotificationBtn = () => {
     }
   }, [invitationsQuery.data]);
 
-  const removeInvitation = (invitation: InvitationType) => {
+  const removeInvitation = (invitation: GroupInvitationType) => {
     if (!invitations) return;
 
     setInvitations(invitations.filter((inv) => inv !== invitation));
   };
 
   return (
-    <DropdownMenu>
+    <DropdownMenu onOpenChange={() => invitationsQuery.refetch()}>
       <DropdownMenuTrigger>
         <div className='relative'>
           <Bell size={24} />
@@ -58,7 +51,7 @@ export const NotificationBtn = () => {
       <DropdownMenuContent>
         <DropdownMenuLabel>Notifications</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {invitations.map((invitation: InvitationType, index) => (
+        {invitations.map((invitation: GroupInvitationType, index) => (
           <GroupInvitation removeInvitation={removeInvitation} key={index} invitation={invitation} />
         ))}
       </DropdownMenuContent>
