@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { capitalize } from '@/lib/utils';
-import { useUpdatePrivacyMutation } from '@/services/backend/backendApi';
+import { useUpdatePrivacyMutation } from '@/services/backend/actions/user';
 
 export type PrivacyStates = 'public' | 'private';
 
