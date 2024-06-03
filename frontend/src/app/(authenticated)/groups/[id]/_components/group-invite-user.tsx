@@ -14,11 +14,10 @@ export const GroupInviteUser = ({
   groupId: string;
   follower: FollowerType;
 }) => {
-  const [createGroupInvitation, { isLoading: isLoadingCreate, isSuccess: isSuccessCreate }] = useCreateGroupUserInvitationMutation();
-  const [deleteGroupInvitation, { isLoading: isLoadingDelete, isSuccess: isSuccessDelete }] = useDeleteGroupUserInvitationMutation();
+  const [createGroupInvitation, { isLoading: isLoadingCreate }] = useCreateGroupUserInvitationMutation();
+  const [deleteGroupInvitation, { isLoading: isLoadingDelete }] = useDeleteGroupUserInvitationMutation();
 
   const [isInvited, setIsInvited] = useState(inviteStatus);
-  const [buttonText, setButtonText] = useState(isInvited ? 'Invited' : 'Invite');
 
   const handleInvitationToggle = async () => {
     try {
@@ -29,7 +28,6 @@ export const GroupInviteUser = ({
         await createGroupInvitation({ groupId, userId: follower.follower_id }).unwrap();
         setIsInvited(true);
       }
-      setButtonText(isInvited ? 'Cancelled' : 'Invited');
     } catch (error) {
       toast({
         title: 'Something went wrong',
@@ -45,11 +43,11 @@ export const GroupInviteUser = ({
         {capitalize(follower.user.first_name)} {capitalize(follower.user.last_name)}
       </h1>
       <Button
-        disabled={isLoadingCreate || isLoadingDelete || isSuccessCreate || isSuccessDelete}
+        disabled={isLoadingCreate || isLoadingDelete}
         onClick={handleInvitationToggle}
         className='ml-auto'
       >
-        {buttonText}
+        {isInvited ? 'Cancel' : 'Invite'}
       </Button>
     </div>
   );
