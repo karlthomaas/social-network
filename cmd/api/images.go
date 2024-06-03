@@ -22,6 +22,7 @@ func (app *application) createImageHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 	var filePaths string
+	var output []string
 	for _, fileHeader := range files {
 		file, err := fileHeader.Open()
 		if err != nil {
@@ -43,6 +44,7 @@ func (app *application) createImageHandler(w http.ResponseWriter, r *http.Reques
 			return
 		}
 		filePaths += filePath + ","
+		output = append(output, filePath)
 
 	}
 
@@ -68,9 +70,10 @@ func (app *application) createImageHandler(w http.ResponseWriter, r *http.Reques
 		}
 	}
 
-	err = app.writeJSON(w, http.StatusOK, envelope{"images": "image uploaded succesfully"}, nil)
+	err = app.writeJSON(w, http.StatusOK, envelope{"images": output}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
+
 }

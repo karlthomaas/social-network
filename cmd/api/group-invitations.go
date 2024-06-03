@@ -60,6 +60,7 @@ func (app *application) inviteToGroupHandler(w http.ResponseWriter, r *http.Requ
 	if invitedUser != nil {
 		v.AddError("invitation", "user is already member of this group")
 		app.failedValidationResponse(w, r, v.Errors)
+		return
 	}
 	if invitedUserID == user.ID {
 		v.AddError("invitation", "you cant invite yourself to the grouo")
@@ -67,7 +68,14 @@ func (app *application) inviteToGroupHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	id, err := app.generateUUID()
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
 	invitation := &data.GroupInvitation{
+		ID:        id,
 		GroupID:   group.ID,
 		InvitedBy: user.ID,
 		UserID:    invitedUserID,
@@ -84,6 +92,28 @@ func (app *application) inviteToGroupHandler(w http.ResponseWriter, r *http.Requ
 		case errors.Is(err, data.ErrDuplicateInvitation):
 			v.AddError("invitation", "user already invited to this group")
 			app.failedValidationResponse(w, r, v.Errors)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	notification := &data.Notification{
+		Sender:            invitation.InvitedBy,
+		Receiver:          invitation.UserID,
+		GroupInvitationID: id,
+	}
+
+	if data.ValidateNotification(v, notification); !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+
+	err = app.createNotification(notification)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
 		default:
 			app.serverErrorResponse(w, r, err)
 		}
@@ -199,7 +229,9 @@ func (app *application) getMyInvitedUsersHandler(w http.ResponseWriter, r *http.
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
 			app.notFoundResponse(w, r)
+			app.notFoundResponse(w, r)
 		default:
+			app.serverErrorResponse(w, r, err)
 			app.serverErrorResponse(w, r, err)
 		}
 		return
@@ -306,6 +338,27 @@ func (app *application) deleteGroupInvitationHandler(w http.ResponseWriter, r *h
 			app.serverErrorResponse(w, r, err)
 		}
 		return
+	}
+
+	err = app.models.Notifications.DeleteByType(invitation.ID)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	err = app.models.Notifications.DeleteByType(invitation.ID)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
 	}
 
 	err = app.writeJSON(w, http.StatusOK, envelope{"message": "invitation cancelled"}, nil)

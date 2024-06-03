@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"social-network/internal/data"
+	"social-network/internal/validator"
 )
 
 func (app *application) addFollowerHandler(w http.ResponseWriter, r *http.Request) {
@@ -22,8 +23,15 @@ func (app *application) addFollowerHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	id, err := app.generateUUID()
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
 	if user.Privacy == "private" {
 		follower = &data.Request{
+			ID:         id,
 			UserID:     userID,
 			FollowerID: followerID,
 		}
@@ -38,6 +46,31 @@ func (app *application) addFollowerHandler(w http.ResponseWriter, r *http.Reques
 			app.serverErrorResponse(w, r, err)
 			return
 		}
+
+		v := validator.New()
+
+		notification := &data.Notification{
+			Sender:          user.ID,
+			Receiver:        userID,
+			FollowRequestID: id,
+		}
+
+		if data.ValidateNotification(v, notification); !v.Valid() {
+			app.failedValidationResponse(w, r, v.Errors)
+			return
+		}
+
+		err = app.createNotification(notification)
+		if err != nil {
+			switch {
+			case errors.Is(err, data.ErrRecordNotFound):
+				app.notFoundResponse(w, r)
+			default:
+				app.serverErrorResponse(w, r, err)
+			}
+			return
+		}
+
 	} else {
 		follower = &data.Follower{
 			UserID:     userID,
@@ -255,6 +288,28 @@ func (app *application) cancelRequestHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	request, err := app.models.Requests.Get(currentUser.ID, targetID)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	request, err = app.models.Requests.Get(currentUser.ID, targetID)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
 	err = app.models.Requests.Delete(currentUser.ID, targetID)
 	if err != nil {
 		switch {
@@ -264,6 +319,17 @@ func (app *application) cancelRequestHandler(w http.ResponseWriter, r *http.Requ
 			app.serverErrorResponse(w, r, err)
 		}
 		return
+	}
+
+	err = app.models.Notifications.DeleteByType(request.ID)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+			return
+		}
 	}
 
 	err = app.writeJSON(w, http.StatusOK, envelope{"message": "request cancelled succesfully"}, nil)

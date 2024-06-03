@@ -49,6 +49,9 @@ export const ReplyInput = ({
     },
   });
 
+  const input = form.watch('content');
+  const fileRef = form.register('file');
+
   const onSubmit = async (data: ReplyFormProps) => {
     try {
       let response;
@@ -97,20 +100,7 @@ export const ReplyInput = ({
             }}
           />
           <div className='flex'>
-            {/* <FormField
-              control={form.control}
-              name='file'
-              render={({ field }) => {
-                return (
-                  <FormItem>
-                    <FormControl>
-                      <Input type='file' placeholder='shadcn' accept="image/webp, image/jpeg, image/png" {...fileRef} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                );
-              }}
-            /> */}
+            <Input type='file' {...fileRef} onChange={(event) => setFile(event?.target?.files?.[0])} />
             <div className='ml-auto flex space-x-2'>
               {replyId && (
                 <Button type='button' size='sm' variant='secondary' className='w-[120px]' onClick={onCancel}>
