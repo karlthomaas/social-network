@@ -8,15 +8,17 @@ import (
 )
 
 type Notification struct {
-	ID                string    `json:"id"`
-	Sender            string    `json:"sender"`
-	Receiver          string    `json:"receiver"`
-	FollowRequestID   string    `json:"follow_request_id"`
-	GroupInvitationID string    `json:"group_invitation_id"`
-	GroupRequestID    string    `json:"group_request_id"`
-	GroupEventID      string    `json:"group_event_id"`
-	CreatedAt         time.Time `json:"created_at"`
-	User              User      `json:"user"`
+	ID                string         `json:"id"`
+	Sender            string         `json:"sender"`
+	Receiver          string         `json:"receiver"`
+	FollowRequestID   string         `json:"follow_request_id"`
+	GroupInvitationID string         `json:"group_invitation_id"`
+	GroupRequestID    string         `json:"group_request_id"`
+	GroupEventID      string         `json:"group_event_id"`
+	CreatedAt         time.Time      `json:"created_at"`
+	User              User           `json:"user"`
+	GroupTitle        string `json:"group_name"`
+	EventTitle      string `json:"event_name"`
 }
 
 type NotificationModel struct {
@@ -25,8 +27,8 @@ type NotificationModel struct {
 
 func (m *NotificationModel) Insert(n *Notification) error {
 	query := `
-		INSERT INTO notifications (id, sender, receiver, follow_request_id, group_invitation_id, group_request_id, group_event_id, created_at)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+		INSERT INTO notifications (id, sender, receiver, follow_request_id, group_invitation_id, group_request_id, group_event_id)
+		VALUES (?, ?, ?, ?, ?, ?, ?)`
 
 	args := []interface{}{
 		n.ID,
@@ -77,10 +79,18 @@ func (m *NotificationModel) Delete(id string) error {
 
 func (m *NotificationModel) GetAllForUser(userID string) ([]*Notification, error) {
 	query := `
-		SELECT n.id, n.sender, n.receiver, n.follow_request_id, n.group_invitation_id, n.group_request_id, n.group_event_id, n.created_at, u.first_name, u.last_name
+		SELECT n.id, n.sender, n.receiver, n.follow_request_id, n.group_invitation_id, n.group_request_id, n.group_event_id, n.created_at, 
+		       u.first_name, u.last_name,
+		       g.title AS group_name, 
+		       e.title AS event_name
 		FROM notifications n
 		LEFT JOIN users u ON n.sender = u.id
-		WHERE receiver = ?
+		LEFT JOIN group_invitations gi ON gi.id = n.group_invitation_id
+		LEFT JOIN group_requests gr ON gr.id = n.group_request_id
+		LEFT JOIN group_events ge ON ge.id = n.group_event_id
+		LEFT JOIN groups g ON g.id = gi.group_id OR g.id = gr.group_id OR g.id = ge.group_id
+		LEFT JOIN group_events e ON e.id = n.group_event_id
+		WHERE n.receiver = ?
 		ORDER BY n.created_at DESC
 		`
 
@@ -94,6 +104,8 @@ func (m *NotificationModel) GetAllForUser(userID string) ([]*Notification, error
 	defer rows.Close()
 
 	var notifications []*Notification
+	var tempGroupTitle sql.NullString
+	var tempEventTitle sql.NullString
 
 	for rows.Next() {
 		var n Notification
@@ -108,9 +120,19 @@ func (m *NotificationModel) GetAllForUser(userID string) ([]*Notification, error
 			&n.CreatedAt,
 			&n.User.FirstName,
 			&n.User.LastName,
+			&tempGroupTitle,
+			&tempEventTitle,
 		)
 		if err != nil {
 			return nil, err
+		}
+
+		if tempGroupTitle.Valid {
+			n.GroupTitle = tempGroupTitle.String
+		}
+
+		if tempEventTitle.Valid {
+			n.EventTitle = tempEventTitle.String
 		}
 		notifications = append(notifications, &n)
 	}
