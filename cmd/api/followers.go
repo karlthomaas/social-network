@@ -344,3 +344,24 @@ func (app *application) cancelRequestHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 }
+
+func (app *application) getContacts(w http.ResponseWriter, r *http.Request) {
+	user := app.contextGetUser(r)
+
+	// followerID, err := app.readParam(r, "userID")
+	// if err != nil {
+	// 	app.notFoundResponse(w,r)
+	// 	return
+	// }
+
+	contacts, err := app.models.Followers.GetContacts(user.ID)
+	if err != nil {
+		app.serverErrorResponse(w,r,err)
+	}
+
+	err = app.writeJSON(w,http.StatusOK, envelope{"contacts": contacts}, nil)
+	if err != nil {
+		app.serverErrorResponse(w,r,err)
+		return
+	}
+}
