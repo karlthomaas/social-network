@@ -2,7 +2,7 @@ import { PrivacyStates } from '@/app/(authenticated)/profile/[user]/_components/
 
 import { backendApi } from '@/services/backend/backendApi';
 import type { UserType } from '@/features/auth/types';
-import type { FollowerType, GroupInvitationType } from '@/services/backend/types';
+import type { FollowerType, GroupInvitationType, NotificationType } from '@/services/backend/types';
 
 export const extendedUserApi = backendApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -26,6 +26,11 @@ export const extendedUserApi = backendApi.injectEndpoints({
     getUserDetails: builder.query<{ user: UserType }, string>({
       query: (userId) => `users/${userId}`,
     }),
+    getUserNotifications: builder.query<{ notifications: NotificationType[] }, void>({
+      query: () => 'notifications/me',
+      providesTags: ['Notification'],
+    }),
+    // deleteNotification: builder.mutation<any, string>({}),
   }),
   overrideExisting: true,
 });
@@ -36,4 +41,5 @@ export const {
   useUpdatePrivacyMutation,
   useGetUserGroupInvitationsQuery,
   useGetUserDetailsQuery,
+  useGetUserNotificationsQuery,
 } = extendedUserApi;

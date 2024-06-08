@@ -3,22 +3,23 @@ package data
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"social-network/internal/validator"
 	"time"
 )
 
 type Notification struct {
-	ID                string         `json:"id"`
-	Sender            string         `json:"sender"`
-	Receiver          string         `json:"receiver"`
-	FollowRequestID   string         `json:"follow_request_id"`
-	GroupInvitationID string         `json:"group_invitation_id"`
-	GroupRequestID    string         `json:"group_request_id"`
-	GroupEventID      string         `json:"group_event_id"`
-	CreatedAt         time.Time      `json:"created_at"`
-	User              User           `json:"user"`
-	GroupTitle        string `json:"group_name"`
-	EventTitle      string `json:"event_name"`
+	ID                string     `json:"id"`
+	Sender            string     `json:"sender"`
+	Receiver          string     `json:"receiver"`
+	FollowRequestID   string     `json:"follow_request_id"`
+	GroupInvitationID string     `json:"group_invitation_id"`
+	GroupRequestID    string     `json:"group_request_id"`
+	GroupEventID      string     `json:"group_event_id"`
+	CreatedAt         time.Time  `json:"created_at"`
+	User              User       `json:"user"`
+	Group             Group      `json:"group"`
+	GroupEvent        GroupEvent `json:"group_event"`
 }
 
 type NotificationModel struct {
@@ -81,8 +82,9 @@ func (m *NotificationModel) GetAllForUser(userID string) ([]*Notification, error
 	query := `
 		SELECT n.id, n.sender, n.receiver, n.follow_request_id, n.group_invitation_id, n.group_request_id, n.group_event_id, n.created_at, 
 		       u.first_name, u.last_name,
-		       g.title AS group_name, 
-		       e.title AS event_name
+			   g.id,
+		       g.title,
+		       ge.title
 		FROM notifications n
 		LEFT JOIN users u ON n.sender = u.id
 		LEFT JOIN group_invitations gi ON gi.id = n.group_invitation_id
@@ -106,6 +108,7 @@ func (m *NotificationModel) GetAllForUser(userID string) ([]*Notification, error
 	var notifications []*Notification
 	var tempGroupTitle sql.NullString
 	var tempEventTitle sql.NullString
+	var groupID sql.NullString
 
 	for rows.Next() {
 		var n Notification
@@ -120,6 +123,7 @@ func (m *NotificationModel) GetAllForUser(userID string) ([]*Notification, error
 			&n.CreatedAt,
 			&n.User.FirstName,
 			&n.User.LastName,
+			&groupID,
 			&tempGroupTitle,
 			&tempEventTitle,
 		)
@@ -127,12 +131,16 @@ func (m *NotificationModel) GetAllForUser(userID string) ([]*Notification, error
 			return nil, err
 		}
 
+		if groupID.Valid {
+			n.Group.ID = groupID.String
+		}
+
 		if tempGroupTitle.Valid {
-			n.GroupTitle = tempGroupTitle.String
+			n.Group.Title = tempGroupTitle.String
 		}
 
 		if tempEventTitle.Valid {
-			n.EventTitle = tempEventTitle.String
+			n.GroupEvent.Title = tempEventTitle.String
 		}
 		notifications = append(notifications, &n)
 	}
@@ -142,6 +150,37 @@ func (m *NotificationModel) GetAllForUser(userID string) ([]*Notification, error
 	}
 
 	return notifications, nil
+}
+
+func (m *NotificationModel) Get(id string) (*Notification, error) {
+	query := `
+		SELECT id, sender, receiver, follow_request_id, group_invitation_id, group_request_id, group_event_id, created_at
+		FROM notifications
+		WHERE id = ?`
+
+	var n Notification
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := m.DB.QueryRowContext(ctx, query, id).Scan(
+		&n.ID,
+		&n.Sender,
+		&n.Receiver,
+		&n.FollowRequestID,
+		&n.GroupInvitationID,
+		&n.GroupRequestID,
+		&n.GroupEventID,
+		&n.CreatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrRecordNotFound
+		}
+		return nil, err
+	}
+
+	return &n, nil
 }
 
 func (m *NotificationModel) DeleteByType(id string) error {

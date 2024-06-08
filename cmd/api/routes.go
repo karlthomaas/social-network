@@ -155,6 +155,8 @@ func (app *application) routes() http.Handler {
 
 	router.HandleFunc("GET /api/notifications/me",
 		app.ValidateJwt(app.getUserNotificationsHandler))
+	router.HandleFunc("DELETE /api/notifications/{id}",
+		app.ValidateJwt(app.deleteNotificationHandler))
 
 	router.HandleFunc("GET /api/contacts/{userID}",
 		app.ValidateJwt(app.getContacts))

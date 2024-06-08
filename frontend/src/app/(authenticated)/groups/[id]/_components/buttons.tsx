@@ -1,11 +1,14 @@
 import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/ui/spinners';
 import { toast } from '@/components/ui/use-toast';
-import type { UserType } from '@/features/auth/types';
+import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 
 import { useGetGroupRequestStatusQuery } from '@/services/backend/actions/groups';
 import { useCreateGroupRequestMutation, useDeleteGroupRequestMutation } from '@/services/backend/actions/groups';
 import { useEffect, useState } from 'react';
+
+import type { UserType } from '@/features/auth/types';
+import type { GroupType } from '@/services/backend/types';
 
 interface JoinRequestStatus {
   group_id: string;
@@ -15,25 +18,36 @@ interface JoinRequestStatus {
 }
 
 interface RequestButtonProps {
-  groupId: string;
+  group: GroupType;
   className?: string;
 }
 
-export const RequestButton = ({ groupId, className }: RequestButtonProps) => {
+export const RequestButton = ({ group, className }: RequestButtonProps) => {
+  const dispatch = useAppDispatch();
   const [requestStatus, setRequestStatus] = useState<JoinRequestStatus | null>(null);
   const [createRequest, { isLoading: isLoadingCreate }] = useCreateGroupRequestMutation();
   const [deleteRequest, { isLoading: isLoadingDelete }] = useDeleteGroupRequestMutation();
-  const joinRequestStatus = useGetGroupRequestStatusQuery(groupId);
+  const joinRequestStatus = useGetGroupRequestStatusQuery(group.id);
+  const { user } = useAppSelector((state) => state.auth);
 
   const handleRequest = async () => {
     try {
       if (requestStatus) {
-        await deleteRequest({ groupId, userId: requestStatus.user_id }).unwrap();
+        await deleteRequest({ groupId: group.id, userId: requestStatus.user_id }).unwrap();
         setRequestStatus(null);
       } else {
-        const response = await createRequest(groupId).unwrap();
+        const response = await createRequest(group.id).unwrap();
         setRequestStatus({ ...response.request });
       }
+
+      dispatch({
+        type: 'socket/send_message',
+        payload: {
+          type: 'notification',
+          receiver: group.user_id,
+          event_type: 'group_request',
+        },
+      });
     } catch (err) {
       toast({
         title: 'Error has occured',

@@ -103,7 +103,6 @@ func (app *application) readParam(r *http.Request, param string) (string, error)
 		return "", errors.New(res)
 	}
 
-	
 	_, err := uuid.FromString(id)
 	if err != nil {
 		return "", errors.New("invalid id parameter")

@@ -15,12 +15,12 @@ import (
 // todo: add validator to eventType
 
 type WSPayload struct {
-	Sender   string `json:"sender"`
-	Receiver string `json:"receiver"`
-	Message  string `json:"message"`
-	GroupID  string `json:"group_id"`
-	Online   string `json:"online"`
-	Type     string `json:"type"`
+	Sender    string `json:"sender"`
+	Receiver  string `json:"receiver"`
+	Message   string `json:"message"`
+	GroupID   string `json:"group_id"`
+	Online    string `json:"online"`
+	Type      string `json:"type"`
 	EventType string `json:"event_type"`
 }
 
@@ -196,9 +196,8 @@ func (app *application) sendMessage(payload *WSPayload, currentClient *Client, m
 						log.Println(err)
 						continue
 					}
-
 					for _, member := range members {
-						if member.UserID == client.UserID {
+						if member.UserID == client.UserID && member.UserID != currentClient.UserID {
 							client.conn.WriteMessage(messageType, jsonPayload)
 						}
 					}

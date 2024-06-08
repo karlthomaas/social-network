@@ -66,3 +66,16 @@ export interface FollowerType {
   user: UserType;
 }
 
+export interface NotificationType {
+  id: string;
+  sender: string;
+  receiver: string;
+  follow_request_id?: string;
+  group_invitation_id?: string;
+  group_request_id?: string;
+  group_event_id?: string;
+  created_at: string;
+  user: UserType;
+  group: GroupType;
+  event_name?: string;
+}

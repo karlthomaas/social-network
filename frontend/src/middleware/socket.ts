@@ -27,7 +27,6 @@ export const socketMiddleware = (socket: Socket) => (params: any) => (next: any)
       break;
 
     case 'socket/send_message':
-      console.log(action.payload);
       socket.send(action.payload);
       break;
 
@@ -40,15 +39,11 @@ export const socketMiddleware = (socket: Socket) => (params: any) => (next: any)
 
 const handleSocketRecieve = (message: MessageEvent, dispatch: any) => {
   const data: WSPayload = JSON.parse(message.data);
-
-  if (message.type !== 'message') return
-
+  if (message.type !== 'message') return;
   if (data.type === 'private_message') {
     const id = data.group_id ? data.group_id : data.sender;
     dispatch(backendApi.util.invalidateTags([{ type: 'Chat', id }]));
-  } else if (data.type === 'notification' && data.event_type === 'follow_request') {
-    dispatch(backendApi.util.invalidateTags(['FollowRequests']));
-  } else if (data.type === 'notification' && data.event_type === 'group_request') {
-    dispatch(backendApi.util.invalidateTags(['GroupInvitations']));
+  } else if (data.type === 'notification') {
+    dispatch(backendApi.util.invalidateTags([{ type: 'Notification' }]));
   }
 };
