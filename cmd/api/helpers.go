@@ -134,10 +134,12 @@ func (app *application) createNotification(notification *data.Notification, r *h
 		}
 
 		for _, member := range groupMembers {
-			notification.Receiver = member.UserID
-			err := app.models.Notifications.Insert(notification)
-			if err != nil {
-				return err
+			if member.UserID != groupEvent.UserID {
+				notification.Receiver = member.UserID
+				err := app.models.Notifications.Insert(notification)
+				if err != nil {
+					return err
+				}
 			}
 		}
 	} else {
