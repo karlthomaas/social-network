@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"social-network/internal/data"
 	"strings"
 
 	"github.com/gofrs/uuid"
@@ -97,8 +98,9 @@ func (app *application) generateUUID() (string, error) {
 
 func (app *application) readParam(r *http.Request, param string) (string, error) {
 	id := r.PathValue(param)
+	res := fmt.Sprintf("invalid %s param", param)
 	if id == "" {
-		return "", errors.New("invalid id parameter")
+		return "", errors.New(res)
 	}
 
 	_, err := uuid.FromString(id)
@@ -106,4 +108,46 @@ func (app *application) readParam(r *http.Request, param string) (string, error)
 		return "", errors.New("invalid id parameter")
 	}
 	return id, nil
+}
+
+func (app *application) createNotification(notification *data.Notification, r *http.Request) error {
+
+	user := app.contextGetUser(r)
+
+	id, err := app.generateUUID()
+	if err != nil {
+		return err
+	}
+
+	notification.ID = id
+
+	if notification.GroupEventID != "" {
+		groupEvent, err := app.models.GroupEvents.Get(notification.GroupEventID, user.ID)
+		if err != nil {
+
+			return data.ErrRecordNotFound
+		}
+
+		groupMembers, err := app.models.GroupMembers.GetAllGroupMembers(groupEvent.GroupID)
+		if err != nil {
+			return err
+		}
+
+		for _, member := range groupMembers {
+			if member.UserID != groupEvent.UserID {
+				notification.Receiver = member.UserID
+				err := app.models.Notifications.Insert(notification)
+				if err != nil {
+					return err
+				}
+			}
+		}
+	} else {
+		err := app.models.Notifications.Insert(notification)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

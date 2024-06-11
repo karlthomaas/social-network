@@ -50,7 +50,14 @@ func (app *application) addGroupRequestHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	id, err := app.generateUUID()
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
 	request := &data.GroupRequest{
+		ID:      id,
 		GroupID: group.ID,
 		UserID:  user.ID,
 	}
@@ -61,6 +68,28 @@ func (app *application) addGroupRequestHandler(w http.ResponseWriter, r *http.Re
 		case errors.Is(err, data.ErrDuplicateRequest):
 			v.AddError("request", "user has already sent request to this group")
 			app.failedValidationResponse(w, r, v.Errors)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	notification := &data.Notification{
+		Sender:         user.ID,
+		Receiver:       group.UserID,
+		GroupRequestID: id,
+	}
+
+	if data.ValidateNotification(v, notification); !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+
+	err = app.createNotification(notification, r)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
 		default:
 			app.serverErrorResponse(w, r, err)
 		}
@@ -167,6 +196,28 @@ func (app *application) deleteGroupRequestHandler(w http.ResponseWriter, r *http
 	if deletableUserID != user.ID && user.ID != group.UserID {
 		app.unAuthorizedResponse(w, r)
 		return
+	}
+
+	request, err := app.models.GroupRequests.Get(group.ID, deletableUserID)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	err = app.models.Notifications.DeleteByType(request.ID)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+			return
+		}
 	}
 
 	err = app.models.GroupRequests.Delete(group.ID, deletableUserID)

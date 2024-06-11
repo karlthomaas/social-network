@@ -1,10 +1,8 @@
 import { Button } from '../ui/button';
 import { ThumbsUp, MessageSquare, Forward } from 'lucide-react';
-import { useMutation } from '@tanstack/react-query';
-import { fetcherWithOptions } from '@/lib/fetchers';
 import { useRef, useState } from 'react';
 import { useToast } from '../ui/use-toast';
-import { create } from 'zustand';
+import { useCreatePostReactionMutation, useDeletePostReactionMutation } from '@/services/backend/actions/posts';
 
 interface LikeButtonProps {
   postId: string;
@@ -15,42 +13,38 @@ interface LikeButtonProps {
 }
 
 export const LikeButton = ({ reactions, postId, reactionId, likeStatus }: LikeButtonProps) => {
+  const [createReaction] = useCreatePostReactionMutation();
+  const [deleteReaction] = useDeletePostReactionMutation();
+
   const [likes, setLikes] = useState(reactions);
   const [liked, setLiked] = useState(likeStatus);
   const reactionIdRef = useRef(reactionId);
   const { toast } = useToast();
 
-  const mutation = useMutation({
-    mutationFn: async () => {
-      const url = !reactionIdRef.current ? `/api/posts/${postId}/reactions` : `/api/posts/${postId}/reactions/${reactionIdRef.current}`;
-      const method = !reactionIdRef.current ? 'POST' : 'DELETE';
-      return fetcherWithOptions({
-        url,
-        method,
-        body: {},
-      });
-    },
-    onError: (error) => {
+  const handleReaction = async () => {
+    try {
+      let response;
+      if (!reactionIdRef.current) {
+        response = await createReaction({ postId }).unwrap();
+        reactionIdRef.current = response.reaction.id;
+        setLikes(likes + 1);
+      } else {
+        response = await deleteReaction({ postId, reactionId: reactionIdRef.current }).unwrap();
+        reactionIdRef.current = '';
+        setLikes(likes - 1);
+      }
+      setLiked((prev) => !prev);
+    } catch (err) {
       toast({
         title: 'Something went wrong...',
         description: 'Please try again later',
         variant: 'destructive',
       });
-    },
-    onSuccess: (data: any) => {
-      reactionIdRef.current = data?.reaction?.id || '';
-
-      if (reactionIdRef.current) {
-        setLikes(likes + 1);
-      } else {
-        setLikes(likes - 1);
-      }
-      setLiked((prev) => !prev);
-    },
-  });
+    }
+  };
 
   return (
-    <Button variant='ghost' className='flex w-full items-center space-x-2' onClick={() => mutation.mutate()}>
+    <Button variant='ghost' className='flex w-full items-center space-x-2' onClick={handleReaction}>
       <ThumbsUp className='inline-flex' fill={liked ? '#3b82f6' : ''} stroke={liked ? '#3b82f6#' : 'white'} />
       {likes ? <span>{likes}</span> : null}
     </Button>

@@ -13,6 +13,7 @@ var (
 )
 
 type GroupInvitation struct {
+	ID        string    `json:"id"`
 	GroupID   string    `json:"group_id"`
 	InvitedBy string    `json:"invited_by"`
 	UserID    string    `json:"user_id"`
@@ -27,12 +28,13 @@ type GroupInvitationModel struct {
 
 func (m *GroupInvitationModel) Insert(gi *GroupInvitation) error {
 	query := `INSERT INTO group_invitations
-	(group_id, invited_by, user_id) VALUES (?,?,?)`
+	(id, group_id, invited_by, user_id) VALUES (?,?,?,?)`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
 	args := []interface{}{
+		gi.ID,
 		gi.GroupID,
 		gi.InvitedBy,
 		gi.UserID,
@@ -76,7 +78,7 @@ func (m *GroupInvitationModel) Delete(groupID, userID string) error {
 
 func (m *GroupInvitationModel) Get(groupID, userID string) (*GroupInvitation, error) {
 	query := `
-	SELECT gi.group_id, gi.invited_by, gi.user_id, gi.created_at, u.first.name, u.last_name
+	SELECT gi.id, gi.group_id, gi.invited_by, gi.user_id, gi.created_at, u.first_name, u.last_name
 	FROM group_invitations gi
 	JOIN users u ON gi.user_id = u.id
 	WHERE gi.group_id = ?
@@ -88,6 +90,7 @@ func (m *GroupInvitationModel) Get(groupID, userID string) (*GroupInvitation, er
 	var gi GroupInvitation
 
 	err := m.DB.QueryRowContext(ctx, query, groupID, userID).Scan(
+		&gi.ID,
 		&gi.GroupID,
 		&gi.InvitedBy,
 		&gi.UserID,
@@ -109,7 +112,7 @@ func (m *GroupInvitationModel) Get(groupID, userID string) (*GroupInvitation, er
 }
 
 func (m *GroupInvitationModel) GetAllForGroup(groupID string) ([]*GroupInvitation, error) {
-	query := `SELECT gi.group_id, gi.user_id, gi.created_at, u.first_name, u.last_name
+	query := `SELECT gi.id, gi.group_id, gi.user_id, gi.created_at, u.first_name, u.last_name
 	FROM group_invitations gi
 	LEFT JOIN users u ON gi.user_id = u.id
 	WHERE gi.group_id = ?`
@@ -127,6 +130,7 @@ func (m *GroupInvitationModel) GetAllForGroup(groupID string) ([]*GroupInvitatio
 	for rows.Next() {
 		var invitation GroupInvitation
 		err = rows.Scan(
+			&invitation.ID,
 			&invitation.GroupID,
 			&invitation.UserID,
 			&invitation.CreatedAt,
@@ -142,7 +146,7 @@ func (m *GroupInvitationModel) GetAllForGroup(groupID string) ([]*GroupInvitatio
 }
 
 func (m *GroupInvitationModel) GetAllForUser(userID string) ([]*GroupInvitation, error) {
-	query := `SELECT gi.group_id, gi.invited_by, gi.user_id, gi.created_at, g.title, u.first_name, u.last_name
+	query := `SELECT gi.id, gi.group_id, gi.invited_by, gi.user_id, gi.created_at, g.title, u.first_name, u.last_name
 	FROM group_invitations gi
 	LEFT JOIN groups g ON gi.group_id = g.id
 	LEFT JOIN users u ON gi.invited_by = u.id
@@ -161,6 +165,7 @@ func (m *GroupInvitationModel) GetAllForUser(userID string) ([]*GroupInvitation,
 	for rows.Next() {
 		var invitation GroupInvitation
 		err = rows.Scan(
+			&invitation.ID,
 			&invitation.GroupID,
 			&invitation.InvitedBy,
 			&invitation.UserID,
@@ -178,7 +183,7 @@ func (m *GroupInvitationModel) GetAllForUser(userID string) ([]*GroupInvitation,
 }
 
 func (m *GroupInvitationModel) GetYourInvitations(groupID, userID string) ([]*GroupInvitation, error) {
-	query := `SELECT gi.group_id, gi.invited_by, gi.user_id, gi.created_at, u.first_name, u.last_name
+	query := `SELECT gi.id, gi.group_id, gi.invited_by, gi.user_id, gi.created_at, u.first_name, u.last_name
 	FROM group_invitations gi
 	LEFT JOIN users u ON u.id = gi.user_id
 	WHERE group_id = ? AND invited_by = ?`
@@ -196,6 +201,7 @@ func (m *GroupInvitationModel) GetYourInvitations(groupID, userID string) ([]*Gr
 	for rows.Next() {
 		var invitation GroupInvitation
 		err = rows.Scan(
+			&invitation.ID,
 			&invitation.GroupID,
 			&invitation.InvitedBy,
 			&invitation.UserID,

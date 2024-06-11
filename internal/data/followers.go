@@ -123,6 +123,61 @@ func (m *FollowerModel) GetAllForUser(userID string) ([]*Follower, error) {
 	return followers, nil
 }
 
+func (m *FollowerModel) GetContacts(userID string) ([]*Follower, error) {
+	query := `
+		SELECT 
+			CASE 
+				WHEN f.user_id = ? THEN f.follower_id
+				WHEN f.follower_id = ? THEN f.user_id
+			END AS contact_id,
+			f.created_at, 
+			u.first_name, 
+			u.last_name 
+		FROM followers f
+		JOIN users u ON u.id = CASE 
+			WHEN f.user_id = ? THEN f.follower_id
+			WHEN f.follower_id = ? THEN f.user_id
+		END
+		WHERE (f.user_id = ? OR f.follower_id = ?)
+		GROUP BY contact_id
+	`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	rows, err := m.DB.QueryContext(ctx, query, userID, userID, userID, userID, userID, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var followers []*Follower
+
+	for rows.Next() {
+		var follower Follower
+		err := rows.Scan(
+			&follower.FollowerID, 
+			&follower.CreatedAt,
+			&follower.User.FirstName,
+			&follower.User.LastName,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		follower.UserID = userID
+
+		followers = append(followers, &follower)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return followers, nil
+}
+
+
 func (m *FollowerModel) InsertWithTx(tx *sql.Tx, follower *Follower) error {
 	query := `INSERT INTO followers (user_id, follower_id)
 	VALUES (?,?)`

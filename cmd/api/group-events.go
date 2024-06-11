@@ -88,6 +88,28 @@ func (app *application) createGroupEventHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
+	notification := &data.Notification{
+		Sender:       user.ID,
+		Receiver:     id,
+		GroupEventID: id,
+	}
+
+	if data.ValidateNotification(v, notification); !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+
+	err = app.createNotification(notification, r)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
 	err = app.writeJSON(w, http.StatusCreated, envelope{"group_event": g}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
@@ -177,7 +199,7 @@ func (app *application) updateGroupEventHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	event, err := app.models.GroupEvents.Get(eventID)
+	event, err := app.models.GroupEvents.Get(eventID, user.ID)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
@@ -277,7 +299,7 @@ func (app *application) getAllGroupEventsHandler(w http.ResponseWriter, r *http.
 		}
 	}
 
-	events, err := app.models.GroupEvents.GetAllForGroup(groupID)
+	events, err := app.models.GroupEvents.GetAllForGroup(groupID, user.ID)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return

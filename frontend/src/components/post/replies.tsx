@@ -1,15 +1,16 @@
-import { useQuery } from '@tanstack/react-query';
-import { fetcher } from '@/lib/fetchers';
 import { LoadingSpinner } from '../ui/spinners';
 import { useEffect, useState } from 'react';
 import { Reply } from './reply';
+
+import { useGetPostRepliesQuery } from '@/services/backend/actions/replies';
+import { useAppSelector } from '@/lib/hooks';
+import { UserType } from '@/features/auth/types';
+
 export interface ReactionType {
   id: string;
   user_id: string;
   reply_id: string;
 }
-
-import { UserType, useSession } from '@/providers/user-provider';
 
 export interface ReplyType {
   id: string;
@@ -25,13 +26,9 @@ export interface ReplyType {
 }
 
 export const Replies = ({ post_id, newReply }: { post_id: string; newReply: ReplyType | null }) => {
+  const { isLoading, isError, data } = useGetPostRepliesQuery(post_id)
+  const { user } = useAppSelector((state) => state.auth);
   const [replies, setReplies] = useState<ReplyType[]>([]);
-  const { user } = useSession();
-
-  const { isLoading, isError, data } = useQuery({
-    queryKey: ['comments', post_id],
-    queryFn: () => fetcher(`/api/posts/${post_id}/reply`),
-  });
 
   useEffect(() => {
     if (data?.replies) {

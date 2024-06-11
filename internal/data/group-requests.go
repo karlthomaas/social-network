@@ -12,6 +12,7 @@ var (
 )
 
 type GroupRequest struct {
+	ID        string `json:"id"`
 	GroupID   string `json:"group_id"`
 	UserID    string `json:"user_id"`
 	CreatedAt string `json:"created_at"`
@@ -24,13 +25,14 @@ type GroupRequestModel struct {
 
 func (m *GroupRequestModel) Insert(gr *GroupRequest) error {
 	query := `
-	INSERT INTO group_requests (group_id, user_id)
-	VALUES (?,?)`
+	INSERT INTO group_requests (id, group_id, user_id)
+	VALUES (?,?,?)`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
 	args := []interface{}{
+		gr.ID,
 		gr.GroupID,
 		gr.UserID,
 	}
@@ -74,7 +76,7 @@ func (m *GroupRequestModel) Delete(groupID, userID string) error {
 
 func (m *GroupRequestModel) Get(groupID, userID string) (*GroupRequest, error) {
 	query := `
-	SELECT group_id, user_id, created_at
+	SELECT id, group_id, user_id, created_at
 	FROM group_requests
 	WHERE group_id = ?
 	AND user_id = ?`
@@ -85,6 +87,7 @@ func (m *GroupRequestModel) Get(groupID, userID string) (*GroupRequest, error) {
 	var gr GroupRequest
 
 	err := m.DB.QueryRowContext(ctx, query, groupID, userID).Scan(
+		&gr.ID,
 		&gr.GroupID,
 		&gr.UserID,
 		&gr.CreatedAt,
@@ -103,7 +106,7 @@ func (m *GroupRequestModel) Get(groupID, userID string) (*GroupRequest, error) {
 }
 
 func (m *GroupRequestModel) GetAllGroupRequests(groupID string) ([]*GroupRequest, error) {
-	query := `SELECT gr.group_id, gr.user_id, gr.created_at, u.first_name, u.last_name
+	query := `SELECT gr.id, gr.group_id, gr.user_id, gr.created_at, u.first_name, u.last_name
 	FROM group_requests gr
 	LEFT JOIN users u ON u.id = gr.user_id
 	WHERE group_id = ?`
@@ -121,6 +124,7 @@ func (m *GroupRequestModel) GetAllGroupRequests(groupID string) ([]*GroupRequest
 	for rows.Next() {
 		var request GroupRequest
 		err = rows.Scan(
+			&request.ID,
 			&request.GroupID,
 			&request.UserID,
 			&request.CreatedAt,
@@ -134,4 +138,3 @@ func (m *GroupRequestModel) GetAllGroupRequests(groupID string) ([]*GroupRequest
 	}
 	return requests, nil
 }
-

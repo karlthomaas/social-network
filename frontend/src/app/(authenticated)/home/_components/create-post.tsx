@@ -1,7 +1,6 @@
 'use client';
 
-import { create } from 'zustand';
-import React, { useEffect } from 'react';
+import React, { memo, useCallback, useEffect } from 'react';
 
 import { Dialog } from '@/components/ui/dialog';
 
@@ -10,152 +9,125 @@ import { PrivacyView } from './privacy-view';
 import { AlmostPrivateView } from './almost-private';
 import { PostType } from '@/components/post/post';
 import { useState } from 'react';
+
+import { useAppDispatch, useAppSelector } from '@/lib/hooks';
+import { changeText, reset, setPrivacy } from '@/features/post/postSlice';
+
+import { useCreatePostMutation, useUpdatePostMutation, useCreateGroupPostMutation } from '@/services/backend/actions/posts';
 import { toast } from '@/components/ui/use-toast';
-import { privacyStore } from './privacy-view';
 
-import { useMutation } from '@tanstack/react-query';
-import { fetcherWithOptions } from '@/lib/fetchers';
-import { GroupType } from '../../groups/page';
-import { on } from 'events';
-import axios from 'axios';
+export const CreatePost = memo(
+  ({
+    children,
+    post,
+    groupId,
+    callback,
+  }: {
+    children: React.ReactNode;
+    post?: PostType;
+    mutationKeys?: string[];
+    groupId?: string;
+    callback: (response: PostType, action: 'update' | 'create') => void;
+  }) => {
+    const [open, setOpen] = useState(false);
 
-export const postStore = create((set) => ({
-  view: 0,
-  postText: '',
-  postFile: undefined,
-  privacy: 'public',
-  visibleTo: [],
-  reset: () => set({ privacy: 'public', view: 0, postText: '' }),
-  increment: () => set((state: any) => ({ view: state.view + 1 })),
-  deincrement: () => set((state: any) => ({ view: state.view - 1 })),
-}));
+    const dispatch = useAppDispatch();
+    const [createPost] = useCreatePostMutation();
+    const [updatePost] = useUpdatePostMutation();
+    const [createGroupPost] = useCreateGroupPostMutation();
+    const postSelector = useAppSelector((state) => state.post);
+    const userSelector = useAppSelector((state) => state.auth.user);
 
-export const CreatePost = ({
-  children,
-  post,
-  mutationKeys = ['posts'],
-  group,
-  callback,
-}: {
-  children: React.ReactNode;
-  post?: PostType;
-  mutationKeys?: string[];
-  group?: GroupType;
-  callback: (response: PostType, action: 'update' | 'create') => void;
-}) => {
-  const [open, setOpen] = useState(false);
-  const view = postStore((state: any) => state.view);
-  const reset = postStore((state: any) => state.reset);
-  const privacy = postStore((state: any) => state.privacy);
-  const postFile = postStore((state: any) => state.postFile);
-  const postText = postStore((state: any) => state.postText);
-  const visibleTo = postStore((state: any) => state.visibleTo);
-
-  useEffect(() => {
-    if (post && open) {
-      postStore.setState({ postText: post.content });
-      postStore.setState({ privacy: post.privacy });
-    }
-  }, []);
-
-  const mutation = useMutation({
-    mutationKey: mutationKeys,
-    mutationFn: () => {
-      let url;
-      if (group && post) {
-        url = `/api/groups/${group.id}/posts/${post.id}`;
-      } else if (group && !post) {
-        url = `/api/groups/${group.id}/posts`;
-      } else if (!group && post) {
-        url = `/api/posts/${post.id}`;
-      } else {
-        url = '/api/posts';
+    useEffect(() => {
+      if (post && open) {
+        dispatch(changeText(post.content));
+        dispatch(setPrivacy(post.privacy));
       }
+    }, [post, open, dispatch]);
 
-      return fetcherWithOptions({
-        url,
-        method: post ? 'PATCH' : 'POST',
-        body: {
-          content: postText,
-          privacy: privacy === 'almost private' ? 'almost_private' : privacy,
-          visible_to: visibleTo,
-        },
-      });
-    },
-    onSuccess: (data) => {
-      setOpen(false);
-      resetStores();
-      if (postFile) {
-        fileMutation.mutate({ postId: data.post.id, file: postFile });
+    const handleSubmit = useCallback(async () => {
+      const body = {
+        content: postSelector.postText,
+        privacy: postSelector.privacy.value === 'almost private' ? 'almost_private' : postSelector.privacy.value,
+        visible_to: postSelector.privacy.visibleTo,
+      };
+
+      let newPost: PostType;
+      try {
+        if (groupId) {
+          const response = await createGroupPost({ groupId, ...body }).unwrap();
+          newPost = { ...response.post };
+        } else if (post) {
+          const response = await updatePost({ id: post.id, ...body }).unwrap();
+          newPost = { ...response.post };
+        } else {
+          const response = await createPost(body).unwrap();
+          newPost = { ...response.post };
+        }
+
+        // add user field because backend doesn't
+        if (userSelector) {
+          newPost.user = userSelector;
+        }
+
+        callback(newPost, post ? 'update' : 'create');
+        setOpen(false);
+
+        toast({
+          title: post ? 'Post updated' : 'Post created',
+          description: post ? 'Your post has been updated' : 'Your post has been created',
+        });
+      } catch (err) {
+        toast({
+          title: 'Something went wrong...',
+          description: 'Please try again later',
+          variant: 'destructive',
+        });
       }
+    }, [
+      createGroupPost,
+      createPost,
+      groupId,
+      post,
+      postSelector.postText,
+      postSelector.privacy.value,
+      postSelector.privacy.visibleTo,
+      userSelector,
+      updatePost,
+      callback,
+    ]);
 
+    const resetStores = () => {
+      dispatch(reset());
+    };
+
+    const handleModalState = (state: boolean) => {
       if (post) {
-        toast({
-          title: 'Post updated',
-          description: 'Your post has been updated',
-        });
-        callback(data.post, 'update');
-      } else {
-        toast({
-          title: 'Post created',
-          description: 'Your post has been created',
-        });
-        callback(data.post, 'create');
+        dispatch(changeText(post.content));
+        dispatch(setPrivacy(post.privacy));
       }
-    },
-    onError: (error: any) => {
-      toast({
-        title: 'Something went wrong...',
-        description: 'Please try again later',
-        variant: 'destructive',
-      });
-    },
-  });
 
-  const fileMutation = useMutation({
-    mutationFn: async ({ postId, file }: { postId: string; file: File }) => {
-      const formData = new FormData();
-      formData.append('images', file);
+      if (!state) {
+        resetStores();
+      }
+      setOpen(state);
+    };
 
-      return axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/images/post/${postId}`, formData, {
-        withCredentials: true,
-        xsrfCookieName: 'csrftoken',
-        xsrfHeaderName: 'X-CSRFToken',
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-    },
-  });
-  const resetStores = () => {
-    privacyStore.setState({ radioValue: 'public', visibleTo: [] });
-    reset();
-  };
+    let views = [<SubmitView key={1} onSubmit={handleSubmit} isPending={false} showPrivacyOptions={!groupId} />];
 
-  let views = [<SubmitView onSubmit={() => mutation.mutate()} isPending={mutation.isPending} showPrivacyOptions={!group} />];
+    if (!groupId) {
+      views = [...views, <PrivacyView key={2} />, <AlmostPrivateView key={3} />];
+    }
 
-  if (!group) {
-    views = [...views, <PrivacyView />, <AlmostPrivateView />];
+    return (
+      <>
+        <Dialog open={open} onOpenChange={handleModalState}>
+          {children}
+          {open && views[postSelector.view]}
+        </Dialog>
+      </>
+    );
   }
+);
 
-  const handleModalState = (state: boolean) => {
-    if (post) {
-      postStore.setState({ postText: post.content });
-      postStore.setState({ privacy: post.privacy });
-    }
-
-    if (!state) {
-      resetStores();
-    }
-    setOpen(state);
-  };
-
-  return (
-    <>
-      <Dialog open={open} onOpenChange={handleModalState}>
-        {children}
-        {views[view]}
-      </Dialog>
-    </>
-  );
-};
+CreatePost.displayName = 'CreatePost';

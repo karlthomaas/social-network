@@ -40,6 +40,11 @@ func (app *application) unqiueConstraintResponse(w http.ResponseWriter, r *http.
 	app.errorResponse(w, r, http.StatusConflict, err)
 }
 
+func (app *application) forbiddenResponse(w http.ResponseWriter, r *http.Request) {
+	message := "you do not have the necessary permissions to access this resource"
+	app.errorResponse(w, r, http.StatusForbidden, message)
+}
+
 func (app *application) serverErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
 	app.logError(r, err)
 

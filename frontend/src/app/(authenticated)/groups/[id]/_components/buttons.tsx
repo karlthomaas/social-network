@@ -1,15 +1,14 @@
 import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/ui/spinners';
 import { toast } from '@/components/ui/use-toast';
-import { fetcherWithOptions, fetcher } from '@/lib/fetchers';
-import { UserType } from '@/providers/user-provider';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import clsx from 'clsx';
-import { useEffect, useState, useRef } from 'react';
+import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 
-interface JoinRequestStatusQuery {
-  request: JoinRequestStatus;
-}
+import { useGetGroupRequestStatusQuery } from '@/services/backend/actions/groups';
+import { useCreateGroupRequestMutation, useDeleteGroupRequestMutation } from '@/services/backend/actions/groups';
+import { useEffect, useState } from 'react';
+
+import type { UserType } from '@/features/auth/types';
+import type { GroupType } from '@/services/backend/types';
 
 interface JoinRequestStatus {
   group_id: string;
@@ -19,61 +18,53 @@ interface JoinRequestStatus {
 }
 
 interface RequestButtonProps {
-  groupId: string;
+  group: GroupType;
   className?: string;
 }
 
-export const RequestButton = ({ groupId, className }: RequestButtonProps) => {
-  const [btnText, setBtnText] = useState('');
-  const queryClient = useQueryClient();
-  const requestObject = useRef<JoinRequestStatus | null>();
+export const RequestButton = ({ group, className }: RequestButtonProps) => {
+  const dispatch = useAppDispatch();
+  const [requestStatus, setRequestStatus] = useState<JoinRequestStatus | null>(null);
+  const [createRequest, { isLoading: isLoadingCreate }] = useCreateGroupRequestMutation();
+  const [deleteRequest, { isLoading: isLoadingDelete }] = useDeleteGroupRequestMutation();
+  const joinRequestStatus = useGetGroupRequestStatusQuery(group.id);
 
-  const mutation = useMutation({
-    mutationFn: async () => {
-      const method = requestObject.current ? 'DELETE' : 'POST';
-      const url = requestObject.current
-        ? `/api/groups/${groupId}/requests/users/${requestObject.current.user_id}`
-        : `/api/groups/${groupId}/requests`;
+  const handleRequest = async () => {
+    try {
+      if (requestStatus) {
+        await deleteRequest({ groupId: group.id, userId: requestStatus.user_id }).unwrap();
+        setRequestStatus(null);
+      } else {
+        const response = await createRequest(group.id).unwrap();
+        setRequestStatus({ ...response.request });
+      }
 
-      return fetcherWithOptions({
-        url,
-        method,
-        body: {},
+      dispatch({
+        type: 'socket/send_message',
+        payload: {
+          type: 'notification',
+          receiver: group.user_id,
+          event_type: 'group_request',
+        },
       });
-    },
-    onSuccess: (response: any) => {
-      requestObject.current = requestObject.current ? null : response.request;
-      // reset query so the joinRequestStatus will update the button in useEffect with new data.
-      queryClient.resetQueries({ queryKey: ['joinRequestStatus'] });
-    },
-    onError: () => {
+    } catch (err) {
       toast({
         title: 'Error has occured',
         description: 'Try again later',
         variant: 'destructive',
       });
-    },
-  });
-
-  const joinRequestStatus = useQuery<JoinRequestStatusQuery>({
-    queryKey: ['joinRequestStatus', groupId],
-    queryFn: () => fetcher(`/api/groups/${groupId}/join-request-status`),
-    retry: 1,
-  });
+    }
+  };
 
   useEffect(() => {
     if (joinRequestStatus.data) {
-      setBtnText('Cancel request');
-      requestObject.current = joinRequestStatus.data.request;
-    } else {
-      setBtnText('Request to join');
-      requestObject.current = null;
+      setRequestStatus({ ...joinRequestStatus.data.request });
     }
-  }, [joinRequestStatus.dataUpdatedAt]);
+  }, [joinRequestStatus.data]);
 
   return (
-    <Button className={className} onClick={() => mutation.mutate()} disabled={mutation.isPending}>
-      {mutation.isPending ? <LoadingSpinner /> : btnText}
+    <Button className={className} onClick={handleRequest} disabled={isLoadingCreate || isLoadingDelete}>
+      {isLoadingCreate || isLoadingDelete ? <LoadingSpinner /> : requestStatus ? 'Cancel request' : 'Request to join'}
     </Button>
   );
 };

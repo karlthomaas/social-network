@@ -1,7 +1,7 @@
 import { Skeleton } from '../ui/skeleton';
 import { CommentButton, LikeButton, ShareButton } from './post_buttons';
 import { Replies, ReplyType } from './replies';
-import { UserType } from '@/providers/user-provider';
+import { UserType } from '@/features/auth/types';
 import { useState } from 'react';
 import { ReplyInput } from './reply-input';
 import { PostOptions } from './post-options';
