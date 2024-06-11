@@ -86,7 +86,7 @@ func (m *NotificationModel) GetAllForUser(userID string) ([]*Notification, error
 		       g.title,
 		       ge.title
 		FROM notifications n
-		LEFT JOIN users u ON n.sender != u.id
+		LEFT JOIN users u ON n.sender = u.id
 		LEFT JOIN group_invitations gi ON gi.id = n.group_invitation_id
 		LEFT JOIN group_requests gr ON gr.id = n.group_request_id
 		LEFT JOIN group_events ge ON ge.id = n.group_event_id

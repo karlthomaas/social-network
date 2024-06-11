@@ -51,7 +51,7 @@ func (app *application) addFollowerHandler(w http.ResponseWriter, r *http.Reques
 		v := validator.New()
 
 		notification := &data.Notification{
-			Sender:          user.ID,
+			Sender:          followerID,
 			Receiver:        userID,
 			FollowRequestID: id,
 		}
@@ -300,32 +300,32 @@ func (app *application) cancelRequestHandler(w http.ResponseWriter, r *http.Requ
 
 	var current, target string
 	switch option {
-    case "decline":
-        current, target = currentUser.ID, targetID
-    case "cancel":
-        current, target = targetID, currentUser.ID
-    }
+	case "decline":
+		current, target = currentUser.ID, targetID
+	case "cancel":
+		current, target = targetID, currentUser.ID
+	}
 
 	request, err = app.models.Requests.Get(current, target)
-		if err != nil {
-			switch {
-			case errors.Is(err, data.ErrRecordNotFound):
-				app.notFoundResponse(w, r)
-			default:
-				app.serverErrorResponse(w, r, err)
-			}
-			return
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
 		}
-		err = app.models.Requests.Delete(current, target)
-		if err != nil {
-			switch {
-			case errors.Is(err, data.ErrRecordNotFound):
-				app.notFoundResponse(w, r)
-			default:
-				app.serverErrorResponse(w, r, err)
-			}
-			return
+		return
+	}
+	err = app.models.Requests.Delete(current, target)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
 		}
+		return
+	}
 
 	err = app.models.Notifications.DeleteByType(request.ID)
 	if err != nil {
@@ -356,12 +356,12 @@ func (app *application) getContacts(w http.ResponseWriter, r *http.Request) {
 
 	contacts, err := app.models.Followers.GetContacts(user.ID)
 	if err != nil {
-		app.serverErrorResponse(w,r,err)
+		app.serverErrorResponse(w, r, err)
 	}
 
-	err = app.writeJSON(w,http.StatusOK, envelope{"contacts": contacts}, nil)
+	err = app.writeJSON(w, http.StatusOK, envelope{"contacts": contacts}, nil)
 	if err != nil {
-		app.serverErrorResponse(w,r,err)
+		app.serverErrorResponse(w, r, err)
 		return
 	}
 }

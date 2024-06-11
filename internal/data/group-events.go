@@ -150,7 +150,7 @@ func (m *GroupEventModel) GetAllForGroup(groupID, userID string) ([]*GroupEvent,
 	LEFT JOIN group_event_members gem ON gem.user_id = ? AND gem.group_event_id = ge.id
 	JOIN users u ON ge.user_id = u.id
 	WHERE ge.group_id = ?
-	ORDER BY n.created_at ASC
+	ORDER BY ge.created_at ASC
 	`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
