@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Bell } from 'lucide-react';
-import {useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import clsx from 'clsx';
 import { useGetUserNotificationsQuery } from '@/services/backend/actions/user';
 import { Notification } from '@/components/notifications/notification';
@@ -47,7 +47,7 @@ export const NotificationBtn = () => {
           </div>
         </div>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className='w-[350px]'>
+      <DropdownMenuContent className='w-[400px]'>
         <DropdownMenuLabel>Notifications</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {isLoading ? (

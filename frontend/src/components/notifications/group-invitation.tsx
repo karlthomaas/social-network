@@ -1,25 +1,20 @@
-import type { GroupInvitationType, GroupType } from '@/services/backend/types';
-import { Button } from '@/components/ui/button';
-import { Check, X } from 'lucide-react';
+import type { GroupType, NotificationType } from '@/services/backend/types';
 import { useAcceptGroupInvitationMutation, useDeclineGroupUserInvitationMutation } from '@/services/backend/actions/groups';
 import { toast } from '../ui/use-toast';
-import { StringDecoder } from 'string_decoder';
 import { NotificationLayout } from './notification-layout';
-import { UserType } from '@/features/auth/types';
+import { useDeleteNotificationMutation } from '@/services/backend/actions/user';
 
 export const GroupInvitation = ({
-  id,
+  notification,
   group,
-  senderId,
-  user,
   removeInvitation,
 }: {
-  id: string;
+  notification: NotificationType;
   group: GroupType;
-  senderId: string;
-  user: UserType;
   removeInvitation: (invitation: string) => void;
 }) => {
+  const { id, user, receiver } = notification;
+  const [deleteNotification] = useDeleteNotificationMutation();
   const [declineRequest] = useDeclineGroupUserInvitationMutation();
   const [acceptRequest] = useAcceptGroupInvitationMutation();
 
@@ -27,8 +22,9 @@ export const GroupInvitation = ({
     try {
       if (accept) {
         await acceptRequest({ groupId: group.id }).unwrap();
+        await deleteNotification(id);
       } else {
-        await declineRequest({ groupId: group.id, userId: senderId }).unwrap();
+        await declineRequest({ groupId: group.id, userId: receiver }).unwrap();
       }
       removeInvitation(id);
     } catch (error) {

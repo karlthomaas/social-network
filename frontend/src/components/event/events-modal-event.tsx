@@ -1,13 +1,20 @@
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useAttendGroupEventMutation, useChangeGroupEventAttendanceMutation } from '@/services/backend/actions/groups';
 import type { EventType } from '@/services/backend/types';
 import { toast } from '../ui/use-toast';
 
-export const EventsModalEvent = ({ event }: { event: EventType }) => {
+export const EventsModalEvent = ({ event, isActive }: { event: EventType, isActive: boolean }) => {
   const [changeAttendance] = useChangeGroupEventAttendanceMutation();
   const [attendEvent] = useAttendGroupEventMutation();
 
+  const selectRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    if (isActive && selectRef.current) {
+      selectRef.current.focus();
+    }
+  }, [isActive]); 
   const [attendanceCount, setAttendanceCount] = useState(event.attendance.going);
   const attendance = useRef(String(event.group_event_member.attendance));
 
@@ -56,7 +63,7 @@ export const EventsModalEvent = ({ event }: { event: EventType }) => {
       </div>
       <div className='my-auto'>
         <Select value={attendance.current} onValueChange={handleSelect}>
-          <SelectTrigger className='w-[150px] '>
+          <SelectTrigger ref={selectRef} className='w-[150px] '>
             <SelectValue placeholder='Select activity'></SelectValue>
           </SelectTrigger>
           <SelectContent>

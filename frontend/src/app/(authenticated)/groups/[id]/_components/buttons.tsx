@@ -28,7 +28,6 @@ export const RequestButton = ({ group, className }: RequestButtonProps) => {
   const [createRequest, { isLoading: isLoadingCreate }] = useCreateGroupRequestMutation();
   const [deleteRequest, { isLoading: isLoadingDelete }] = useDeleteGroupRequestMutation();
   const joinRequestStatus = useGetGroupRequestStatusQuery(group.id);
-  const { user } = useAppSelector((state) => state.auth);
 
   const handleRequest = async () => {
     try {

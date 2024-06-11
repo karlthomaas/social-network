@@ -30,7 +30,10 @@ export const extendedUserApi = backendApi.injectEndpoints({
       query: () => 'notifications/me',
       providesTags: ['Notification'],
     }),
-    // deleteNotification: builder.mutation<any, string>({}),
+    deleteNotification: builder.mutation<any, string>({
+      query: (notificationId) => ({ url: `notifications/${notificationId}`, method: 'DELETE' }),
+      invalidatesTags: ['Notification'],
+    }),
   }),
   overrideExisting: true,
 });
@@ -42,4 +45,5 @@ export const {
   useGetUserGroupInvitationsQuery,
   useGetUserDetailsQuery,
   useGetUserNotificationsQuery,
+  useDeleteNotificationMutation,
 } = extendedUserApi;
