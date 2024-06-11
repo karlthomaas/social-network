@@ -3,57 +3,62 @@
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Bell } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { GroupInvitation } from '../notifications/group_invitation';
+import { useCallback, useEffect, useState } from 'react';
 import clsx from 'clsx';
-import type { GroupInvitationType } from '@/services/backend/types';
-import { useGetUserGroupInvitationsQuery } from '@/services/backend/actions/user';
-import { useAppSelector } from '@/lib/hooks';
-import { skipToken } from '@reduxjs/toolkit/query';
+import { useGetUserNotificationsQuery } from '@/services/backend/actions/user';
+import { Notification } from '@/components/notifications/notification';
+import type { NotificationType } from '@/services/backend/types';
 
 export const NotificationBtn = () => {
-  const [invitations, setInvitations] = useState<GroupInvitationType[]>([]);
-  const { user } = useAppSelector((state) => state.auth);
-  const invitationsQuery = useGetUserGroupInvitationsQuery(user?.id ?? skipToken, { skip: !user?.id });
+  const [notifications, setNotifications] = useState<NotificationType[]>([]);
+  const { data, isLoading, refetch } = useGetUserNotificationsQuery();
 
   useEffect(() => {
-    if (invitationsQuery.data) {
-      setInvitations(invitationsQuery.data.invitations);
+    if (data?.notifications) {
+      console.log(data.notifications);
+      setNotifications(data.notifications);
     }
-  }, [invitationsQuery.data]);
+  }, [data]);
 
-  const removeInvitation = (invitation: GroupInvitationType) => {
-    if (!invitations) return;
-
-    setInvitations(invitations.filter((inv) => inv !== invitation));
-  };
+  const removeInvitation = useCallback(
+    (id: string) => {
+      setNotifications(notifications.filter((inv) => inv.id !== id));
+    },
+    [notifications]
+  );
 
   return (
-    <DropdownMenu onOpenChange={() => invitationsQuery.refetch()}>
+    <DropdownMenu onOpenChange={() => refetch()}>
       <DropdownMenuTrigger>
         <div className='relative'>
           <Bell size={24} />
           <div
-            className={clsx('absolute -right-2 -top-2 hidden size-4 rounded-full bg-red-600 text-[10px]', {
-              block: invitations.length !== 0,
+            className={clsx('absolute -right-2 -top-2 h-[20px] w-[20px] rounded-full bg-red-600', {
+              block: notifications.length !== 0,
+              hidden: notifications.length === 0,
             })}
           >
-            {invitations.length}
+            {notifications.length}
           </div>
         </div>
       </DropdownMenuTrigger>
-      <DropdownMenuContent>
+      <DropdownMenuContent className='w-[400px]'>
         <DropdownMenuLabel>Notifications</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {invitations.map((invitation: GroupInvitationType, index) => (
-          <GroupInvitation removeInvitation={removeInvitation} key={index} invitation={invitation} />
-        ))}
+        {isLoading ? (
+          <>Loading...</>
+        ) : notifications.length === 0 ? (
+          <div className='p-4'>No notifications</div>
+        ) : (
+          notifications.map((notification, index) => (
+            <Notification key={index} notification={notification} removeInvitation={removeInvitation} />
+          ))
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

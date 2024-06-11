@@ -30,15 +30,17 @@ export const extendedGroupsApi = backendApi.injectEndpoints({
     }),
     getGroupInvitations: builder.query<{ invitations: GroupInvitationType[] }, string>({
       query: (groupId) => `groups/${groupId}/group_invitations`,
+      providesTags: ['GroupInvitations'],
     }),
     getMyGroupInvitations: builder.query<{ invitations: GroupInvitationType[] }, string>({
       // Get my created group invitations
       query: (groupId) => `/groups/${groupId}/invitations`,
+      providesTags: ['GroupInvitations'],
     }),
     getGroupInvitableUsers: builder.query<{ users: FollowerType[] }, string>({
       // Returns followers that are not in the group
       query: (groupId) => `groups/${groupId}/invitable_users`,
-      providesTags: ['Followers'],
+      providesTags: ['Followers', 'GroupInvitations'],
     }),
     getSessionUserGroups: builder.query<{ groups: GroupType[] }, void>({
       query: () => 'groups/users/me',
@@ -93,13 +95,18 @@ export const extendedGroupsApi = backendApi.injectEndpoints({
         method: 'DELETE',
       }),
     }),
-    deleteGroupUserInvitation: builder.mutation<any, { groupId: string; userId: string }>({
+    cancelGroupUserInvitation: builder.mutation<any, { groupId: string; userId: string }>({
       query: ({ groupId, userId }) => ({
-        url: `groups/${groupId}/group_invitations/users/${userId}`,
+        url: `groups/${groupId}/group_invitations/users/${userId}/cancel`,
         method: 'DELETE',
       }),
     }),
-
+    declineGroupUserInvitation: builder.mutation<any, { groupId: string; userId: string }>({
+      query: ({ groupId, userId }) => ({
+        url: `groups/${groupId}/group_invitations/users/${userId}/decline`,
+        method: 'DELETE',
+      }),
+    }),
     acceptGroupJoinRequest: builder.mutation<any, { groupId: string; userId: string }>({
       query: ({ groupId, userId }) => ({
         url: `groups/${groupId}/requests/users/${userId}`,
@@ -118,6 +125,7 @@ export const extendedGroupsApi = backendApi.injectEndpoints({
         url: `groups/${groupId}/members/users/${userId}`,
         method: 'DELETE',
       }),
+      invalidatesTags: ['Groups'],
     }),
 
     attendGroupEvent: builder.mutation<any, { groupId: string; eventId: string; attendance: number }>({
@@ -161,6 +169,7 @@ export const {
   useLeaveGroupMutation,
   useAcceptGroupJoinRequestMutation,
   useAcceptGroupInvitationMutation,
-  useDeleteGroupUserInvitationMutation,
+  useCancelGroupUserInvitationMutation,
+  useDeclineGroupUserInvitationMutation,
   useCreateGroupUserInvitationMutation,
 } = extendedGroupsApi;

@@ -4,14 +4,14 @@ import { OpenChat } from './open-chat';
 import React, { useCallback, useEffect } from 'react';
 import { selectOpenChats } from '../../features/chats/chatsSlice';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { WebSocketMessage } from '@/types/socket';
+import { WSPayload } from '@/middleware/socket';
 
 
 export const OpenChats = () => {
   const dispatch = useAppDispatch();
   const openChats = useAppSelector(selectOpenChats);
 
-  const handleSendMessage = useCallback((message: WebSocketMessage) => {
+  const handleSendMessage = useCallback((message: WSPayload) => {
     dispatch({ type: 'socket/send_message', payload: message });
   }, [dispatch]);
 

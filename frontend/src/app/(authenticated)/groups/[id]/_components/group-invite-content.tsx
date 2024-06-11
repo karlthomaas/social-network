@@ -21,12 +21,7 @@ export const GroupInviteContent = ({ groupId }: { groupId: string }) => {
   return (
     <div className='flex flex-col space-y-5'>
       {users.map((follower: FollowerType, index: number) => (
-        <GroupInviteUser
-          key={index}
-          isInvited={invitedUserIds.includes(follower.follower_id)}
-          groupId={groupId}
-          follower={follower}
-        />
+        <GroupInviteUser key={index} isInvited={invitedUserIds.includes(follower.follower_id)} groupId={groupId} follower={follower} />
       ))}
     </div>
   );

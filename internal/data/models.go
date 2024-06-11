@@ -25,6 +25,7 @@ type Models struct {
 	GroupEvents       GroupEventModel
 	GroupEventMembers GroupEventMemberModel
 	Messages          MessageModel
+	Notifications     NotificationModel
 }
 
 func NewModels(db *sql.DB) Models {
@@ -43,5 +44,6 @@ func NewModels(db *sql.DB) Models {
 		GroupEvents:       GroupEventModel{DB: db},
 		GroupEventMembers: GroupEventMemberModel{DB: db},
 		Messages:          MessageModel{DB: db},
+		Notifications:     NotificationModel{DB: db},
 	}
 }

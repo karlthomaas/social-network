@@ -1,6 +1,5 @@
 'use client';
 
-import { GroupType } from '@/app/(authenticated)/groups/page';
 import { openChat, selectOpenChats } from '@/features/chats/chatsSlice';
 import { useAppSelector, useAppDispatch } from '@/lib/hooks';
 

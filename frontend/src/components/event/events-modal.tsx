@@ -5,10 +5,14 @@ import { EventsModalEvent } from './events-modal-event';
 import { LoadingSpinner } from '../ui/spinners';
 import { useGetGroupEventsQuery } from '@/services/backend/actions/groups';
 import type { EventType, GroupType } from '@/services/backend/types';
+import { useSearchParams } from 'next/navigation';
 
 export const EventsModal = ({ group }: { group: GroupType }) => {
+  const params = useSearchParams();
+  const [isOpen, setIsOpen] = useState(false);
   const [events, setEvents] = useState<EventType[]>([]);
-  const { data, isLoading } = useGetGroupEventsQuery(group.id);
+  const { data, isLoading, refetch } = useGetGroupEventsQuery(group.id);
+  const openEvent = params.get('event');
 
   useEffect(() => {
     if (data?.group_events) {
@@ -16,8 +20,22 @@ export const EventsModal = ({ group }: { group: GroupType }) => {
     }
   }, [data]);
 
+  useEffect(() => {
+    if (params.get('open') === 'events') {
+      setIsOpen(true);
+      refetch();
+    }
+  }, [params, refetch]);
+
+  const onOpenChange = (isOpen: boolean) => {
+    if (isOpen) {
+      refetch();
+    }
+    setIsOpen(isOpen);
+  };
+
   return (
-    <Dialog>
+    <Dialog onOpenChange={onOpenChange} open={isOpen}>
       <DialogTrigger asChild>
         <Button>View Events</Button>
       </DialogTrigger>
@@ -28,7 +46,7 @@ export const EventsModal = ({ group }: { group: GroupType }) => {
           {isLoading ? (
             <LoadingSpinner />
           ) : events.length > 0 ? (
-            events.map((event) => <EventsModalEvent key={event.id} event={event} />)
+            events.map((event) => <EventsModalEvent key={event.id} event={event} isActive={event.id === openEvent} />)
           ) : (
             'Group has no activies.'
           )}

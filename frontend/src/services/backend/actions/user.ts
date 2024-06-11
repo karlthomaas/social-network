@@ -2,7 +2,7 @@ import { PrivacyStates } from '@/app/(authenticated)/profile/[user]/_components/
 
 import { backendApi } from '@/services/backend/backendApi';
 import type { UserType } from '@/features/auth/types';
-import type { FollowerType, GroupInvitationType } from '@/services/backend/types';
+import type { FollowerType, GroupInvitationType, NotificationType } from '@/services/backend/types';
 
 export const extendedUserApi = backendApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -21,12 +21,21 @@ export const extendedUserApi = backendApi.injectEndpoints({
     }),
     getUserGroupInvitations: builder.query<{ invitations: GroupInvitationType[] }, string>({
       query: (userId) => `users/${userId}/group_invitations`,
+      providesTags: ['GroupInvitations'],
     }),
     getUserDetails: builder.query<{ user: UserType }, string>({
       query: (userId) => `users/${userId}`,
     }),
+    getUserNotifications: builder.query<{ notifications: NotificationType[] }, void>({
+      query: () => 'notifications/me',
+      providesTags: ['Notification'],
+    }),
+    deleteNotification: builder.mutation<any, string>({
+      query: (notificationId) => ({ url: `notifications/${notificationId}`, method: 'DELETE' }),
+      invalidatesTags: ['Notification'],
+    }),
   }),
-  overrideExisting: false,
+  overrideExisting: true,
 });
 
 export const {
@@ -35,4 +44,6 @@ export const {
   useUpdatePrivacyMutation,
   useGetUserGroupInvitationsQuery,
   useGetUserDetailsQuery,
+  useGetUserNotificationsQuery,
+  useDeleteNotificationMutation,
 } = extendedUserApi;

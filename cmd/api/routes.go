@@ -63,7 +63,7 @@ func (app *application) routes() http.Handler {
 		app.ValidateJwt(app.getAllRequestsHandler))
 	router.HandleFunc("POST /api/users/{id}/follow_requests",
 		app.ValidateJwt(app.acceptFollowRequestHandler))
-	router.HandleFunc("DELETE /api/users/{id}/follow_requests",
+	router.HandleFunc("DELETE /api/users/{id}/follow_requests/{option}",
 		app.ValidateJwt(app.cancelRequestHandler))
 
 	router.HandleFunc("GET /api/posts/{id}/reactions",
@@ -105,8 +105,11 @@ func (app *application) routes() http.Handler {
 		app.ValidateJwt(app.getInvitableUsersHandler))
 	router.HandleFunc("GET /api/groups/{id}/members",
 		app.ValidateJwt(app.getAllGroupMembersHandler))
-	router.HandleFunc("DELETE /api/groups/{id}/group_invitations/users/{userID}",
+	router.HandleFunc("DELETE /api/groups/{id}/group_invitations/users/{userID}/cancel",
 		app.ValidateJwt(app.deleteGroupInvitationHandler))
+	router.HandleFunc("DELETE /api/groups/{id}/group_invitations/users/{userID}/decline",
+		app.ValidateJwt(app.declineGroupInvitationHandler))
+
 	router.HandleFunc("DELETE /api/groups/{id}/members/users/{userID}",
 		app.ValidateJwt(app.deleteGroupMemberHandler))
 
@@ -149,6 +152,14 @@ func (app *application) routes() http.Handler {
 		app.ValidateJwt(app.getPrivateMessagesHandler))
 	router.HandleFunc("GET /api/messages/groups/{groupID}",
 		app.ValidateJwt(app.getGroupMessagesHandler))
+
+	router.HandleFunc("GET /api/notifications/me",
+		app.ValidateJwt(app.getUserNotificationsHandler))
+	router.HandleFunc("DELETE /api/notifications/{id}",
+		app.ValidateJwt(app.deleteNotificationHandler))
+
+	router.HandleFunc("GET /api/contacts/{userID}",
+		app.ValidateJwt(app.getContacts))
 
 	router.HandleFunc("/ws", app.ValidateJwt(app.wsHandler))
 

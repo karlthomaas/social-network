@@ -12,13 +12,16 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+// todo: add validator to eventType
+
 type WSPayload struct {
-	Sender   string `json:"sender"`
-	Receiver string `json:"receiver"`
-	Message  string `json:"message"`
-	GroupID  string `json:"group_id"`
-	Online   string `json:"online"`
-	Type     string `json:"type"`
+	Sender    string `json:"sender"`
+	Receiver  string `json:"receiver"`
+	Message   string `json:"message"`
+	GroupID   string `json:"group_id"`
+	Online    string `json:"online"`
+	Type      string `json:"type"`
+	EventType string `json:"event_type"`
 }
 
 type Client struct {
@@ -70,11 +73,13 @@ func (app *application) wsHandler(w http.ResponseWriter, r *http.Request) {
 
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
+
 		fmt.Println(err)
 	}
 
 	client := NewClient(user.ID, conn)
 	app.ChatService.addClient(client)
+	fmt.Println(app.ChatService.Clients)
 
 	go app.handleConnection(client, r)
 }
@@ -119,12 +124,13 @@ func (app *application) handleConnection(client *Client, r *http.Request) {
 
 		payload.Sender = app.contextGetUser(r).ID
 
-		message := app.newChatMessage(&payload, client)
 		v := validator.New()
 
 		switch payload.Type {
 		case "private_message":
+			message := app.newChatMessage(&payload, client)
 			if data.ValidateChatMessage(v, message); !v.Valid() {
+				fmt.Println("jouuu", v.Errors)
 				continue
 			}
 			err := app.models.Messages.Insert(message)
@@ -133,7 +139,9 @@ func (app *application) handleConnection(client *Client, r *http.Request) {
 				return
 			}
 		case "group_message":
+			message := app.newChatMessage(&payload, client)
 			if data.ValidateGroupMessage(v, message); !v.Valid() {
+				fmt.Println("jouuu", v.Errors)
 				continue
 			}
 			_, err := app.models.GroupMembers.CheckIfMember(payload.GroupID, client.UserID)
@@ -153,7 +161,9 @@ func (app *application) handleConnection(client *Client, r *http.Request) {
 
 func (app *application) sendMessage(payload *WSPayload, currentClient *Client, messageType int) {
 	jsonPayload, err := json.Marshal(payload)
+	fmt.Println("🤖", jsonPayload)
 	if err != nil {
+		fmt.Println("krt", err)
 		return
 	}
 	for _, client := range app.ChatService.Clients {
@@ -174,6 +184,22 @@ func (app *application) sendMessage(payload *WSPayload, currentClient *Client, m
 				for _, member := range members {
 					if member.UserID == client.UserID {
 						client.conn.WriteMessage(messageType, jsonPayload)
+					}
+				}
+			case "notification":
+				if payload.Receiver == client.UserID {
+					fmt.Println("notification", payload.Receiver, client.UserID)
+					client.conn.WriteMessage(messageType, jsonPayload)
+				} else if payload.Receiver == "" && payload.GroupID != "" {
+					members, err := app.models.GroupMembers.GetAllGroupMembers(payload.GroupID)
+					if err != nil {
+						log.Println(err)
+						continue
+					}
+					for _, member := range members {
+						if member.UserID == client.UserID && member.UserID != currentClient.UserID {
+							client.conn.WriteMessage(messageType, jsonPayload)
+						}
 					}
 				}
 			}

@@ -2,8 +2,10 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"social-network/internal/data"
+	"social-network/internal/validator"
 )
 
 func (app *application) addFollowerHandler(w http.ResponseWriter, r *http.Request) {
@@ -22,8 +24,15 @@ func (app *application) addFollowerHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	id, err := app.generateUUID()
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
 	if user.Privacy == "private" {
 		follower = &data.Request{
+			ID:         id,
 			UserID:     userID,
 			FollowerID: followerID,
 		}
@@ -38,6 +47,31 @@ func (app *application) addFollowerHandler(w http.ResponseWriter, r *http.Reques
 			app.serverErrorResponse(w, r, err)
 			return
 		}
+
+		v := validator.New()
+
+		notification := &data.Notification{
+			Sender:          followerID,
+			Receiver:        userID,
+			FollowRequestID: id,
+		}
+
+		if data.ValidateNotification(v, notification); !v.Valid() {
+			app.failedValidationResponse(w, r, v.Errors)
+			return
+		}
+
+		err = app.createNotification(notification, r)
+		if err != nil {
+			switch {
+			case errors.Is(err, data.ErrRecordNotFound):
+				app.notFoundResponse(w, r)
+			default:
+				app.serverErrorResponse(w, r, err)
+			}
+			return
+		}
+
 	} else {
 		follower = &data.Follower{
 			UserID:     userID,
@@ -248,6 +282,7 @@ func (app *application) removeFollowerHandler(w http.ResponseWriter, r *http.Req
 }
 
 func (app *application) cancelRequestHandler(w http.ResponseWriter, r *http.Request) {
+
 	currentUser := app.contextGetUser(r)
 	targetID, err := app.readParam(r, "id")
 	if err != nil {
@@ -255,7 +290,33 @@ func (app *application) cancelRequestHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	err = app.models.Requests.Delete(currentUser.ID, targetID)
+	var request *data.Request
+
+	option := r.PathValue("option")
+	fmt.Println(option)
+	if option != "cancel" && option != "decline" {
+		app.badRequestResponse(w, r, errors.New("invalid option parameter"))
+	}
+
+	var current, target string
+	switch option {
+	case "decline":
+		current, target = currentUser.ID, targetID
+	case "cancel":
+		current, target = targetID, currentUser.ID
+	}
+
+	request, err = app.models.Requests.Get(current, target)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+	err = app.models.Requests.Delete(current, target)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
@@ -266,7 +327,39 @@ func (app *application) cancelRequestHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	err = app.models.Notifications.DeleteByType(request.ID)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+			return
+		}
+	}
+
 	err = app.writeJSON(w, http.StatusOK, envelope{"message": "request cancelled succesfully"}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+}
+
+func (app *application) getContacts(w http.ResponseWriter, r *http.Request) {
+	user := app.contextGetUser(r)
+
+	// followerID, err := app.readParam(r, "userID")
+	// if err != nil {
+	// 	app.notFoundResponse(w,r)
+	// 	return
+	// }
+
+	contacts, err := app.models.Followers.GetContacts(user.ID)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+
+	err = app.writeJSON(w, http.StatusOK, envelope{"contacts": contacts}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return

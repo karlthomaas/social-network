@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { LoadingSpinner } from '../ui/spinners';
 import { toast } from '../ui/use-toast';
 import { useCreateGroupEventMutation } from '@/services/backend/actions/groups';
+import { useAppDispatch } from '@/lib/hooks';
 
 const formSchema = z.object({
   id: z.string(),
@@ -20,6 +21,7 @@ const formSchema = z.object({
 export type EventFormProps = z.infer<typeof formSchema>;
 
 export const EventForm = ({ groupId, onSuccess }: { groupId: string, onSuccess: () => void }) => {
+  const dispatch = useAppDispatch();
   const [createEvent, { isLoading, isSuccess }] = useCreateGroupEventMutation();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -40,6 +42,17 @@ export const EventForm = ({ groupId, onSuccess }: { groupId: string, onSuccess: 
         title: 'Success',
         description: 'Event created',
       });
+ 
+      dispatch({
+        type: 'socket/send_message',
+        payload: {
+          type: 'notification',
+          group_id: groupId,
+          message: `New event created`,
+          event_type: 'group_event',
+        },
+      });
+
       onSuccess();
     } catch (error) {
       toast({

@@ -3,7 +3,8 @@ import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
 import { FollowerType } from '@/services/backend/types';
 import { useState } from 'react';
-import { useCreateGroupUserInvitationMutation, useDeleteGroupUserInvitationMutation } from '@/services/backend/actions/groups';
+import { useCreateGroupUserInvitationMutation, useCancelGroupUserInvitationMutation } from '@/services/backend/actions/groups';
+import { useAppDispatch } from '@/lib/hooks';
 
 export const GroupInviteUser = ({
   isInvited: inviteStatus,
@@ -14,8 +15,9 @@ export const GroupInviteUser = ({
   groupId: string;
   follower: FollowerType;
 }) => {
+  const dispatch = useAppDispatch();
   const [createGroupInvitation, { isLoading: isLoadingCreate }] = useCreateGroupUserInvitationMutation();
-  const [deleteGroupInvitation, { isLoading: isLoadingDelete }] = useDeleteGroupUserInvitationMutation();
+  const [deleteGroupInvitation, { isLoading: isLoadingDelete }] = useCancelGroupUserInvitationMutation();
 
   const [isInvited, setIsInvited] = useState(inviteStatus);
 
@@ -27,6 +29,15 @@ export const GroupInviteUser = ({
       } else {
         await createGroupInvitation({ groupId, userId: follower.follower_id }).unwrap();
         setIsInvited(true);
+        dispatch({
+          type: 'socket/send_message',
+          payload: {
+            type: 'notification',
+            receiver: follower.follower_id,
+            message: `You have been invited to join a group`,
+            event_type: 'group_invitation',
+          },
+        })
       }
     } catch (error) {
       toast({
