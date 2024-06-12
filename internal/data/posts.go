@@ -24,7 +24,7 @@ type Post struct {
 	UserID    string    `json:"user_id"`
 	Content   string    `json:"content"`
 	GroupID   string    `json:"group_id"`
-	Image     []byte    `json:"image"`
+	Image     string    `json:"image"`
 	Privacy   string    `json:"privacy"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
@@ -479,7 +479,7 @@ func (m *PostModel) InsertImage(postID, images string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	_, err:= m.DB.ExecContext(ctx, query, images, postID)
+	_, err := m.DB.ExecContext(ctx, query, images, postID)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
