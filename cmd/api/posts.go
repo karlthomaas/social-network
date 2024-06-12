@@ -51,8 +51,6 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	// notifyWithWebhook(post)
-
 	if post.Privacy == "almost_private" && len(input.VisibleTo) > 0 {
 		err := app.models.Posts.AddPostVisibilities(postID, input.VisibleTo)
 		if err != nil {
@@ -196,7 +194,7 @@ func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request
 
 	var input struct {
 		Content   *string  `json:"content"`
-		Image     *[]byte  `json:"image"`
+		Image     []byte   `json:"image"`
 		Privacy   *string  `json:"privacy"`
 		VisibleTo []string `json:"visible_to"`
 	}
@@ -209,10 +207,6 @@ func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request
 
 	if input.Content != nil {
 		post.Content = *input.Content
-	}
-
-	if input.Image != nil {
-		post.Image = *input.Image
 	}
 
 	if input.Privacy != nil {

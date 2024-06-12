@@ -15,7 +15,6 @@ func (app *application) createUserHandler(w http.ResponseWriter, r *http.Request
 		FirstName   string `json:"first_name"`
 		LastName    string `json:"last_name"`
 		DateOfBirth string `json:"date_of_birth"`
-		Image       []byte `json:"image"`
 		Nickname    string `json:"nickname"`
 		AboutMe     string `json:"about_me"`
 	}
@@ -44,7 +43,6 @@ func (app *application) createUserHandler(w http.ResponseWriter, r *http.Request
 		FirstName:   input.FirstName,
 		LastName:    input.LastName,
 		DateOfBirth: dateOfBirth,
-		Image:       input.Image,
 		Nickname:    input.Nickname,
 		AboutMe:     input.AboutMe,
 		Privacy:     "public",
@@ -105,6 +103,38 @@ func (app *application) showUserHandler(w http.ResponseWriter, r *http.Request) 
 	err = app.writeJSON(w, http.StatusOK, envelope{"user": user}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
+	}
+}
+
+func (app *application) deleteUserHandler(w http.ResponseWriter, r *http.Request) {
+	user := app.contextGetUser(r)
+
+	userID, err := app.readParam(r, "userID")
+	if err != nil {
+		app.notFoundResponse(w, r)
+		return
+	}
+
+	if user.ID != userID {
+		app.unAuthorizedResponse(w, r)
+		return
+	}
+
+	err = app.models.Users.Delete(userID)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusOK, envelope{"user": "user deleted successfully"}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
 	}
 }
 
@@ -284,20 +314,17 @@ func (app *application) updateUserHandler(w http.ResponseWriter, r *http.Request
 	user := app.contextGetUser(r)
 
 	var input struct {
-		Image    *[]byte `json:"image"`
-		Nickname *string `json:"nickname"`
-		AboutMe  *string `json:"about_me"`
-		Privacy  *string `json:"privacy"`
+		Nickname  *string `json:"nickname"`
+		AboutMe   *string `json:"about_me"`
+		Privacy   *string `json:"privacy"`
+		FirstName *string `json:"first_name"`
+		LastName  *string `json:"last_name"`
 	}
 
 	err := app.readJSON(w, r, &input)
 	if err != nil {
 		app.badRequestResponse(w, r, err)
 		return
-	}
-
-	if input.Image != nil {
-		user.Image = *input.Image
 	}
 
 	if input.Nickname != nil {
@@ -312,6 +339,14 @@ func (app *application) updateUserHandler(w http.ResponseWriter, r *http.Request
 		user.Privacy = *input.Privacy
 	}
 
+	if input.FirstName != nil {
+		user.FirstName = *input.FirstName
+	}
+
+	if input.LastName != nil {
+		user.LastName = *input.LastName
+	}
+
 	v := validator.New()
 
 	if data.ValidateUserUpdate(v, user); !v.Valid() {
@@ -323,15 +358,42 @@ func (app *application) updateUserHandler(w http.ResponseWriter, r *http.Request
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
 			app.notFoundResponse(w, r)
+			return
 		case errors.Is(err, data.ErrDuplicateNickname):
 			v.AddError("nickname", "user with this nickname already exists")
 			app.failedValidationResponse(w, r, v.Errors)
+			return
 		default:
 			app.serverErrorResponse(w, r, err)
+			return
 		}
 	}
 
 	err = app.writeJSON(w, http.StatusOK, envelope{"user": user}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+}
+
+func (app *application) findUsersHandler(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		Prompt string `json:"prompt"`
+	}
+
+	err := app.readJSON(w, r, &input)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	users, err := app.models.Users.FindUser(input.Prompt)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusOK, envelope{"users": users}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return

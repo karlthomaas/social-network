@@ -348,12 +348,6 @@ func (app *application) cancelRequestHandler(w http.ResponseWriter, r *http.Requ
 func (app *application) getContacts(w http.ResponseWriter, r *http.Request) {
 	user := app.contextGetUser(r)
 
-	// followerID, err := app.readParam(r, "userID")
-	// if err != nil {
-	// 	app.notFoundResponse(w,r)
-	// 	return
-	// }
-
 	contacts, err := app.models.Followers.GetContacts(user.ID)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
