@@ -7,6 +7,7 @@ import { ReplyInput } from './reply-input';
 import { PostOptions } from './post-options';
 import { formatDistanceToNowStrict } from 'date-fns';
 import { Globe, Lock } from 'lucide-react';
+import Image from 'next/image';
 
 interface Reaction {
   id: string;
@@ -62,6 +63,11 @@ export const Post = ({ postData, isLoading }: { postData?: PostType; isLoading: 
         <PostOptions post={post} setPost={setPost} />
       </div>
       <p className='ml-1'>{post.content}</p>
+      { post.image && (
+        <div>
+          <Image alt="pilt" src={`http://localhost:4000${post.image}`} height={200} width={300} unoptimized />
+        </div>
+      )}
       <div className='mb-3 mt-10 flex justify-evenly border-y border-border'>
         <LikeButton reactions={post.reactions} likeStatus={likeStatus} type='post' postId={post.id} reactionId={post.reaction.id} />
         <CommentButton onClick={async () => setShowComments(!showComments)} />

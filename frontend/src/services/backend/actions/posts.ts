@@ -2,6 +2,7 @@ import { backendApi } from '@/services/backend/backendApi';
 import type { PostType } from '@/components/post/post';
 import type { MakePost } from '@/services/backend/types';
 import type { ReactionType } from '@/components/post/replies';
+import { string } from 'zod';
 
 const expandedPostsApi = backendApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -57,6 +58,14 @@ const expandedPostsApi = backendApi.injectEndpoints({
         method: 'DELETE',
       }),
     }),
+    uploadImage: builder.mutation<{ url: string }, { option: string; id: string; data: FormData }>({
+      query: ({ option, id, data }) => ({
+        url: `images/${option}/${id}`,
+        method: 'POST',
+        body: data,
+      }),
+      invalidatesTags: (result, error, { option }) => option === 'users' ? [{ type: 'User' }]: [],
+    }),
   }),
   overrideExisting: false,
 });
@@ -71,4 +80,5 @@ export const {
   useGetFeedPostsQuery,
   useCreatePostReactionMutation,
   useDeletePostReactionMutation,
+  useUploadImageMutation,
 } = expandedPostsApi;

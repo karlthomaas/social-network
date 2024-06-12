@@ -8,7 +8,6 @@ import { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { fetcherWithOptions } from '@/lib/fetchers';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useLoginMutation } from '@/services/backend/actions/auth';
 

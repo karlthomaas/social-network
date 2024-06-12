@@ -58,7 +58,7 @@ export default function Navbar({ authenticate = false }) {
       <nav className='h-[65px] w-full border-b-[1px] border-border'>
         <ul className='mx-auto flex h-full max-w-screen-md items-center justify-between p-4'>
           <li>
-            <Link href='/' className='flex items-center space-x-4'>
+            <Link href='/home' className='flex itemscenter space-x-4'>
               <div className='h-[30px] w-[30px] rounded-lg bg-secondary' />
               <p className='text-lg'>Social Network</p>
             </Link>

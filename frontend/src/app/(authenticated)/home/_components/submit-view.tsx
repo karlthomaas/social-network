@@ -6,18 +6,45 @@ import { capitalize } from '@/lib/utils';
 
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { changeText, increment } from '@/features/post/postSlice';
+import { useDropzone } from 'react-dropzone';
 
-import React, { memo } from 'react';
+import React, { memo, useCallback, useState } from 'react';
+import { Input } from '@/components/ui/input';
+import Image from 'next/image';
+import { FileUpload } from '@/components/file-upload';
+import { ImageIcon, X } from 'lucide-react';
 
 export const SubmitView = memo(
-  ({ isPending, showPrivacyOptions, onSubmit }: { isPending: boolean; showPrivacyOptions: boolean; onSubmit: () => void }) => {
+  ({
+    isPending,
+    showPrivacyOptions,
+    onSubmit,
+  }: {
+    isPending: boolean;
+    showPrivacyOptions: boolean;
+    onSubmit: (file: File | null) => void;
+  }) => {
     const dispatch = useAppDispatch();
     const postText = useAppSelector((state) => state.post.postText);
     const postPrivacyValue = useAppSelector((state) => state.post.privacy.value);
+    const [file, setFile] = useState<File | null>(null);
+    const [imageUrl, setImageUrl] = useState('');
+    const [addImage, setAddImage] = useState(false);
 
     const onChange = (obj: React.ChangeEvent<HTMLTextAreaElement>) => {
       dispatch(changeText(obj.target.value));
     };
+
+    const handleFileChange = useCallback((files: File[]) => {
+      if (files.length > 0) {
+        setFile(files[0]);
+        setImageUrl(URL.createObjectURL(files[0]));
+      } else {
+        setFile(null);
+        setImageUrl('');
+        setAddImage(false);
+      }
+    }, []);
 
     return (
       <DialogContent className='min-h-[325px]'>
@@ -32,7 +59,31 @@ export const SubmitView = memo(
           )}
         </DialogHeader>
         <Textarea value={postText} onChange={onChange} placeholder="What's on your mind?" />
-        <Button onClick={onSubmit} disabled={isPending || !postText}>
+        {imageUrl && (
+          <div className='group relative flex h-[225px] w-full items-center justify-center rounded-xl border border-border'>
+            <Button
+              size='icon'
+              className='absolute -right-2 -top-2 bg-border  text-white hover:brightness-110 group-hover:flex'
+              onClick={() => handleFileChange([])}
+            >
+              <X />
+            </Button>
+            {imageUrl && <Image src={imageUrl} alt='image' width={200} height={200} />}
+          </div>
+        )}
+        { addImage && !imageUrl && <FileUpload callback={handleFileChange} />}
+        { !addImage && (
+          <div className='h-[50px] w-full rounded-xl border border-border text-muted-foreground flex justify-between items-center px-5'>
+            <h3>Add to your post</h3>
+            <div>
+              <Button size="icon" variant="ghost" onClick={() => setAddImage(true)}>
+                <ImageIcon />
+              </Button>
+            </div>
+          </div>
+        )}
+
+        <Button onClick={() => onSubmit(file)} disabled={isPending || !postText}>
           {isPending ? <LoadingSpinner /> : <>Submit</>}
         </Button>
       </DialogContent>

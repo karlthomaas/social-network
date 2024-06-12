@@ -3,11 +3,13 @@ import { PrivacyStates } from '@/app/(authenticated)/profile/[user]/_components/
 import { backendApi } from '@/services/backend/backendApi';
 import type { UserType } from '@/features/auth/types';
 import type { FollowerType, GroupInvitationType, NotificationType } from '@/services/backend/types';
+import { profileFormType } from '@/app/(authenticated)/profile/[user]/_components/settings-form';
 
 export const extendedUserApi = backendApi.injectEndpoints({
   endpoints: (builder) => ({
     getSessionUser: builder.query<any, null>({
       query: () => 'users/me',
+      providesTags: (result) => result?.user ? [{ type: 'User', id: result.user.id }] : [],
     }),
     getUserFollowers: builder.query<{ followers: FollowerType[] }, string>({
       query: (nickname: string) => `users/${nickname}/followers`,
@@ -25,14 +27,27 @@ export const extendedUserApi = backendApi.injectEndpoints({
     }),
     getUserDetails: builder.query<{ user: UserType }, string>({
       query: (userId) => `users/${userId}`,
+      providesTags: (result, error, userId) => [{ type: 'User', id: result?.user.id }],
     }),
     getUserNotifications: builder.query<{ notifications: NotificationType[] }, void>({
       query: () => 'notifications/me',
       providesTags: ['Notification'],
     }),
+    getContacts: builder.query<{ contacts: FollowerType[] }, void>({
+      query: () => 'contacts/me',
+      providesTags: ['Contacts'],
+    }),
     deleteNotification: builder.mutation<any, string>({
       query: (notificationId) => ({ url: `notifications/${notificationId}`, method: 'DELETE' }),
       invalidatesTags: ['Notification'],
+    }),
+    updateUser: builder.mutation<any, Omit<profileFormType, 'profile_picture'>>({
+      query: (data) => ({
+        url: 'users/me',
+        method: 'PATCH',
+        body: data,
+      }),
+      invalidatesTags: (result) => [{ type: 'User', id: result.user.id }],
     }),
   }),
   overrideExisting: true,
@@ -45,5 +60,7 @@ export const {
   useGetUserGroupInvitationsQuery,
   useGetUserDetailsQuery,
   useGetUserNotificationsQuery,
+  useGetContactsQuery,
   useDeleteNotificationMutation,
+  useUpdateUserMutation,
 } = extendedUserApi;

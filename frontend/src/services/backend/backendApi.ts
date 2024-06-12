@@ -35,6 +35,19 @@ const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQue
 export const backendApi = createApi({
   reducerPath: 'backendApi',
   baseQuery: baseQueryWithReauth,
-  tagTypes: ['Chat', 'Groups', 'Posts', 'GroupJoinRequests', 'Group', 'Events', 'Followers', 'FollowRequests', 'GroupInvitations', 'Notification'],
+  tagTypes: [
+    'Chat',
+    'User',
+    'Contacts',
+    'Group',
+    'Groups',
+    'GroupJoinRequests',
+    'GroupInvitations',
+    'Posts',
+    'Events',
+    'Followers',
+    'FollowRequests',
+    'Notification',
+  ],
   endpoints: () => ({}),
 });

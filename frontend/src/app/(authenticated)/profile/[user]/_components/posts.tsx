@@ -17,7 +17,11 @@ export const ProfilePosts = ({ username }: { username: string }) => {
   if (data) {
     return (
       <div className='flex flex-col space-y-5 '>
-        {data.posts.map((post: any) => (
+        {
+        data.posts.length === 0 ? (
+          <h1 className='text-neutral-500 text-xl text-center mt-2'>Feed is empty</h1>
+        ) : 
+        data.posts.map((post: any) => (
           <Post key={post.id} postData={post} isLoading={false} />
         ))}
       </div>

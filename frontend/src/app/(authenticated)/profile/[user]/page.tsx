@@ -13,9 +13,9 @@ export default function Profile({ params }: { params: { user: string } }) {
   const { user } = useAppSelector((state) => state.auth);
   return (
     <div>
-      <Banner />
-      <UserDetails username={params.user} />
-      <div className='ml-10'>
+        <Banner />
+      <div className="ml-5">
+        <UserDetails username={params.user} />
         <FollowersCount username={params.user} />
       </div>
       <div className='mt-10 flex flex-col space-y-3'>
