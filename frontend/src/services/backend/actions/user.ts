@@ -7,9 +7,12 @@ import { profileFormType } from '@/app/(authenticated)/profile/[user]/_component
 
 export const extendedUserApi = backendApi.injectEndpoints({
   endpoints: (builder) => ({
+    getUsers: builder.query<{ users: UserType[] }, string>({
+      query: (nickname) => `users?search=${nickname}`,
+    }),
     getSessionUser: builder.query<any, null>({
       query: () => 'users/me',
-      providesTags: (result) => result?.user ? [{ type: 'User', id: result.user.id }] : [],
+      providesTags: (result) => (result?.user ? [{ type: 'User', id: result.user.id }] : []),
     }),
     getUserFollowers: builder.query<{ followers: FollowerType[] }, string>({
       query: (nickname: string) => `users/${nickname}/followers`,
@@ -54,6 +57,7 @@ export const extendedUserApi = backendApi.injectEndpoints({
 });
 
 export const {
+  useGetUsersQuery,
   useGetSessionUserQuery,
   useGetUserFollowersQuery,
   useUpdatePrivacyMutation,

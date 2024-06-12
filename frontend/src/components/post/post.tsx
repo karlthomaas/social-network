@@ -8,6 +8,7 @@ import { PostOptions } from './post-options';
 import { formatDistanceToNowStrict } from 'date-fns';
 import { Globe, Lock } from 'lucide-react';
 import Image from 'next/image';
+import { ProfilePicture } from '@/app/(authenticated)/profile/[user]/_components/pfp';
 
 interface Reaction {
   id: string;
@@ -49,7 +50,7 @@ export const Post = ({ postData, isLoading }: { postData?: PostType; isLoading: 
     <div className='h-max w-full rounded-xl border border-border px-6 pt-6'>
       <div className='mb-2 flex justify-between'>
         <div className='flex items-center space-x-2'>
-          <div className='aspect-square h-[50px] rounded-full bg-secondary' />
+          <ProfilePicture url={post.user.image} className='size-[50px]' />
           <div className='flex flex-col'>
             <p className='capitalize'>
               {post.user.first_name} {post.user.last_name}{' '}

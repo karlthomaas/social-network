@@ -377,17 +377,14 @@ func (app *application) updateUserHandler(w http.ResponseWriter, r *http.Request
 }
 
 func (app *application) findUsersHandler(w http.ResponseWriter, r *http.Request) {
-	var input struct {
-		Prompt string `json:"prompt"`
-	}
+	search := r.URL.Query().Get("search")
 
-	err := app.readJSON(w, r, &input)
-	if err != nil {
-		app.badRequestResponse(w, r, err)
+	if search == "" {
+		app.badRequestResponse(w, r, errors.New("missing search parameter"))
 		return
 	}
 
-	users, err := app.models.Users.FindUser(input.Prompt)
+	users, err := app.models.Users.FindUser(search)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
