@@ -132,7 +132,8 @@ func (m *FollowerModel) GetContacts(userID string) ([]*Follower, error) {
 			END AS contact_id,
 			f.created_at, 
 			u.first_name, 
-			u.last_name 
+			u.last_name, 
+			u.image
 		FROM followers f
 		JOIN users u ON u.id = CASE 
 			WHEN f.user_id = ? THEN f.follower_id
@@ -160,6 +161,7 @@ func (m *FollowerModel) GetContacts(userID string) ([]*Follower, error) {
 			&follower.CreatedAt,
 			&follower.User.FirstName,
 			&follower.User.LastName,
+			&follower.User.Image,
 		)
 		if err != nil {
 			return nil, err

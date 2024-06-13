@@ -165,7 +165,7 @@ func (m *PostModel) Delete(id string) error {
 
 func (m *PostModel) GetAllForUser(userID string, loggedInUser string) ([]*Post, error) {
 	query := `
-	SELECT p.id, p.user_id, p.content, p.group_id ,p.image, p.privacy, p.created_at, p.updated_at, u.first_name, u.last_name, r.id
+	SELECT p.id, p.user_id, p.content, p.group_id ,p.image, p.privacy, p.created_at, p.updated_at, u.first_name, u.last_name, u.image, r.id
 	FROM posts p 
 	JOIN users u ON p.user_id = u.id
 	LEFT JOIN reactions r ON p.id = r.post_id
@@ -198,6 +198,7 @@ func (m *PostModel) GetAllForUser(userID string, loggedInUser string) ([]*Post, 
 			&post.UpdatedAt,
 			&post.User.FirstName,
 			&post.User.LastName,
+			&post.User.Image,
 			&reactionID,
 		)
 
@@ -225,7 +226,7 @@ func (m *PostModel) GetAll(loggedInUser string) ([]*Post, error) {
 
 	query := `
 	SELECT p.id, p.user_id, p.content, p.group_id,p.image, p.privacy, p.created_at, p.updated_at, 
-	u.first_name, u.last_name, r.id
+	u.first_name, u.last_name, u.image ,r.id
 	FROM posts p 
 	JOIN users u ON p.user_id = u.id
 	LEFT JOIN followers f ON f.user_id = p.user_id AND f.follower_id = ?
@@ -262,6 +263,7 @@ func (m *PostModel) GetAll(loggedInUser string) ([]*Post, error) {
 			&post.UpdatedAt,
 			&post.User.FirstName,
 			&post.User.LastName,
+			&post.User.Image,
 			&reactionID,
 		)
 

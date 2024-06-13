@@ -35,6 +35,7 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 		Content:   input.Content,
 		GroupID:   "",
 		Privacy:   input.Privacy,
+		User:      *user,
 		UpdatedAt: time.Now().Truncate(time.Second),
 	}
 
