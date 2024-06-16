@@ -123,6 +123,34 @@ func (app *application) getUserFollowersHandler(w http.ResponseWriter, r *http.R
 	}
 }
 
+func (app *application) getUserFollowingHandler(w http.ResponseWriter, r *http.Request) {
+	nickname := r.PathValue("nickname")
+
+	user, err := app.models.Users.GetByNickname(nickname)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	followers, err := app.models.Followers.GetAllUserFollowing(user.ID)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusOK, envelope{"following": followers}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+}
+
+
 func (app *application) checkFollowPermissionsHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := app.readParam(r, "id")
 	if err != nil {

@@ -123,6 +123,43 @@ func (m *FollowerModel) GetAllForUser(userID string) ([]*Follower, error) {
 	return followers, nil
 }
 
+func (m *FollowerModel) GetAllUserFollowing(userID string) ([]*Follower, error) {
+	query := `SELECT f.user_id, f.follower_id, f.created_at, u.first_name, u.last_name
+	FROM followers f
+	JOIN users u ON f.user_id = u.id
+	WHERE f.follower_id = ?
+	`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	rows, err := m.DB.QueryContext(ctx, query, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	followers := []*Follower{}
+
+	for rows.Next() {
+		var follower Follower
+		rows.Scan(
+			&follower.UserID,
+			&follower.FollowerID,
+			&follower.CreatedAt,
+			&follower.User.FirstName,
+			&follower.User.LastName,
+		)
+
+		followers = append(followers, &follower)
+
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return followers, nil
+}
+
 func (m *FollowerModel) GetContacts(userID string) ([]*Follower, error) {
 	query := `
 		SELECT 
