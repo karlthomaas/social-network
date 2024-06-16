@@ -31,6 +31,7 @@ type Post struct {
 	User      User      `json:"user"`
 	Reaction  Reaction  `json:"reaction"`
 	Reactions int       `json:"reactions"`
+	Group     Group      `json:"group"`
 }
 
 type PostVisibility struct {
@@ -165,18 +166,30 @@ func (m *PostModel) Delete(id string) error {
 
 func (m *PostModel) GetAllForUser(userID string, loggedInUser string) ([]*Post, error) {
 	query := `
-	SELECT p.id, p.user_id, p.content, p.group_id ,p.image, p.privacy, p.created_at, p.updated_at, u.first_name, u.last_name, u.image, r.id
+	SELECT p.id, p.user_id, p.content, p.group_id ,p.image, p.privacy, p.created_at, p.updated_at, u.first_name, u.last_name, u.image, r.id, g.title
 	FROM posts p 
 	JOIN users u ON p.user_id = u.id
-	LEFT JOIN reactions r ON p.id = r.post_id
-	AND r.user_id = ?
-	WHERE p.user_id = ?
+	LEFT JOIN followers f ON f.user_id = p.user_id AND f.follower_id = ?
+	LEFT JOIN reactions r ON p.id = r.post_id AND r.user_id = ?
+	LEFT JOIN post_visibilities pv ON pv.post_id = p.id
+	LEFT JOIN group_members gm ON gm.group_id = p.group_id AND gm.user_id = ?
+	LEFT JOIN groups g ON g.id = p.group_id
+	WHERE 
+	(p.user_id = ?) AND (
+		p.user_id = ? OR
+	(p.privacy = "public" AND (p.group_id IS "" OR gm.user_id = ?)) OR
+	(p.privacy = "private" AND f.follower_id = ?) OR
+	(p.privacy = "private" AND f.follower_id = ?) OR
+	(p.privacy = "almost_private" AND pv.user_id = ?)
+	)
+	GROUP BY p.id
+	ORDER BY p.created_at DESC
 	`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	rows, err := m.DB.QueryContext(ctx, query, loggedInUser, userID)
+	rows, err := m.DB.QueryContext(ctx, query, loggedInUser, loggedInUser, loggedInUser, userID, loggedInUser,loggedInUser,loggedInUser, loggedInUser, loggedInUser)
 	if err != nil {
 		return nil, err
 	}
@@ -186,6 +199,7 @@ func (m *PostModel) GetAllForUser(userID string, loggedInUser string) ([]*Post, 
 	for rows.Next() {
 		var post Post
 		var reactionID sql.NullString
+		var groupTitle sql.NullString
 
 		err := rows.Scan(
 			&post.ID,
@@ -200,6 +214,7 @@ func (m *PostModel) GetAllForUser(userID string, loggedInUser string) ([]*Post, 
 			&post.User.LastName,
 			&post.User.Image,
 			&reactionID,
+			&groupTitle,
 		)
 
 		if err != nil {
@@ -210,6 +225,12 @@ func (m *PostModel) GetAllForUser(userID string, loggedInUser string) ([]*Post, 
 			post.Reaction.ID = ""
 		} else {
 			post.Reaction.ID = reactionID.String
+		}
+
+		if !groupTitle.Valid {
+			post.Group.Title = ""
+		} else {
+			post.Group.Title = groupTitle.String
 		}
 
 		posts = append(posts, &post)
@@ -225,23 +246,27 @@ func (m *PostModel) GetAllForUser(userID string, loggedInUser string) ([]*Post, 
 func (m *PostModel) GetAll(loggedInUser string) ([]*Post, error) {
 
 	query := `
-	SELECT p.id, p.user_id, p.content, p.group_id,p.image, p.privacy, p.created_at, p.updated_at, 
-	u.first_name, u.last_name, u.image ,r.id
-	FROM posts p 
-	JOIN users u ON p.user_id = u.id
-	LEFT JOIN followers f ON f.user_id = p.user_id AND f.follower_id = ?
-	LEFT JOIN reactions r ON p.id = r.post_id AND r.user_id = ?
-	LEFT JOIN post_visibilities pv ON pv.post_id = p.id
-	WHERE (p.privacy = "public" OR 
-       (p.privacy = "private" AND (f.follower_id = ? OR p.user_id = ?)) OR 
-       (p.privacy = "almost_private" AND pv.user_id = ?))
-	ORDER BY p.created_at DESC
+			SELECT p.id, p.user_id, p.content, p.group_id, p.image, p.privacy, p.created_at, p.updated_at, 
+			u.first_name, u.last_name, u.image, r.id, g.title
+		FROM posts p 
+		JOIN users u ON p.user_id = u.id
+		LEFT JOIN followers f ON f.user_id = p.user_id AND f.follower_id = ?
+		LEFT JOIN reactions r ON p.id = r.post_id AND r.user_id = ?
+		LEFT JOIN post_visibilities pv ON pv.post_id = p.id
+		LEFT JOIN group_members gm ON gm.group_id = p.group_id AND gm.user_id = ?
+		LEFT JOIN groups g ON g.id = p.group_id
+		WHERE
+			(p.privacy = "public" AND (p.group_id IS "" OR gm.user_id = ?)) OR 
+			(p.privacy = "private" AND (f.follower_id = ? OR p.user_id = ?)) OR 
+			(p.privacy = "almost_private" AND pv.user_id = ?)
+		GROUP BY p.id
+		ORDER BY p.created_at DESC
 	`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	rows, err := m.DB.QueryContext(ctx, query, loggedInUser, loggedInUser, loggedInUser, loggedInUser, loggedInUser)
+	rows, err := m.DB.QueryContext(ctx, query, loggedInUser, loggedInUser, loggedInUser, loggedInUser, loggedInUser, loggedInUser, loggedInUser)
 	if err != nil {
 		return nil, err
 	}
@@ -251,6 +276,7 @@ func (m *PostModel) GetAll(loggedInUser string) ([]*Post, error) {
 	for rows.Next() {
 		var post Post
 		var reactionID sql.NullString
+		var groupTitle sql.NullString
 
 		err := rows.Scan(
 			&post.ID,
@@ -265,6 +291,7 @@ func (m *PostModel) GetAll(loggedInUser string) ([]*Post, error) {
 			&post.User.LastName,
 			&post.User.Image,
 			&reactionID,
+			&groupTitle,
 		)
 
 		if err != nil {
@@ -276,6 +303,13 @@ func (m *PostModel) GetAll(loggedInUser string) ([]*Post, error) {
 		} else {
 			post.Reaction.ID = reactionID.String
 		}
+
+		if !groupTitle.Valid {
+			post.Group.Title = ""
+		} else {
+			post.Group.Title = groupTitle.String
+		}
+
 
 		posts = append(posts, &post)
 	}
