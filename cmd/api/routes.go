@@ -26,6 +26,8 @@ func (app *application) routes() http.Handler {
 		app.ValidateJwt(app.showUserHandler))
 	router.HandleFunc("GET /api/users/{nickname}/followers",
 		app.ValidateJwt(app.getUserFollowersHandler))
+	router.HandleFunc("GET /api/users/{nickname}/following",
+		app.ValidateJwt(app.getUserFollowingHandler))
 	router.HandleFunc("GET /api/users/{id}/follow_status",
 		app.ValidateJwt(app.checkFollowPermissionsHandler),
 	)
