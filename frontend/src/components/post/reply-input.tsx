@@ -13,12 +13,17 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useCreatePostReplyMutation, useUpdatePostReplyMutation } from '@/services/backend/actions/replies';
 import { ProfilePicture } from '@/app/(authenticated)/profile/[user]/_components/pfp';
 import { useAppSelector } from '@/lib/hooks';
+import { Input } from '@/components/ui/input';
+import { ImageUploadCompact } from '@/components/image-upload-compact';
+import { useUploadImageMutation } from '@/services/backend/actions/posts';
 
 const formSchema = z.object({
   postId: z.string().optional(),
   replyId: z.string().optional(),
   content: z.string().min(1),
-  // file: z.instanceof(File).optional(),
+  image: z.unknown().transform((value) => {
+    return value as File;
+  }),
 });
 
 export type ReplyFormProps = z.infer<typeof formSchema>;
@@ -40,6 +45,8 @@ export const ReplyInput = ({
 }) => {
   const [createReply, { isLoading: isLoadingCreate }] = useCreatePostReplyMutation();
   const [editReply, { isLoading: isLoadingEdit }] = useUpdatePostReplyMutation();
+  const [uploadImage, { isLoading: isLoadingImage }] = useUploadImageMutation();
+
   const { user } = useAppSelector((state) => state.auth);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -52,18 +59,44 @@ export const ReplyInput = ({
     },
   });
 
+  const imageRef = form.register('image');
   const input = form.watch('content');
+
+  const createImageForm = (file: File) => {
+    const formData = new FormData();
+    formData.append('images', file as File);
+    return formData;
+  };
 
   const onSubmit = async (data: ReplyFormProps) => {
     try {
-      let response;
+      const { image, ...values } = data;
+      let reply: ReplyType;
+
       if (replyId) {
-        response = await editReply(data).unwrap();
+        const response = await editReply(values).unwrap();
+        reply = response.reply;
       } else {
-        response = await createReply(data).unwrap();
+        const response = await createReply(values).unwrap();
+        reply = response.reply;
       }
-      callback(response.reply);
-      setNewReply(response.reply);
+
+      if (image) {
+        try {
+          const data = createImageForm(image);
+          const { images } = await uploadImage({ option: 'replies', id: reply.id, data }).unwrap();
+          reply.image = images[0].split(',')[0];
+        } catch (err) {
+          toast({
+            title: 'Error uploading image...',
+            description: 'Please try again later',
+            variant: 'destructive',
+          });
+        }
+      }
+
+      callback(reply);
+      setNewReply(reply);
       form.reset();
       form.setValue('content', '');
     } catch (err) {
@@ -99,6 +132,19 @@ export const ReplyInput = ({
             }}
           />
           <div className='flex'>
+            <FormField
+              control={form.control}
+              name='image'
+              render={() => {
+                return (
+                  <FormItem>
+                    <FormControl>
+                      <ImageUploadCompact formRef={imageRef} />
+                    </FormControl>
+                  </FormItem>
+                );
+              }}
+            />
             <div className='ml-auto flex space-x-2'>
               {replyId && (
                 <Button type='button' size='sm' variant='secondary' className='w-[120px]' onClick={onCancel}>

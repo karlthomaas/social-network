@@ -25,7 +25,7 @@ export const Contact = ({ id, name, type, image }: { id: string; name: string; t
   };
 
   return (
-    <div onClick={handleClick} className='flex h-max w-full items-center p-2 hover:cursor-pointer hover:bg-secondary/50'>
+    <div onClick={handleClick} className='flex h-max w-full items-center pl-4 p-2 hover:cursor-pointer hover:bg-secondary/50 min-h-[60px]'>
       {image && <ProfilePicture url={image} className='mr-2 size-[45px]' />}
       {name}
     </div>

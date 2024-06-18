@@ -22,6 +22,8 @@ type WSPayload struct {
 	Online    string `json:"online"`
 	Type      string `json:"type"`
 	EventType string `json:"event_type"`
+	Name      string `json:"name"`
+	Image     string `json:"image"`
 }
 
 type Client struct {

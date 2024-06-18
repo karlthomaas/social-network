@@ -1,5 +1,4 @@
-import { MessageType } from '@/components/chat/message';
-import chatsSlice from '@/features/chats/chatsSlice';
+import chatsSlice, { notifyChat } from '@/features/chats/chatsSlice';
 import { Socket } from '@/lib/socket';
 import { backendApi } from '@/services/backend/backendApi';
 
@@ -11,10 +10,13 @@ export interface WSPayload {
   online?: string;
   type: 'private_message' | 'group_message' | 'notification';
   event_type?: 'group_request' | 'follow_request';
+
+  name?: string;
+  image?: string;
 }
 
 export const socketMiddleware = (socket: Socket) => (params: any) => (next: any) => (action: any) => {
-  const { dispatch, getState } = params;
+  const { dispatch } = params;
   const { type } = action;
 
   switch (type) {
@@ -41,11 +43,26 @@ export const socketMiddleware = (socket: Socket) => (params: any) => (next: any)
 const handleSocketRecieve = (message: MessageEvent, dispatch: any) => {
   const data: WSPayload = JSON.parse(message.data);
   if (message.type !== 'message') return;
-  if (data.type === 'private_message') {
-    console.log('🚀 ~ handleSocketRecieve ~ data:', data);
+
+  if (data.type === 'private_message' || data.type === 'group_message') {
     const id = data.group_id ? data.group_id : data.sender;
+
+    if (!id) return null;
+
     dispatch(backendApi.util.invalidateTags([{ type: 'Chat', id }]));
-    // dispatch(chatsSlice.)
+
+    if (!data.name) return null;
+
+    dispatch(
+      notifyChat({
+        id,
+        name: data.name,
+        state: 'minimized',
+        type: data.group_id ? 'group' : 'private',
+        image: data.image,
+        unreadMessages: 1,
+      })
+    );
   } else if (data.type === 'notification') {
     dispatch(backendApi.util.invalidateTags([{ type: 'Notification' }]));
   }

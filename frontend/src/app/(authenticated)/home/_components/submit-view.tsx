@@ -6,10 +6,8 @@ import { capitalize } from '@/lib/utils';
 
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { changeText, increment } from '@/features/post/postSlice';
-import { useDropzone } from 'react-dropzone';
 
 import React, { memo, useCallback, useState } from 'react';
-import { Input } from '@/components/ui/input';
 import Image from 'next/image';
 import { FileUpload } from '@/components/file-upload';
 import { ImageIcon, X } from 'lucide-react';

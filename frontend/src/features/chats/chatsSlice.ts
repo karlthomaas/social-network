@@ -40,10 +40,17 @@ export const chatsSlice = createSlice({
       chat.state = 'open';
       chat.unreadMessages = 0;
     },
+    notifyChat: (state, action: PayloadAction<ChatType>) => {
+      if (Object.keys(state.chats).includes(action.payload.id) && state.chats[action.payload.id].state === 'minimized') {
+        state.chats[action.payload.id].unreadMessages += 1;
+      } else {
+        state.chats[action.payload.id] = action.payload;
+      }
+    },
   },
 });
 
-export const { openChat, closeChat, minimizeChat, reOpenChat } = chatsSlice.actions;
+export const { openChat, closeChat, minimizeChat, reOpenChat, notifyChat } = chatsSlice.actions;
 
 export const selectChats = (state: RootState) => state.chat.chats;
 

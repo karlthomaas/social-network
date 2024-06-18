@@ -4,14 +4,10 @@ import { Banner } from './_components/banner';
 import { UserDetails } from './_components/user-details';
 import { ProfilePosts } from './_components/posts';
 import { FollowersCount } from './_components/followers-count';
-import { CreatePost } from '../../home/_components/create-post';
-import { Button } from '@/components/ui/button';
-import { DialogTrigger } from '@radix-ui/react-dialog';
 import { useAppSelector } from '@/lib/hooks';
 import type { PostType } from '@/components/post/post';
 import { useEffect, useState } from 'react';
 import { useGetUserPostsQuery } from '@/services/backend/actions/posts';
-import { ProfilePicture } from '@/app/(authenticated)/profile/[user]/_components/pfp';
 import { FollowingList } from '@/app/(authenticated)/profile/[user]/_components/following-list';
 import { CreatePostBar } from '@/components/post/create-post-bar';
 

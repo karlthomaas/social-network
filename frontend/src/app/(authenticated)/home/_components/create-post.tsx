@@ -34,7 +34,6 @@ export const CreatePost = memo(
     groupId?: string;
     callback: (response: PostType, action: 'update' | 'create') => void;
   }) => {
-    console.log("🚀 ~ groupId:", groupId)
     const [open, setOpen] = useState(false);
     const dispatch = useAppDispatch();
     const [createPost] = useCreatePostMutation();
@@ -84,9 +83,17 @@ export const CreatePost = memo(
           }
 
           if (file) {
-            const data = createImageForm(file);
-            const { images } = await uploadImage({ option: 'posts', id: newPost.id, data }).unwrap();
-            newPost.image = images[0].split(',')[0];
+            try {
+              const data = createImageForm(file);
+              const { images } = await uploadImage({ option: 'posts', id: newPost.id, data }).unwrap();
+              newPost.image = images[0].split(',')[0];
+            } catch (err) {
+              toast({
+                title: 'Error uploading image...',
+                description: 'Please try again later',
+                variant: 'destructive',
+              });
+            }
           }
 
           // add user field because backend doesn't
@@ -96,7 +103,7 @@ export const CreatePost = memo(
 
           callback(newPost, post ? 'update' : 'create');
           setOpen(false);
-          resetStores()
+          resetStores();
           toast({
             title: post ? 'Post updated' : 'Post created',
             description: post ? 'Your post has been updated' : 'Your post has been created',
