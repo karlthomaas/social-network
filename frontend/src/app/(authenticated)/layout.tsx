@@ -11,7 +11,7 @@ export default async function Layout({ children, params }: { children: React.Rea
       <div className='flex justify-center'>
         <div className='m-4 hidden w-[350px] lg:block'>Menu</div>
         <main className='relative h-full w-full max-w-screen-md p-4'>{children}</main>
-        <div className='sticky top-0 m-4 flex w-[350px] flex-col space-y-5 h-max'>
+        <div className='sticky top-0 m-4 hidden h-max w-[350px] flex-col space-y-5 lg:flex'>
           <SearchUsers />
           <ContactList />
         </div>
