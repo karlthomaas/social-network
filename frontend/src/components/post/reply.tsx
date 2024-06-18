@@ -18,6 +18,7 @@ import {
 } from '@/services/backend/actions/replies';
 import { ProfilePicture } from '@/app/(authenticated)/profile/[user]/_components/pfp';
 import Image from 'next/image';
+import { createKey } from 'next/dist/shared/lib/router/router';
 
 enum ReplyActionTypes {
   LIKE = 'LIKE',
@@ -27,7 +28,6 @@ enum ReplyActionTypes {
 }
 interface ReplyState {
   isLiked: boolean;
-  replyContent: string;
   reactions: number;
   isDeleted: boolean;
   editState: boolean;
@@ -56,7 +56,7 @@ const replyReducer = (state: ReplyState, action: { type: ReplyActionTypes; paylo
     case ReplyActionTypes.EDIT:
       return {
         ...state,
-        editState: true,
+        editState: action.payload,
       };
   }
 };
@@ -68,7 +68,6 @@ export const Reply = ({ postId, reply, isAuthor }: { postId: string; reply: Repl
 
   const [state, dispatch] = useReducer(replyReducer, {
     isLiked: reply.reaction.id ? true : false,
-    replyContent: reply.content,
     reactions: reply.reactions,
     isDeleted: false,
     editState: false,
@@ -120,12 +119,12 @@ export const Reply = ({ postId, reply, isAuthor }: { postId: string; reply: Repl
 
   const onReplyEdit = (reply: ReplyType, type: 'create' | 'edit') => {
     if (type === 'edit') {
-      console.log('🚀 ~ onReplyEdit ~ reply:', reply);
       dispatch({ type: ReplyActionTypes.SUBMIT_EDIT, payload: reply });
     }
   };
 
   const onReplyEditCancel = () => {
+    console.log('"omg')
     dispatch({ type: ReplyActionTypes.EDIT, payload: false });
   };
 
