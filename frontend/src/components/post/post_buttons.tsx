@@ -1,7 +1,7 @@
 import { Button } from '../ui/button';
 import { ThumbsUp, MessageSquare, Forward } from 'lucide-react';
 import { useRef, useState } from 'react';
-import { useToast } from '../ui/use-toast';
+import { toast, useToast } from '../ui/use-toast';
 import { useCreatePostReactionMutation, useDeletePostReactionMutation } from '@/services/backend/actions/posts';
 
 interface LikeButtonProps {
@@ -61,8 +61,14 @@ export const CommentButton = ({ onClick }: { onClick: () => void }) => {
 };
 
 export const ShareButton = ({ link }: { link: string }) => {
+  const handleClick = () => {
+    toast({
+      title: 'Post link copied successfully!',
+      description: '',
+    });
+  };
   return (
-    <Button variant='ghost' className='flex w-full items-center space-x-4'>
+    <Button onClick={handleClick} variant='ghost' className='flex w-full items-center space-x-4'>
       <Forward />
       <p>Share</p>
     </Button>

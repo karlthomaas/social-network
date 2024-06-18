@@ -13,8 +13,8 @@ import { useEffect, useState } from 'react';
 import { Sidebar } from '@/components/sidebar';
 import { useGetSessionUserQuery } from '@/services/backend/actions/user';
 
-export default function Navbar({ authenticate = false }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+export default function Navbar() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const dispatch = useAppDispatch();
   const { user, isLoading } = useAppSelector((state) => state.auth);
@@ -50,14 +50,14 @@ export default function Navbar({ authenticate = false }) {
     } else {
       return <LoginButton />;
     }
-  }
-  
+  };
+
   return (
     <>
       <nav className='h-[65px] w-full border-b-[1px] border-border'>
-        <ul className='mx-auto flex h-full max-w-screen-md items-center justify-between p-4'>
+        <ul className='mx-auto flex h-full max-w-screen-md items-center justify-between p-4 lg:max-w-screen-2xl'>
           <li>
-            <Link href='/home' className='flex itemscenter space-x-4'>
+            <Link href='/home' className='itemscenter flex space-x-4'>
               <div className='h-[30px] w-[30px] rounded-lg bg-secondary' />
               <p className='text-lg'>Social Network</p>
             </Link>
@@ -66,7 +66,7 @@ export default function Navbar({ authenticate = false }) {
         </ul>
       </nav>
       <Sidebar handleClose={handleCloseSidebar} isOpen={sidebarOpen}>
-        Bruh
+        Sidebar
       </Sidebar>
     </>
   );

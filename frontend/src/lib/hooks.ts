@@ -8,7 +8,6 @@ export const useDebouncedValue = (input: string, delay: number): [string, boolea
   const [debouncedValue, setDebouncedValue] = useState(input);
 
   useEffect(() => {
-    console.log(input);
     setIsLoading(true);
     const handler = setTimeout(() => {
       setDebouncedValue(input);

@@ -25,6 +25,7 @@ export const UserDetails = ({ username }: { username: string }) => {
           <h3 className='text-xl font-semibold'>{`${profileUser.first_name} ${profileUser.last_name}`}</h3>
           <h4 className='font-medium text-neutral-400'>@{profileUser.nickname}</h4>
           <p className='mt-5 text-sm'>{profileUser.about_me}</p>
+          <p className='mt-5 text-sm text-neutral-400'>{profileUser.privacy}</p>
         </div>
       </div>
 

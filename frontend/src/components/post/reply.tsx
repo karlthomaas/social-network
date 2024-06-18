@@ -124,7 +124,6 @@ export const Reply = ({ postId, reply, isAuthor }: { postId: string; reply: Repl
   };
 
   const onReplyEditCancel = () => {
-    console.log('"omg')
     dispatch({ type: ReplyActionTypes.EDIT, payload: false });
   };
 

@@ -67,6 +67,9 @@ func (app *application) createUserHandler(w http.ResponseWriter, r *http.Request
 		case errors.Is(err, data.ErrDuplicateNickname):
 			v.AddError("nickname", "user with this nickname already exists")
 			app.failedValidationResponse(w, r, v.Errors)
+		case errors.Is(err, data.ErrDuplicateEmail):
+			v.AddError("email", "user with this email already exists")
+			app.failedValidationResponse(w, r, v.Errors)
 		default:
 			app.serverErrorResponse(w, r, err)
 		}

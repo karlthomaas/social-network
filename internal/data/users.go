@@ -327,9 +327,8 @@ func ValidateEmail(v *validator.Validator, email string) {
 }
 
 func ValidatePassword(v *validator.Validator, password string) {
-	v.Check(password != "", "password", "must be procided")
-	// TODO:CHANGE PASSWORD LENGTH
-	v.Check(len(password) >= 2, "password", "must be at least 8 character long")
+	v.Check(password != "", "password", "must be provided")
+	v.Check(len(password) >= 10, "password", "must be at least 10 character long")
 	v.Check(len(password) <= 72, "password", "must not me more than 72 characters long")
 }
 

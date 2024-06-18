@@ -55,9 +55,6 @@ export const NavbarProfile = () => {
         <DropdownMenuItem>
           <Link href='/groups'>Groups</Link>
         </DropdownMenuItem>
-        <DropdownMenuItem>
-          <Link href='/settings'>Settings</Link>
-        </DropdownMenuItem>
         <DropdownMenuItem className='hover:cursor-pointer' onClick={() => handleLogout()}>
           Logout
         </DropdownMenuItem>

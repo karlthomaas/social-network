@@ -1,13 +1,9 @@
 'use client';
 
-import { CreatePost } from './_components/create-post';
 import { Post } from '@/components/post/post';
-import { Button } from '@/components/ui/button';
-import { DialogTrigger } from '@/components/ui/dialog';
 import { PostType } from '@/components/post/post';
 import { useEffect, useState } from 'react';
 import { useGetFeedPostsQuery } from '@/services/backend/actions/posts';
-import { ProfilePicture } from '@/app/(authenticated)/profile/[user]/_components/pfp';
 import { useAppSelector } from '@/lib/hooks';
 import { CreatePostBar } from '@/components/post/create-post-bar';
 
@@ -29,7 +25,6 @@ export default function Home() {
       setPosts((posts) => [response, ...posts]);
     }
   };
-
   if (isLoading) {
     return (
       <div className='flex flex-col space-y-5'>

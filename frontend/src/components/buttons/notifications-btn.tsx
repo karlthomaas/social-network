@@ -20,7 +20,6 @@ export const NotificationBtn = () => {
 
   useEffect(() => {
     if (data?.notifications) {
-      console.log(data.notifications);
       setNotifications(data.notifications);
     }
   }, [data]);
