@@ -21,8 +21,8 @@ const formSchema = z.object({
   postId: z.string().optional(),
   replyId: z.string().optional(),
   content: z.string().min(1),
-  image: z.unknown().transform((value) => {
-    return value as File;
+  images: z.unknown().transform((value) => {
+    return value as FileList;
   }),
 });
 
@@ -32,7 +32,6 @@ export const ReplyInput = ({
   postId,
   replyId,
   replyInput = '',
-  setNewReply = () => {},
   onCancel = () => {},
   callback = () => {},
 }: {
@@ -40,12 +39,11 @@ export const ReplyInput = ({
   replyId?: string;
   replyInput?: string;
   onCancel?: () => void;
-  setNewReply?: (reply: ReplyType) => void;
-  callback?: (data: any) => void;
+  callback?: (reply: ReplyType, type: 'create' | 'edit') => void;
 }) => {
   const [createReply, { isLoading: isLoadingCreate }] = useCreatePostReplyMutation();
   const [editReply, { isLoading: isLoadingEdit }] = useUpdatePostReplyMutation();
-  const [uploadImage, { isLoading: isLoadingImage }] = useUploadImageMutation();
+  const [uploadImage] = useUploadImageMutation();
 
   const { user } = useAppSelector((state) => state.auth);
 
@@ -59,7 +57,7 @@ export const ReplyInput = ({
     },
   });
 
-  const imageRef = form.register('image');
+  const imageRef = form.register('images');
   const input = form.watch('content');
 
   const createImageForm = (file: File) => {
@@ -70,20 +68,23 @@ export const ReplyInput = ({
 
   const onSubmit = async (data: ReplyFormProps) => {
     try {
-      const { image, ...values } = data;
+      const { images, ...values } = data;
       let reply: ReplyType;
+      let type: 'create' | 'edit';
 
       if (replyId) {
         const response = await editReply(values).unwrap();
-        reply = response.reply;
+        reply = { ...response.reply };
+        type = 'edit';
       } else {
         const response = await createReply(values).unwrap();
-        reply = response.reply;
+        reply = { ...response.reply };
+        type = 'create';
       }
 
-      if (image) {
+      if (images.length > 0) {
+        const data = createImageForm(images[0]);
         try {
-          const data = createImageForm(image);
           const { images } = await uploadImage({ option: 'replies', id: reply.id, data }).unwrap();
           reply.image = images[0].split(',')[0];
         } catch (err) {
@@ -95,8 +96,7 @@ export const ReplyInput = ({
         }
       }
 
-      callback(reply);
-      setNewReply(reply);
+      callback(reply, type);
       form.reset();
       form.setValue('content', '');
     } catch (err) {
@@ -134,7 +134,7 @@ export const ReplyInput = ({
           <div className='flex'>
             <FormField
               control={form.control}
-              name='image'
+              name='images'
               render={() => {
                 return (
                   <FormItem>

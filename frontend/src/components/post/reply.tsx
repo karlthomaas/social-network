@@ -17,6 +17,7 @@ import {
   useDeleteReplyReactionMutation,
 } from '@/services/backend/actions/replies';
 import { ProfilePicture } from '@/app/(authenticated)/profile/[user]/_components/pfp';
+import Image from 'next/image';
 
 enum ReplyActionTypes {
   LIKE = 'LIKE',
@@ -30,6 +31,7 @@ interface ReplyState {
   reactions: number;
   isDeleted: boolean;
   editState: boolean;
+  reply: ReplyType;
 }
 
 const replyReducer = (state: ReplyState, action: { type: ReplyActionTypes; payload: any }) => {
@@ -49,7 +51,7 @@ const replyReducer = (state: ReplyState, action: { type: ReplyActionTypes; paylo
       return {
         ...state,
         editState: false,
-        replyContent: action.payload,
+        reply: action.payload,
       };
     case ReplyActionTypes.EDIT:
       return {
@@ -70,6 +72,7 @@ export const Reply = ({ postId, reply, isAuthor }: { postId: string; reply: Repl
     reactions: reply.reactions,
     isDeleted: false,
     editState: false,
+    reply,
   });
 
   const replyRef = useRef(reply);
@@ -115,8 +118,11 @@ export const Reply = ({ postId, reply, isAuthor }: { postId: string; reply: Repl
     }
   };
 
-  const onReplyEdit = (data: any) => {
-    dispatch({ type: ReplyActionTypes.SUBMIT_EDIT, payload: data.content });
+  const onReplyEdit = (reply: ReplyType, type: 'create' | 'edit') => {
+    if (type === 'edit') {
+      console.log('🚀 ~ onReplyEdit ~ reply:', reply);
+      dispatch({ type: ReplyActionTypes.SUBMIT_EDIT, payload: reply });
+    }
   };
 
   const onReplyEditCancel = () => {
@@ -138,7 +144,19 @@ export const Reply = ({ postId, reply, isAuthor }: { postId: string; reply: Repl
         <div className='relative flex space-x-3'>
           <div className='flex w-max min-w-[250px] flex-col rounded-xl bg-secondary p-2'>
             <h1 className='font-medium capitalize'>{`${reply.user.first_name} ${reply.user.last_name}`}</h1>
-            <p className='break-all'>{state.replyContent}</p>
+            <p className='break-all'>{state.reply.content}</p>
+            <div className='h-max w-max'>
+              {state.reply.image && (
+                <Image
+                  alt='reply pilt'
+                  className='rounded-md'
+                  src={`http://localhost:4000${state.reply.image}`}
+                  width={300}
+                  height={300}
+                  unoptimized
+                />
+              )}
+            </div>
           </div>
           {isAuthor && (
             <ReplyOptions
