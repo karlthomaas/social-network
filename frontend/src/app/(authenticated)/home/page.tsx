@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 import { useGetFeedPostsQuery } from '@/services/backend/actions/posts';
 import { ProfilePicture } from '@/app/(authenticated)/profile/[user]/_components/pfp';
 import { useAppSelector } from '@/lib/hooks';
+import { CreatePostBar } from '@/components/post/create-post-bar';
 
 export default function Home() {
   const { user } = useAppSelector((state) => state.auth);
@@ -42,14 +43,7 @@ export default function Home() {
   return (
     <div>
       <div className='flex h-[80px] w-full items-center rounded-xl border border-border bg-background px-3'>
-        <ProfilePicture url={user?.image} className='size-[50px] rounded-full bg-secondary' />
-        <CreatePost callback={updatePosts}>
-          <DialogTrigger asChild>
-            <Button className='ml-3 w-full justify-start' variant='outline'>
-              What's on your mind?
-            </Button>
-          </DialogTrigger>
-        </CreatePost>
+        <CreatePostBar image={user?.image} callback={updatePosts} />
       </div>
       {posts && (
         <div className='mt-5 flex flex-col space-y-5'>

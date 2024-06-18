@@ -13,6 +13,7 @@ import { useEffect, useState } from 'react';
 import { useGetUserPostsQuery } from '@/services/backend/actions/posts';
 import { ProfilePicture } from '@/app/(authenticated)/profile/[user]/_components/pfp';
 import { FollowingList } from '@/app/(authenticated)/profile/[user]/_components/following-list';
+import { CreatePostBar } from '@/components/post/create-post-bar';
 
 export default function Profile({ params }: { params: { user: string } }) {
   const { isLoading, data } = useGetUserPostsQuery(params.user);
@@ -45,18 +46,7 @@ export default function Profile({ params }: { params: { user: string } }) {
         </div>
       </div>
       <div className='mt-10 flex flex-col space-y-3'>
-        {user?.nickname === params.user && (
-          <div className='flex h-[80px] w-full items-center rounded-xl border border-border bg-background px-3'>
-            <ProfilePicture url={user.image} className='size-[50px] rounded-full bg-secondary' />
-            <CreatePost callback={updatePosts}>
-              <DialogTrigger asChild>
-                <Button className='ml-3 w-full justify-start' variant='outline'>
-                  What's on your mind?
-                </Button>
-              </DialogTrigger>
-            </CreatePost>
-          </div>
-        )}
+        {user?.nickname === params.user && <CreatePostBar callback={updatePosts} image={user.image} />}
         <ProfilePosts posts={posts} isAuthor={user?.nickname === params.user} isLoading={isLoading} />
       </div>
     </div>
