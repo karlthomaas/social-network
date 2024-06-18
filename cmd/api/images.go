@@ -39,10 +39,11 @@ func (app *application) createImageHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	files := r.MultipartForm.File["images"]
-	if files == nil {
-		app.badRequestResponse(w, r, err)
+	if len(files) <= 0 {
+		app.badRequestResponse(w, r, errors.New("incorrect filelist"))
 		return
 	}
+
 	var filePaths string
 	var publicFilePaths string
 	var output []string
@@ -74,6 +75,7 @@ func (app *application) createImageHandler(w http.ResponseWriter, r *http.Reques
 		output = append(output, publicFilePaths)
 
 	}
+	fmt.Println("nonii")
 
 	publicFilePaths = publicFilePaths[:len(publicFilePaths)-1]
 
