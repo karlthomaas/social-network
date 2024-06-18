@@ -42,9 +42,7 @@ export default function Home() {
 
   return (
     <div>
-      <div className='flex h-[80px] w-full items-center rounded-xl border border-border bg-background px-3'>
-        <CreatePostBar image={user?.image} callback={updatePosts} />
-      </div>
+      <CreatePostBar image={user?.image} callback={updatePosts} />
       {posts && (
         <div className='mt-5 flex flex-col space-y-5'>
           {posts.map((post: PostType) => (

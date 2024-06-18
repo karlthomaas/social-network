@@ -43,9 +43,7 @@ export const GroupMemberView = ({ id }: { id: string }) => {
         <EventsModal group={group.group} />
         {isOwner && <GroupJoinRequests id={groupId} />}
       </div>
-      <div className='flex h-[80px] w-full items-center rounded-xl border border-border bg-background px-3'>
-        <CreatePostBar image={user?.image} callback={updatePosts} />
-      </div>
+      <CreatePostBar image={user?.image} callback={updatePosts} />
       <div>
         <GroupFeed userId={user?.id} posts={posts} groupId={groupId} />
       </div>
