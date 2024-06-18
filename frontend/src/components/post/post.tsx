@@ -53,7 +53,7 @@ export const Post = ({ isAuthor, postData, isLoading }: { isAuthor: boolean; pos
         <div className='flex items-center space-x-2'>
           <ProfilePicture url={post.user.image} className='size-[50px]' />
           <div className='flex flex-col'>
-            <Link href={post.user.nickname} className='capitalize underline-offset-2 hover:underline'>
+            <Link href={`/profile/${post.user.nickname}`} className='capitalize underline-offset-2 hover:underline'>
               {post.user.first_name} {post.user.last_name}
             </Link>
             <div className='flex items-center space-x-1 text-neutral-400'>
