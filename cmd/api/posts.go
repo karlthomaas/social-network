@@ -176,6 +176,8 @@ func (app *application) showPostHandler(w http.ResponseWriter, r *http.Request) 
 }
 
 func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request) {
+	user := app.contextGetUser(r)
+
 	id, err := app.readParam(r, "id")
 	if err != nil {
 		app.notFoundResponse(w, r)
@@ -190,6 +192,11 @@ func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request
 		default:
 			app.serverErrorResponse(w, r, err)
 		}
+		return
+	}
+
+	if post.UserID != user.ID {
+		app.unAuthorizedResponse(w, r)
 		return
 	}
 

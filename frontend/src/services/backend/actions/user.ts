@@ -14,8 +14,13 @@ export const extendedUserApi = backendApi.injectEndpoints({
       query: () => 'users/me',
       providesTags: (result) => (result?.user ? [{ type: 'User', id: result.user.id }] : []),
     }),
-    getUserFollowers: builder.query<{ followers: FollowerType[] }, string>({
+    getUserFollowers: builder.query<{ data: { userId: string; followers: FollowerType[] } }, string>({
       query: (nickname: string) => `users/${nickname}/followers`,
+      providesTags: (response) => [{ type: 'Followers', id: response?.data.userId }],
+    }),
+    getUserFollowing: builder.query<{ data: { userId: string; following: FollowerType[] } }, string>({
+      query: (nickname: string) => `users/${nickname}/following`,
+      providesTags: (response) => [{ type: 'Followers', id: response?.data.userId }],
     }),
     updatePrivacy: builder.mutation<any, PrivacyStates>({
       query: (privacy) => ({
@@ -60,6 +65,7 @@ export const {
   useGetUsersQuery,
   useGetSessionUserQuery,
   useGetUserFollowersQuery,
+  useGetUserFollowingQuery,
   useUpdatePrivacyMutation,
   useGetUserGroupInvitationsQuery,
   useGetUserDetailsQuery,

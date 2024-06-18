@@ -31,7 +31,7 @@ type Post struct {
 	User      User      `json:"user"`
 	Reaction  Reaction  `json:"reaction"`
 	Reactions int       `json:"reactions"`
-	Group     Group      `json:"group"`
+	Group     Group     `json:"group"`
 }
 
 type PostVisibility struct {
@@ -42,7 +42,7 @@ type PostVisibility struct {
 
 func (m *PostModel) Get(id string) (*Post, error) {
 	query := `
-	SELECT p.id, p.user_id, p.content, p.group_id, p.image, p.privacy, p.created_at, p.updated_at, u.first_name, u.last_name, r.user_id
+	SELECT p.id, p.user_id, p.content, p.group_id, p.image, p.privacy, p.created_at, p.updated_at, u.first_name, u.last_name, u.nickname ,r.user_id
 	FROM posts p 
 	JOIN users u ON p.user_id = u.id
 	LEFT JOIN reactions r ON p.id = r.post_id
@@ -66,6 +66,7 @@ func (m *PostModel) Get(id string) (*Post, error) {
 		&post.UpdatedAt,
 		&post.User.FirstName,
 		&post.User.LastName,
+		&post.User.Nickname,
 		&RUserID,
 	)
 
@@ -166,7 +167,7 @@ func (m *PostModel) Delete(id string) error {
 
 func (m *PostModel) GetAllForUser(userID string, loggedInUser string) ([]*Post, error) {
 	query := `
-	SELECT p.id, p.user_id, p.content, p.group_id ,p.image, p.privacy, p.created_at, p.updated_at, u.first_name, u.last_name, u.image, r.id, g.title
+	SELECT p.id, p.user_id, p.content, p.group_id ,p.image, p.privacy, p.created_at, p.updated_at, u.first_name, u.last_name, u.image, u.nickname, r.id, g.title
 	FROM posts p 
 	JOIN users u ON p.user_id = u.id
 	LEFT JOIN followers f ON f.user_id = p.user_id AND f.follower_id = ?
@@ -189,7 +190,7 @@ func (m *PostModel) GetAllForUser(userID string, loggedInUser string) ([]*Post, 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	rows, err := m.DB.QueryContext(ctx, query, loggedInUser, loggedInUser, loggedInUser, userID, loggedInUser,loggedInUser,loggedInUser, loggedInUser, loggedInUser)
+	rows, err := m.DB.QueryContext(ctx, query, loggedInUser, loggedInUser, loggedInUser, userID, loggedInUser, loggedInUser, loggedInUser, loggedInUser, loggedInUser)
 	if err != nil {
 		return nil, err
 	}
@@ -213,6 +214,7 @@ func (m *PostModel) GetAllForUser(userID string, loggedInUser string) ([]*Post, 
 			&post.User.FirstName,
 			&post.User.LastName,
 			&post.User.Image,
+			&post.User.Nickname,
 			&reactionID,
 			&groupTitle,
 		)
@@ -247,7 +249,7 @@ func (m *PostModel) GetAll(loggedInUser string) ([]*Post, error) {
 
 	query := `
 			SELECT p.id, p.user_id, p.content, p.group_id, p.image, p.privacy, p.created_at, p.updated_at, 
-			u.first_name, u.last_name, u.image, r.id, g.title
+			u.first_name, u.last_name, u.image, u.nickname ,r.id, g.title
 		FROM posts p 
 		JOIN users u ON p.user_id = u.id
 		LEFT JOIN followers f ON f.user_id = p.user_id AND f.follower_id = ?
@@ -290,6 +292,7 @@ func (m *PostModel) GetAll(loggedInUser string) ([]*Post, error) {
 			&post.User.FirstName,
 			&post.User.LastName,
 			&post.User.Image,
+			&post.User.Nickname,
 			&reactionID,
 			&groupTitle,
 		)
@@ -309,7 +312,6 @@ func (m *PostModel) GetAll(loggedInUser string) ([]*Post, error) {
 		} else {
 			post.Group.Title = groupTitle.String
 		}
-
 
 		posts = append(posts, &post)
 	}
@@ -449,7 +451,7 @@ func (m *PostModel) UpdatePostVisibilities(postID string, newUserIDs, currentUse
 func (m *PostModel) GetAllGroupPosts(groupID, loggedInUser string) ([]*Post, error) {
 	query := `
 	SELECT p.id, p.user_id, p.content, p.group_id, p.image, p.privacy, p.created_at, p.updated_at, 
-	u.first_name, u.last_name, r.id
+	u.first_name, u.last_name, u.image, u.nickname, r.id
 	FROM posts p 
 	JOIN users u ON p.user_id = u.id
 	LEFT JOIN reactions r ON p.id = r.post_id AND r.user_id = ?
@@ -482,6 +484,8 @@ func (m *PostModel) GetAllGroupPosts(groupID, loggedInUser string) ([]*Post, err
 			&post.UpdatedAt,
 			&post.User.FirstName,
 			&post.User.LastName,
+			&post.User.Image,
+			&post.User.Nickname,
 			&reactionID,
 		)
 

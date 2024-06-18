@@ -16,6 +16,7 @@ import {
   useDeletePostReplyMutation,
   useDeleteReplyReactionMutation,
 } from '@/services/backend/actions/replies';
+import { ProfilePicture } from '@/app/(authenticated)/profile/[user]/_components/pfp';
 
 enum ReplyActionTypes {
   LIKE = 'LIKE',
@@ -132,7 +133,7 @@ export const Reply = ({ postId, reply, isAuthor }: { postId: string; reply: Repl
 
   return (
     <div key={reply.id} className='group flex w-full space-x-6 '>
-      <div id='pfp' className='size-[40px] flex-none rounded-full bg-secondary ' />
+      <ProfilePicture url={reply.user.image} className='size-[40px]' />
       <div className='flex w-max max-w-[calc(100%-110px)] flex-col space-y-1'>
         <div className='relative flex space-x-3'>
           <div className='flex w-max min-w-[250px] flex-col rounded-xl bg-secondary p-2'>

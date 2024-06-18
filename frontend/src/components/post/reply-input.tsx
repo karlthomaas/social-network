@@ -11,6 +11,8 @@ import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useCreatePostReplyMutation, useUpdatePostReplyMutation } from '@/services/backend/actions/replies';
+import { ProfilePicture } from '@/app/(authenticated)/profile/[user]/_components/pfp';
+import { useAppSelector } from '@/lib/hooks';
 
 const formSchema = z.object({
   postId: z.string().optional(),
@@ -38,6 +40,7 @@ export const ReplyInput = ({
 }) => {
   const [createReply, { isLoading: isLoadingCreate }] = useCreatePostReplyMutation();
   const [editReply, { isLoading: isLoadingEdit }] = useUpdatePostReplyMutation();
+  const { user } = useAppSelector((state) => state.auth);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const form = useForm<ReplyFormProps>({
@@ -50,7 +53,6 @@ export const ReplyInput = ({
   });
 
   const input = form.watch('content');
-  // const fileRef = form.register('file');
 
   const onSubmit = async (data: ReplyFormProps) => {
     try {
@@ -73,17 +75,15 @@ export const ReplyInput = ({
     }
   };
 
-
   useEffect(() => {
     // focus on textarea when rendered
     textareaRef.current?.focus();
   }, []);
-  // const fileRef = form.register('file');
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} encType='multipart/form-data' className='mb-3 flex h-max w-full space-x-5'>
-        <div className='aspect-square h-[40px] rounded-full bg-secondary' />
+        <ProfilePicture className='size-[40px] rounded-full bg-secondary' url={user?.image} />
         <div className='flex w-full flex-col space-y-2'>
           <FormField
             control={form.control}
@@ -92,14 +92,13 @@ export const ReplyInput = ({
               return (
                 <FormItem>
                   <FormControl>
-                    <Textarea placeholder='Comment as John Doe' {...field} />
+                    <Textarea placeholder={`Comment as ${user?.first_name} ${user?.last_name}`} {...field} />
                   </FormControl>
                 </FormItem>
               );
             }}
           />
           <div className='flex'>
-            {/* <Input type='file' {...fileRef} onChange={(event) => setFile(event?.target?.files?.[0])} /> */}
             <div className='ml-auto flex space-x-2'>
               {replyId && (
                 <Button type='button' size='sm' variant='secondary' className='w-[120px]' onClick={onCancel}>

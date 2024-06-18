@@ -101,6 +101,18 @@ func (app *application) createImageHandler(w http.ResponseWriter, r *http.Reques
 			}
 			return
 		}
+
+	case "replies":
+		err = app.models.Replies.InsertImage(IDParam, publicFilePaths)
+		if err != nil {
+			switch {
+			case errors.Is(err, data.ErrRecordNotFound):
+				app.notFoundResponse(w, r)
+			default:
+				app.serverErrorResponse(w, r, err)
+			}
+			return
+		}
 	}
 
 	err = app.writeJSON(w, http.StatusOK, envelope{"images": output}, nil)

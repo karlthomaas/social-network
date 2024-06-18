@@ -7,7 +7,7 @@ import { useGetContactsQuery, useGetUserFollowersQuery } from '@/services/backen
 
 export const ContactList = () => {
   const groupsQuery = useGetSessionUserGroupsQuery();
-  const contactsQuery = useGetContactsQuery()
+  const contactsQuery = useGetContactsQuery();
 
   return (
     <div className='hidden h-max w-full flex-col space-y-6 rounded-lg border border-border py-4 lg:flex'>
@@ -23,6 +23,7 @@ export const ContactList = () => {
             id={contact.follower_id}
             type='private'
             name={`${contact.user.first_name} ${contact.user.last_name}`}
+            image={contact.user.image}
           />
         ))
       )}

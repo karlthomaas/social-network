@@ -24,21 +24,20 @@ export const UserDetails = ({ username }: { username: string }) => {
         <div className='flex flex-col space-y-1'>
           <h3 className='text-xl font-semibold'>{`${profileUser.first_name} ${profileUser.last_name}`}</h3>
           <h4 className='font-medium text-neutral-400'>@{profileUser.nickname}</h4>
-          <p className="mt-5 text-sm">{profileUser.about_me}</p>
+          <p className='mt-5 text-sm'>{profileUser.about_me}</p>
         </div>
       </div>
 
-      <div className="mt-2 flex">
-
-      {!isUserProfile ? (
-        <FollowBtn user_id={profileUser.id} />
+      <div className='mt-2 flex'>
+        {!isUserProfile ? (
+          <FollowBtn user_id={profileUser.id} />
         ) : (
-          <div className="flex space-x-2">
-          <PrivacyBtn privacy_state={profileUser.privacy} />
-          <SettingsBtn />
-        </div>
-      )}
-    </div>
+          <div className='flex space-x-2'>
+            <PrivacyBtn privacy_state={profileUser.privacy} />
+            <SettingsBtn />
+          </div>
+        )}
+      </div>
     </div>
   );
 };

@@ -15,14 +15,14 @@ const extendedFollowersApi = backendApi.injectEndpoints({
         url: `users/${userId}/followers`,
         method: 'POST',
       }),
-      invalidatesTags: ['Contacts'],
+      invalidatesTags: (r, e, userId) => [{ type: 'Followers', id: userId }, 'Contacts'],
     }),
     unfollowUser: builder.mutation<any, string>({
       query: (userId) => ({
         url: `users/${userId}/followers`,
         method: 'DELETE',
       }),
-      invalidatesTags: ['Contacts'],
+      invalidatesTags: (r, e, userId) => [{ type: 'Followers', id: userId }, 'Contacts'],
     }),
     cancelFollowRequest: builder.mutation<any, string>({
       query: (userId) => ({

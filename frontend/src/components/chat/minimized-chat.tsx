@@ -1,3 +1,4 @@
+import { ProfilePicture } from '@/app/(authenticated)/profile/[user]/_components/pfp';
 import { ChatType, closeChat, reOpenChat } from '@/features/chats/chatsSlice';
 import { useAppDispatch } from '@/lib/hooks';
 import React from 'react';
@@ -16,12 +17,18 @@ export const MinimizedChat = React.memo(({ chat }: { chat: ChatType }) => {
 
   return (
     <div className='group relative h-max w-max'>
-      <div
-        onClick={() => dispatch(reOpenChat(chat.id))}
-        className='flex size-12 items-center justify-center rounded-full border border-border bg-secondary/70 hover:cursor-pointer hover:bg-secondary'
-      >
-        {chatName.toUpperCase()}
-      </div>
+      {chat.image ? (
+        <div onClick={() => dispatch(reOpenChat(chat.id))}>
+          <ProfilePicture url={chat.image} className='size-12' />
+        </div>
+      ) : (
+        <div
+          onClick={() => dispatch(reOpenChat(chat.id))}
+          className='flex size-12 items-center justify-center rounded-full border border-border bg-secondary/70 hover:cursor-pointer hover:bg-secondary'
+        >
+          {chatName.toUpperCase()}
+        </div>
+      )}
       <div
         onClick={() => dispatch(closeChat(chat.id))}
         className=' absolute -right-1 -top-2 hidden h-[20px] w-[20px] items-center justify-center rounded-full bg-primary/70 hover:cursor-pointer hover:bg-primary/80 group-hover:flex'

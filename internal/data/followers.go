@@ -87,7 +87,7 @@ func (m *FollowerModel) Get(userID, followerID string) (*Follower, error) {
 }
 
 func (m *FollowerModel) GetAllForUser(userID string) ([]*Follower, error) {
-	query := `SELECT f.user_id, f.follower_id, f.created_at, u.first_name, u.last_name
+	query := `SELECT f.user_id, f.follower_id, f.created_at, u.first_name, u.last_name, u.image, u.nickname
 	FROM followers f
 	JOIN users u ON f.follower_id = u.id
 	WHERE f.user_id = ?
@@ -111,6 +111,8 @@ func (m *FollowerModel) GetAllForUser(userID string) ([]*Follower, error) {
 			&follower.CreatedAt,
 			&follower.User.FirstName,
 			&follower.User.LastName,
+			&follower.User.Image,
+			&follower.User.Nickname,
 		)
 
 		followers = append(followers, &follower)
@@ -124,7 +126,7 @@ func (m *FollowerModel) GetAllForUser(userID string) ([]*Follower, error) {
 }
 
 func (m *FollowerModel) GetAllUserFollowing(userID string) ([]*Follower, error) {
-	query := `SELECT f.user_id, f.follower_id, f.created_at, u.first_name, u.last_name
+	query := `SELECT f.user_id, f.follower_id, f.created_at, u.first_name, u.last_name, u.image ,u.nickname
 	FROM followers f
 	JOIN users u ON f.user_id = u.id
 	WHERE f.follower_id = ?
@@ -148,6 +150,8 @@ func (m *FollowerModel) GetAllUserFollowing(userID string) ([]*Follower, error) 
 			&follower.CreatedAt,
 			&follower.User.FirstName,
 			&follower.User.LastName,
+			&follower.User.Image,
+			&follower.User.Nickname,
 		)
 
 		followers = append(followers, &follower)
@@ -194,7 +198,7 @@ func (m *FollowerModel) GetContacts(userID string) ([]*Follower, error) {
 	for rows.Next() {
 		var follower Follower
 		err := rows.Scan(
-			&follower.FollowerID, 
+			&follower.FollowerID,
 			&follower.CreatedAt,
 			&follower.User.FirstName,
 			&follower.User.LastName,
@@ -215,7 +219,6 @@ func (m *FollowerModel) GetContacts(userID string) ([]*Follower, error) {
 
 	return followers, nil
 }
-
 
 func (m *FollowerModel) InsertWithTx(tx *sql.Tx, follower *Follower) error {
 	query := `INSERT INTO followers (user_id, follower_id)

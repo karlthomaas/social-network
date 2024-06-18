@@ -12,7 +12,6 @@ func (app *application) createReplyHandler(w http.ResponseWriter, r *http.Reques
 
 	var input struct {
 		Content string `json:"content"`
-		Image   []byte `json:"image"`
 	}
 
 	postID, err := app.readParam(r, "id")
@@ -40,7 +39,6 @@ func (app *application) createReplyHandler(w http.ResponseWriter, r *http.Reques
 		UserID:    user.ID,
 		PostID:    postID,
 		Content:   input.Content,
-		Image:     input.Image,
 		UpdatedAt: time.Now().Truncate(time.Second),
 		CreatedAt: time.Now().Truncate(time.Second),
 	}
@@ -142,7 +140,6 @@ func (app *application) updateReplyHandler(w http.ResponseWriter, r *http.Reques
 
 	var input struct {
 		Content *string `json:"content"`
-		Image   *[]byte `json:"image"`
 	}
 
 	replyID, err := app.readParam(r, "replyID")
@@ -170,14 +167,6 @@ func (app *application) updateReplyHandler(w http.ResponseWriter, r *http.Reques
 
 	if input.Content != nil {
 		reply.Content = *input.Content
-	}
-
-	if input.Image != nil {
-		reply.Image = *input.Image
-	}
-
-	if input.Image != nil {
-		reply.Image = *input.Image
 	}
 
 	reply.UpdatedAt = time.Now().Truncate(time.Second)

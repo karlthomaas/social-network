@@ -1,4 +1,5 @@
 import { MessageType } from '@/components/chat/message';
+import chatsSlice from '@/features/chats/chatsSlice';
 import { Socket } from '@/lib/socket';
 import { backendApi } from '@/services/backend/backendApi';
 
@@ -41,8 +42,10 @@ const handleSocketRecieve = (message: MessageEvent, dispatch: any) => {
   const data: WSPayload = JSON.parse(message.data);
   if (message.type !== 'message') return;
   if (data.type === 'private_message') {
+    console.log('🚀 ~ handleSocketRecieve ~ data:', data);
     const id = data.group_id ? data.group_id : data.sender;
     dispatch(backendApi.util.invalidateTags([{ type: 'Chat', id }]));
+    // dispatch(chatsSlice.)
   } else if (data.type === 'notification') {
     dispatch(backendApi.util.invalidateTags([{ type: 'Notification' }]));
   }

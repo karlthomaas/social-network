@@ -34,8 +34,8 @@ export const CreatePost = memo(
     groupId?: string;
     callback: (response: PostType, action: 'update' | 'create') => void;
   }) => {
+    console.log("🚀 ~ groupId:", groupId)
     const [open, setOpen] = useState(false);
-
     const dispatch = useAppDispatch();
     const [createPost] = useCreatePostMutation();
     const [updatePost] = useUpdatePostMutation();
@@ -58,6 +58,10 @@ export const CreatePost = memo(
       return formData;
     };
 
+    const resetStores = useCallback(() => {
+      dispatch(reset());
+    }, [dispatch]);
+
     const handleSubmit = useCallback(
       async (file: File | null) => {
         const body = {
@@ -78,10 +82,11 @@ export const CreatePost = memo(
             const response = await createPost(body).unwrap();
             newPost = { ...response.post };
           }
-          
+
           if (file) {
             const data = createImageForm(file);
-            await uploadImage({ option: 'posts', id: newPost.id, data }).unwrap();
+            const { images } = await uploadImage({ option: 'posts', id: newPost.id, data }).unwrap();
+            newPost.image = images[0].split(',')[0];
           }
 
           // add user field because backend doesn't
@@ -91,7 +96,7 @@ export const CreatePost = memo(
 
           callback(newPost, post ? 'update' : 'create');
           setOpen(false);
-
+          resetStores()
           toast({
             title: post ? 'Post updated' : 'Post created',
             description: post ? 'Your post has been updated' : 'Your post has been created',
@@ -116,12 +121,9 @@ export const CreatePost = memo(
         updatePost,
         callback,
         uploadImage,
+        resetStores,
       ]
     );
-
-    const resetStores = () => {
-      dispatch(reset());
-    };
 
     const handleModalState = (state: boolean) => {
       if (post) {

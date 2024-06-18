@@ -17,7 +17,9 @@ import { useUploadImageMutation } from '@/services/backend/actions/posts';
 export type profileFormType = z.infer<typeof formSchema>;
 
 const formSchema = z.object({
-  profile_picture: z.instanceof(FileList).optional(),
+  profile_picture: z.unknown().transform((value) => {
+    return value as FileList;
+  }),
   first_name: z.string().min(3, { message: 'First Name must be at least 3 characters' }),
   last_name: z.string().min(3, { message: 'Last Name must be at least 3 characters' }),
   nickname: z.string().min(3, { message: 'Nickname must be at least 3 characters' }),
@@ -209,7 +211,7 @@ export const SettingsForm = ({ setIsOpen }: { setIsOpen: (state: boolean) => voi
           />
         </div>
         <div className='flex space-x-2'>
-          <Button variant='outline' type="button" onClick={closeDialog} className='w-full basis-1/2'>
+          <Button variant='outline' type='button' onClick={closeDialog} className='w-full basis-1/2'>
             Cancel
           </Button>
           <Button disabled={!form.formState.isValid || isLoading || isUploading} type='submit' className='w-full basis-1/2'>

@@ -116,7 +116,17 @@ func (app *application) getUserFollowersHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	err = app.writeJSON(w, http.StatusOK, envelope{"followers": followers}, nil)
+	type Response struct {
+		UserID    string           `json:"userId"`
+		Followers []*data.Follower `json:"followers"`
+	}
+
+	response := &Response{
+		UserID:    user.ID,
+		Followers: followers,
+	}
+
+	err = app.writeJSON(w, http.StatusOK, envelope{"data": response}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -143,13 +153,22 @@ func (app *application) getUserFollowingHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	err = app.writeJSON(w, http.StatusOK, envelope{"following": followers}, nil)
+	type Response struct {
+		UserID    string           `json:"userId"`
+		Following []*data.Follower `json:"following"`
+	}
+
+	response := &Response{
+		UserID:    user.ID,
+		Following: followers,
+	}
+
+	err = app.writeJSON(w, http.StatusOK, envelope{"data": response}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
 }
-
 
 func (app *application) checkFollowPermissionsHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := app.readParam(r, "id")

@@ -58,7 +58,7 @@ const expandedPostsApi = backendApi.injectEndpoints({
         method: 'DELETE',
       }),
     }),
-    uploadImage: builder.mutation<{ url: string }, { option: string; id: string; data: FormData }>({
+    uploadImage: builder.mutation<{ images: string[] }, { option: string; id: string; data: FormData }>({
       query: ({ option, id, data }) => ({
         url: `images/${option}/${id}`,
         method: 'POST',

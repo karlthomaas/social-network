@@ -40,7 +40,6 @@ export default function Navbar({ authenticate = false }) {
         <>
           <div className='hidden items-center space-x-5 lg:flex'>
             <NotificationBtn />
-            {/* <FriendRequestsBtn userId={user.id} /> */}
             <NavbarProfile />
           </div>
           <Button size='sm' variant='ghost' className='lg:hidden' onClick={() => setSidebarOpen(!sidebarOpen)}>

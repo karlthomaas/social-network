@@ -11,10 +11,7 @@ import { PostType } from '@/components/post/post';
 import { useEffect, useState } from 'react';
 import { useAppSelector } from '@/lib/hooks';
 import { useGetGroupPostsQuery } from '@/services/backend/actions/posts';
-
-interface GroupFeedResponse {
-  group_posts: PostType[];
-}
+import { ProfilePicture } from '@/app/(authenticated)/profile/[user]/_components/pfp';
 
 export const GroupMemberView = ({ id }: { id: string }) => {
   const group = useAppSelector((state) => state.groups.groups[id]);
@@ -32,8 +29,12 @@ export const GroupMemberView = ({ id }: { id: string }) => {
     }
   }, [data]);
 
-  const handlePopulateFeed = (post: PostType) => {
-    setPosts((posts) => [post, ...posts]);
+  const updatePosts = (response: PostType, action: 'update' | 'create') => {
+    if (action === 'update') {
+      setPosts((posts) => posts.map((post) => (post.id === response.id ? response : post)));
+    } else {
+      setPosts((posts) => [response, ...posts]);
+    }
   };
 
   return (
@@ -46,8 +47,8 @@ export const GroupMemberView = ({ id }: { id: string }) => {
         {isOwner && <GroupJoinRequests id={groupId} />}
       </div>
       <div className='flex h-[80px] w-full items-center rounded-xl border border-border bg-background px-3'>
-        <div className='aspect-square w-[50px] rounded-full bg-secondary' />
-        <CreatePost callback={handlePopulateFeed} groupId={id}>
+        <ProfilePicture url={user?.image} className='size-[50px] rounded-full bg-secondary' />
+        <CreatePost callback={updatePosts} groupId={id}>
           <DialogTrigger asChild>
             <Button className='ml-3 w-full justify-start' variant='outline'>
               What's on your mind?
@@ -56,7 +57,7 @@ export const GroupMemberView = ({ id }: { id: string }) => {
         </CreatePost>
       </div>
       <div>
-        <GroupFeed posts={posts} groupId={groupId} />
+        <GroupFeed userId={user?.id} posts={posts} groupId={groupId} />
       </div>
     </>
   );

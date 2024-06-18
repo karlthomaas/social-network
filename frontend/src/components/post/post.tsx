@@ -9,6 +9,7 @@ import { formatDistanceToNowStrict } from 'date-fns';
 import { Globe, Lock } from 'lucide-react';
 import Image from 'next/image';
 import { ProfilePicture } from '@/app/(authenticated)/profile/[user]/_components/pfp';
+import Link from 'next/link';
 
 interface Reaction {
   id: string;
@@ -30,7 +31,7 @@ export interface PostType {
   reactions: number;
 }
 
-export const Post = ({ postData, isLoading }: { postData?: PostType; isLoading: boolean }) => {
+export const Post = ({ isAuthor, postData, isLoading }: { isAuthor: boolean; postData?: PostType; isLoading: boolean }) => {
   const [post, setPost] = useState<PostType | undefined>(postData);
   const [newReply, setNewReply] = useState<ReplyType | null>(null);
   const [showComments, setShowComments] = useState(false);
@@ -52,26 +53,22 @@ export const Post = ({ postData, isLoading }: { postData?: PostType; isLoading: 
         <div className='flex items-center space-x-2'>
           <ProfilePicture url={post.user.image} className='size-[50px]' />
           <div className='flex flex-col'>
-            <p className='capitalize'>
-              {post.user.first_name} {post.user.last_name}{' '}
-            </p>
+            <Link href={post.user.nickname} className='capitalize underline-offset-2 hover:underline'>
+              {post.user.first_name} {post.user.last_name}
+            </Link>
             <div className='flex items-center space-x-1 text-neutral-400'>
               <p className='text-sm '>{formatDistanceToNowStrict(new Date(post.updated_at), { addSuffix: true })}</p>
               {privacyIcon}
             </div>
           </div>
         </div>
-        <PostOptions post={post} setPost={setPost} />
+        {isAuthor && <PostOptions post={post} setPost={setPost} />}
       </div>
       <p className='ml-1'>{post.content}</p>
-      { post.image && (
-        <div>
-          <Image alt="pilt" src={`http://localhost:4000${post.image}`} height={200} width={300} unoptimized />
-        </div>
-      )}
+      {post.image && <Image alt='pilt' src={`http://localhost:4000${post.image}`} height={200} width={300} unoptimized />}
       <div className='mb-3 mt-10 flex justify-evenly border-y border-border'>
         <LikeButton reactions={post.reactions} likeStatus={likeStatus} type='post' postId={post.id} reactionId={post.reaction.id} />
-        <CommentButton onClick={async () => setShowComments(!showComments)} />
+        <CommentButton onClick={() => setShowComments(!showComments)} />
         <ShareButton link='' />
       </div>
       {showComments && (

@@ -17,7 +17,7 @@ type Reply struct {
 	UserID    string    `json:"user_id"`
 	PostID    string    `json:"post_id"`
 	Content   string    `json:"content"`
-	Image     []byte    `json:"image"`
+	Image     string    `json:"image"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 	User      User      `json:"user"`
@@ -72,7 +72,7 @@ func (m *ReplyModel) Delete(id string) error {
 
 func (m *ReplyModel) Get(id string) (*Reply, error) {
 	query := `
-	SELECT r.id, r.user_id, r.post_id, r.content, r.image, r.created_at, r.updated_at, u.first_name, u.last_name, react.user_id
+	SELECT r.id, r.user_id, r.post_id, r.content, r.image, r.created_at, r.updated_at, u.first_name, u.last_name, u.image, u.nickname, react.user_id
 	FROM replies r
 	JOIN users u ON u.id = r.user_id
 	LEFT JOIN reactions react ON react.reply_id = r.id
@@ -96,6 +96,8 @@ func (m *ReplyModel) Get(id string) (*Reply, error) {
 		&r.UpdatedAt,
 		&r.User.FirstName,
 		&r.User.LastName,
+		&r.User.Image,
+		&r.User.Nickname,
 		&RUserID,
 	)
 
@@ -149,7 +151,7 @@ func (m *ReplyModel) Update(r *Reply) error {
 
 func (m *ReplyModel) GetAll(postID, loggedInUser string) ([]*Reply, error) {
 	query := `
-	SELECT r.id, r.user_id, r.post_id, r.content, r.image, r.created_at, r.updated_at, u.first_name, u.last_name, react.id
+	SELECT r.id, r.user_id, r.post_id, r.content, r.image, r.created_at, r.updated_at, u.first_name, u.last_name, u.image, u.nickname, react.id
 	FROM replies r
 	JOIN users u ON r.user_id = u.id
 	LEFT JOIN reactions react ON r.id = react.reply_id
@@ -181,6 +183,8 @@ func (m *ReplyModel) GetAll(postID, loggedInUser string) ([]*Reply, error) {
 			&r.UpdatedAt,
 			&r.User.FirstName,
 			&r.User.LastName,
+			&r.User.Image,
+			&r.User.Nickname,
 			&reactionID,
 		)
 
@@ -201,6 +205,28 @@ func (m *ReplyModel) GetAll(postID, loggedInUser string) ([]*Reply, error) {
 	}
 
 	return replies, nil
+}
+
+func (m *ReplyModel) InsertImage(replyID, images string) error {
+	query := `
+	UPDATE replies
+	SET image = ?
+	WHERE id = ?
+	`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	_, err := m.DB.ExecContext(ctx, query, images, replyID)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return ErrRecordNotFound
+		default:
+			return err
+		}
+	}
+	return nil
 }
 
 func ValidateReply(v *validator.Validator, reply *Reply) {
