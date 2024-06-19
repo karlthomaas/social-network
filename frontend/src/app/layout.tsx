@@ -1,9 +1,10 @@
+import './globals.css';
 import type { Metadata } from 'next';
 import { Poppins } from 'next/font/google';
 import { Toaster } from '@/components/ui/toaster';
-import './globals.css';
 
-import StoreProvider from './StoreProvider';
+import { StoreProvider } from '@/providers/store-provider';
+import { ThemeProvider } from '@/providers/theme-provider';
 
 const poppins = Poppins({
   weight: ['400', '500', '600'],
@@ -24,8 +25,10 @@ export default function RootLayout({
   return (
     <html lang='en'>
       <body className={poppins.className}>
-        <StoreProvider>{children}</StoreProvider>
-        <Toaster />
+        <ThemeProvider attribute='class' themes={['dark', 'light']} defaultTheme='dark'>
+          <StoreProvider>{children}</StoreProvider>
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   );

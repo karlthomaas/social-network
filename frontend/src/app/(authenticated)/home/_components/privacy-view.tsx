@@ -83,7 +83,7 @@ const PrivacyItem = ({
   return (
     <div
       onClick={() => callback(value)}
-      className='broder flex h-[80px] w-full items-center justify-between rounded-xl border-border bg-background transition-colors duration-150 ease-in hover:cursor-pointer hover:bg-slate-700'
+      className='broder flex h-[80px] w-full items-center justify-between rounded-xl  bg-background transition-colors duration-150 ease-in hover:cursor-pointer hover:bg-slate-700'
     >
       <Icon size={35} className='basis-1/6' />
       <div id='content' className='basis-4/6'>

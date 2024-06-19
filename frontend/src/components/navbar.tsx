@@ -12,6 +12,7 @@ import { useEffect, useState } from 'react';
 
 import { Sidebar } from '@/components/sidebar';
 import { useGetSessionUserQuery } from '@/services/backend/actions/user';
+import { ModeToggle } from '@/components/buttons/theme-button';
 
 export default function Navbar() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -41,6 +42,7 @@ export default function Navbar() {
           <div className='hidden items-center space-x-5 lg:flex'>
             <NotificationBtn />
             <NavbarProfile />
+            <ModeToggle />
           </div>
           <Button size='sm' variant='ghost' className='lg:hidden' onClick={() => setSidebarOpen(!sidebarOpen)}>
             <Menu size={25} />
@@ -54,10 +56,10 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className='h-[65px] w-full border-b-[1px] border-border'>
+      <nav className='h-[65px] w-full border-b-[1px] '>
         <ul className='mx-auto flex h-full max-w-screen-md items-center justify-between p-4 lg:max-w-screen-2xl'>
           <li>
-            <Link href='/home' className='itemscenter flex space-x-4'>
+            <Link href='/home' className='flex items-center space-x-4'>
               <div className='h-[30px] w-[30px] rounded-lg bg-secondary' />
               <p className='text-lg'>Social Network</p>
             </Link>
