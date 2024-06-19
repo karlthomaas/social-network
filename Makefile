@@ -18,3 +18,4 @@ docker:
 	docker-compose down
 	docker-compose build
 	docker-compose up
+	docker run --rm -v $(shell pwd)/internal/db:/db migrations migrate -path=/db/migrations -database sqlite3:///db/database.db -verbose up
