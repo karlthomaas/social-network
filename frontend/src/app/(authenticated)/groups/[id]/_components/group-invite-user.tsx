@@ -37,7 +37,7 @@ export const GroupInviteUser = ({
             message: `You have been invited to join a group`,
             event_type: 'group_invitation',
           },
-        })
+        });
       }
     } catch (error) {
       toast({
@@ -49,15 +49,11 @@ export const GroupInviteUser = ({
   };
 
   return (
-    <div className='flex h-[75px] items-center rounded-lg border border-border p-4'>
+    <div className='flex h-[75px] items-center rounded-lg border  p-4'>
       <h1>
         {capitalize(follower.user.first_name)} {capitalize(follower.user.last_name)}
       </h1>
-      <Button
-        disabled={isLoadingCreate || isLoadingDelete}
-        onClick={handleInvitationToggle}
-        className='ml-auto'
-      >
+      <Button disabled={isLoadingCreate || isLoadingDelete} onClick={handleInvitationToggle} className='ml-auto'>
         {isInvited ? 'Cancel' : 'Invite'}
       </Button>
     </div>

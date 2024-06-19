@@ -18,7 +18,7 @@ export const MinimizedChat = React.memo(({ chat }: { chat: ChatType }) => {
       : chat.name[0];
 
   return (
-    <div className='group relative h-max w-max size-16'>
+    <div className='group relative size-16 h-max w-max'>
       {chat.image ? (
         <div onClick={() => dispatch(reOpenChat(chat.id))}>
           <ProfilePicture url={chat.image} className='size-16 hover:cursor-pointer' />
@@ -26,21 +26,24 @@ export const MinimizedChat = React.memo(({ chat }: { chat: ChatType }) => {
       ) : (
         <div
           onClick={() => dispatch(reOpenChat(chat.id))}
-          className='flex size-16 items-center justify-center rounded-full border border-border bg-secondary/70 hover:cursor-pointer hover:bg-secondary'
+          className='flex size-16 items-center justify-center rounded-full border  bg-secondary/70 hover:cursor-pointer hover:bg-secondary'
         >
           {chatName.toUpperCase()}
         </div>
       )}
       <div
         onClick={() => dispatch(closeChat(chat.id))}
-        className='z-20 absolute -right-1 -top-2 hidden h-[25px] w-[25px] items-center justify-center rounded-full bg-secondary hover:cursor-pointer hover:bg-primary group-hover:flex'
+        className='absolute -right-1 -top-2 z-20 hidden h-[25px] w-[25px] items-center justify-center rounded-full bg-secondary hover:cursor-pointer hover:bg-primary group-hover:flex'
       >
-        <X size={15}/>
+        <X size={15} />
       </div>
       <div
-        className={cn('z-20 absolute -left-1 -top-2 hidden h-[25px] w-[25px] items-center justify-center rounded-full bg-red-500 text-white text-[13px]', {
-          flex: chat.unreadMessages !== 0,
-        })}
+        className={cn(
+          'absolute -left-1 -top-2 z-20 hidden h-[25px] w-[25px] items-center justify-center rounded-full bg-red-500 text-[13px] text-white',
+          {
+            flex: chat.unreadMessages !== 0,
+          }
+        )}
       >
         {chat.unreadMessages}
       </div>

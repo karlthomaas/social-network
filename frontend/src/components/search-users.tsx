@@ -36,7 +36,7 @@ export const SearchUsers = () => {
     <div className='relative w-full'>
       <Input ref={searchRef} onFocus={() => setIsActive(true)} onKeyUp={onSearchChange} placeholder='Search users' />
       {isActive && inputValue && (
-        <div ref={resultsRef} className='absolute top-12 z-40 min-h-[70px] w-full rounded-xl border border-border bg-background'>
+        <div ref={resultsRef} className='absolute top-12 z-40 min-h-[70px] w-full rounded-xl border  bg-background'>
           {isLoading ? (
             <div className='flex h-[100px] w-full items-center justify-center'>
               <LoadingSpinner />

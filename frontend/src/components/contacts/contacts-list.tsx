@@ -10,7 +10,7 @@ export const ContactList = () => {
   const contactsQuery = useGetContactsQuery();
 
   return (
-    <div className='hidden h-max w-full flex-col space-y-6 rounded-lg border border-border py-4 lg:flex'>
+    <div className='hidden h-max w-full flex-col space-y-6 rounded-lg border py-4 lg:flex'>
       <h1 className='pl-4 font-medium'>Contacts</h1>
       {contactsQuery.isLoading || !contactsQuery.data ? (
         [1, 2, 3, 4, 5].map((item) => <div key={item} className='mx-auto h-[40px] w-[90%] animate-pulse rounded-lg bg-secondary' />)

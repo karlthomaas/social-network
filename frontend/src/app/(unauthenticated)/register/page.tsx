@@ -1,8 +1,8 @@
-import { RegisterForm } from "./_components/register-form";
+import { RegisterForm } from './_components/register-form';
 
 export default function Register() {
   return (
-    <div className='tracking-wide mx-auto h-max w-full  rounded-xl bg-background border border-border p-3'>
+    <div className='mx-auto h-max w-full rounded-xl  border bg-background p-3  tracking-wide'>
       <RegisterForm />
     </div>
   );

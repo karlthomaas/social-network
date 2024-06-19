@@ -32,7 +32,7 @@ export const GroupJoinRequestsUser = ({ request }: { request: JoinRequestType })
   };
 
   return (
-    <div className='flex h-[75px] items-center rounded-lg border border-border p-4'>
+    <div className='flex h-[75px] items-center rounded-lg border  p-4'>
       <h1>
         {capitalize(request.user.first_name)} {capitalize(request.user.last_name)}
       </h1>

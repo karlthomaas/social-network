@@ -4,46 +4,46 @@ import { useAttendGroupEventMutation, useChangeGroupEventAttendanceMutation } fr
 import type { EventType } from '@/services/backend/types';
 import { toast } from '../ui/use-toast';
 
-export const EventsModalEvent = ({ event, isActive }: { event: EventType, isActive: boolean }) => {
+export const EventsModalEvent = ({ event, isActive }: { event: EventType; isActive: boolean }) => {
   const [changeAttendance] = useChangeGroupEventAttendanceMutation();
   const [attendEvent] = useAttendGroupEventMutation();
 
-  const selectRef = useRef<HTMLButtonElement>(null)
+  const selectRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (isActive && selectRef.current) {
       selectRef.current.focus();
     }
-  }, [isActive]); 
+  }, [isActive]);
   const [attendanceCount, setAttendanceCount] = useState(event.attendance.going);
   const attendance = useRef(String(event.group_event_member.attendance));
 
   const handleSelect = async (value: string) => {
     const isFirstPick = event.group_event_member.attendance === 2;
-    
+
     const body = {
       eventId: event.id,
       groupId: event.group_id,
       attendance: Number(value),
     };
-    
+
     try {
       if (isFirstPick) {
         await attendEvent(body);
       } else {
         await changeAttendance(body);
       }
-      
+
       // if user is going to the event -> increment attendance count
       if (Number(value) === 1) {
         setAttendanceCount(attendanceCount + 1);
       }
-      
+
       // if user is not going and was going before -> decrement attendance count
       if (Number(value) === 0 && attendance.current === '1') {
         setAttendanceCount(attendanceCount - 1);
       }
-      
+
       attendance.current = value;
     } catch (error) {
       toast({
@@ -55,7 +55,7 @@ export const EventsModalEvent = ({ event, isActive }: { event: EventType, isActi
   };
 
   return (
-    <div className='flex h-max min-h-[75px] justify-between rounded-xl border border-border p-2'>
+    <div className='flex h-max min-h-[75px] justify-between rounded-xl border  p-2'>
       <div className='flex basis-[80%] flex-col'>
         <h1 className='text-lg font-medium'>{event.title}</h1>
         <p className='text-neutral-300'>{event.description}</p>

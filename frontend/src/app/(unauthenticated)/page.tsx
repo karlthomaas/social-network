@@ -1,13 +1,5 @@
-import { Button } from '@/components/ui/button';
-import Image from 'next/image';
+import { redirect } from 'next/navigation';
 
-export default function Home() {
-  return (
-    <main className='mx-auto h-full w-full p-4'>
-      <div>
-        <h1 className='text-5xl'>Welcome to Social Network.</h1>
-        <Button>Get Started</Button>
-      </div>
-    </main>
-  );
+export default async function Home() {
+  redirect('/home');
 }

@@ -58,7 +58,7 @@ export const SubmitView = memo(
         </DialogHeader>
         <Textarea value={postText} onChange={onChange} placeholder="What's on your mind?" />
         {imageUrl && (
-          <div className='group relative flex h-[225px] w-full items-center justify-center rounded-xl border border-border'>
+          <div className='group relative flex h-[225px] w-full items-center justify-center rounded-xl border '>
             <Button
               size='icon'
               className='absolute -right-2 -top-2 bg-border  text-white hover:brightness-110 group-hover:flex'
@@ -69,12 +69,12 @@ export const SubmitView = memo(
             {imageUrl && <Image src={imageUrl} alt='image' width={200} height={200} />}
           </div>
         )}
-        { addImage && !imageUrl && <FileUpload callback={handleFileChange} />}
-        { !addImage && (
-          <div className='h-[50px] w-full rounded-xl border border-border text-muted-foreground flex justify-between items-center px-5'>
+        {addImage && !imageUrl && <FileUpload callback={handleFileChange} />}
+        {!addImage && (
+          <div className='flex h-[50px] w-full items-center  justify-between rounded-xl border px-5 text-muted-foreground'>
             <h3>Add to your post</h3>
             <div>
-              <Button size="icon" variant="ghost" onClick={() => setAddImage(true)}>
+              <Button size='icon' variant='ghost' onClick={() => setAddImage(true)}>
                 <ImageIcon />
               </Button>
             </div>

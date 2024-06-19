@@ -48,7 +48,7 @@ export const Post = ({ isAuthor, postData, isLoading }: { isAuthor: boolean; pos
   const privacyIcon = post.privacy === 'public' ? <Globe size={15} /> : <Lock size={15} />;
 
   return (
-    <div id={post.id} className='h-max w-full rounded-xl border border-border px-6 pt-6'>
+    <div id={post.id} className='h-max w-full rounded-xl border  px-6 pt-6'>
       <div className='mb-2 flex justify-between'>
         <div className='flex items-center space-x-2'>
           <ProfilePicture url={post.user.image} className='size-[50px]' />
@@ -68,7 +68,7 @@ export const Post = ({ isAuthor, postData, isLoading }: { isAuthor: boolean; pos
       {post.image && (
         <Image className='mt-3 rounded-lg' alt='pilt' src={`http://localhost:4000${post.image}`} height={200} width={300} unoptimized />
       )}
-      <div className='mb-3 mt-10 flex justify-evenly border-y border-border'>
+      <div className='mb-3 mt-10 flex justify-evenly border-y '>
         <LikeButton reactions={post.reactions} likeStatus={likeStatus} type='post' postId={post.id} reactionId={post.reaction.id} />
         <CommentButton onClick={() => setShowComments(!showComments)} />
       </div>

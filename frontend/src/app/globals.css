@@ -1,7 +1,6 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
- 
 
 @layer base {
   :root {
@@ -50,10 +49,10 @@
   }
 }
 
- 
+
 @layer base {
   * {
-    @apply dark border-border;
+    @apply border-input;
   }
   body {
     @apply bg-background text-foreground;
