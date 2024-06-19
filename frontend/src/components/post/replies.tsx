@@ -25,22 +25,9 @@ export interface ReplyType {
   reaction: ReactionType;
 }
 
-export const Replies = ({ post_id, newReply }: { post_id: string; newReply: ReplyType | null }) => {
-  const { isLoading, isError, data } = useGetPostRepliesQuery(post_id)
+export const Replies = ({ replies, postId }: { replies: ReplyType[]; postId: string }) => {
+  const { isLoading, isError } = useGetPostRepliesQuery(postId);
   const { user } = useAppSelector((state) => state.auth);
-  const [replies, setReplies] = useState<ReplyType[]>([]);
-
-  useEffect(() => {
-    if (data?.replies) {
-      setReplies(data.replies);
-    }
-  }, [data]);
-
-  useEffect(() => {
-    if (newReply) {
-      setReplies((prevReplies) => [...prevReplies, newReply]);
-    }
-  }, [newReply]);
 
   if (isLoading) {
     return (
@@ -61,7 +48,7 @@ export const Replies = ({ post_id, newReply }: { post_id: string; newReply: Repl
   return (
     <div className='mb-5 flex w-full flex-col space-y-3 pt-5'>
       {replies.map((reply: ReplyType) => (
-        <Reply key={reply.id} postId={post_id} reply={reply} isAuthor={user?.id === reply.user_id} />
+        <Reply key={reply.id} postId={postId} reply={reply} isAuthor={user?.id === reply.user_id} />
       ))}
     </div>
   );

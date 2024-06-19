@@ -10,6 +10,8 @@ export interface ChatType {
   name: string;
   state: 'open' | 'closed' | 'minimized';
   type: 'group' | 'private';
+  image?: string | null;
+  unreadMessages: number;
 }
 
 interface ChatsState {
@@ -34,28 +36,30 @@ export const chatsSlice = createSlice({
       state.chats[action.payload].state = 'minimized';
     },
     reOpenChat: (state, action: PayloadAction<string>) => {
-      state.chats[action.payload].state = 'open';
+      const chat = state.chats[action.payload];
+      chat.state = 'open';
+      chat.unreadMessages = 0;
+    },
+    notifyChat: (state, action: PayloadAction<ChatType>) => {
+      if (Object.keys(state.chats).includes(action.payload.id) && state.chats[action.payload.id].state === 'minimized') {
+        state.chats[action.payload.id].unreadMessages += 1;
+      } else {
+        state.chats[action.payload.id] = action.payload;
+      }
     },
   },
 });
 
-export const { openChat, closeChat, minimizeChat, reOpenChat } = chatsSlice.actions;
+export const { openChat, closeChat, minimizeChat, reOpenChat, notifyChat } = chatsSlice.actions;
 
 export const selectChats = (state: RootState) => state.chat.chats;
 
-export const selectOpenChats = createSelector(
-  [selectChats],
-  (chats) => Object.values(chats).filter((chat) => chat.state === 'open')
-);
+export const selectOpenChats = createSelector([selectChats], (chats) => Object.values(chats).filter((chat) => chat.state === 'open'));
 
-export const selectClosedChats = createSelector(
-  [selectChats],
-  (chats) => Object.values(chats).filter((chat) => chat.state === 'closed')
-);
+export const selectClosedChats = createSelector([selectChats], (chats) => Object.values(chats).filter((chat) => chat.state === 'closed'));
 
-export const selectMinimizedChats = createSelector(
-  [selectChats],
-  (chats) => Object.values(chats).filter((chat) => chat.state === 'minimized')
+export const selectMinimizedChats = createSelector([selectChats], (chats) =>
+  Object.values(chats).filter((chat) => chat.state === 'minimized')
 );
 
 export default chatsSlice.reducer;

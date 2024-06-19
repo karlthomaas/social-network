@@ -29,7 +29,8 @@ export const FollowBtn = ({ className = '', user_id }: { className?: string; use
   const [cancelFollowRequest] = useCancelFollowRequestMutation();
 
   const [followStatus, setFollowStatus] = useState(0);
-  const { data, isLoading } = useGetUserFollowStatusQuery(user_id);
+  const { refetch, data, isLoading } = useGetUserFollowStatusQuery(user_id);
+  console.log('🚀 ~ FollowBtn ~ data:', data);
 
   useEffect(() => {
     if (data?.permission) {
@@ -64,6 +65,7 @@ export const FollowBtn = ({ className = '', user_id }: { className?: string; use
           setFollowStatus(0);
           break;
       }
+      refetch();
     } catch (error) {
       toast({
         title: 'Error',

@@ -116,7 +116,54 @@ func (app *application) getUserFollowersHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	err = app.writeJSON(w, http.StatusOK, envelope{"followers": followers}, nil)
+	type Response struct {
+		UserID    string           `json:"userId"`
+		Followers []*data.Follower `json:"followers"`
+	}
+
+	response := &Response{
+		UserID:    user.ID,
+		Followers: followers,
+	}
+
+	err = app.writeJSON(w, http.StatusOK, envelope{"data": response}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+}
+
+func (app *application) getUserFollowingHandler(w http.ResponseWriter, r *http.Request) {
+	nickname := r.PathValue("nickname")
+
+	user, err := app.models.Users.GetByNickname(nickname)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	followers, err := app.models.Followers.GetAllUserFollowing(user.ID)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	type Response struct {
+		UserID    string           `json:"userId"`
+		Following []*data.Follower `json:"following"`
+	}
+
+	response := &Response{
+		UserID:    user.ID,
+		Following: followers,
+	}
+
+	err = app.writeJSON(w, http.StatusOK, envelope{"data": response}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -347,12 +394,6 @@ func (app *application) cancelRequestHandler(w http.ResponseWriter, r *http.Requ
 
 func (app *application) getContacts(w http.ResponseWriter, r *http.Request) {
 	user := app.contextGetUser(r)
-
-	// followerID, err := app.readParam(r, "userID")
-	// if err != nil {
-	// 	app.notFoundResponse(w,r)
-	// 	return
-	// }
 
 	contacts, err := app.models.Followers.GetContacts(user.ID)
 	if err != nil {

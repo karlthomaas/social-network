@@ -42,19 +42,19 @@ const postSlice = createSlice({
       state.view -= 1;
     },
     changeText: (state, action) => {
-        state.postText = action.payload;
+      state.postText = action.payload;
     },
     setPrivacy: (state, action) => {
-        state.privacy.value = action.payload;
+      state.privacy.value = action.payload;
     },
     setPrivacyVisibleTo: (state, action) => {
-        state.privacy.visibleTo = action.payload;
+      state.privacy.visibleTo = action.payload;
     },
   },
 });
 
 export const { reset, increment, deincrement, changeText, setPrivacy, setPrivacyVisibleTo } = postSlice.actions;
 
-export const selectPrivacyValue = ( state: RootState ) => state.post.privacy.value;
+export const selectPrivacyValue = (state: RootState) => state.post.privacy.value;
 
 export default postSlice.reducer;

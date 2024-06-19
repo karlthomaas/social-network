@@ -3,6 +3,7 @@ import { FollowBtn } from '@/components/buttons/follow-btn';
 import { PrivacyBtn } from './privacy';
 import { useGetUserDetailsQuery } from '@/services/backend/actions/user';
 import { useAppSelector } from '@/lib/hooks';
+import { SettingsBtn } from '@/app/(authenticated)/profile/[user]/_components/settings';
 
 export const UserDetails = ({ username }: { username: string }) => {
   const { user } = useAppSelector((state) => state.auth);
@@ -17,13 +18,26 @@ export const UserDetails = ({ username }: { username: string }) => {
   const isUserProfile = user?.id === profileUser.id;
 
   return (
-    <div className='flex w-full'>
-      <ProfilePicture className='relative left-8 -translate-y-1/3 bg-slate-600' />
-      <div className='ml-10 mt-2 flex w-full justify-between'>
-        <h3 className='text-lg'>{`${profileUser.first_name} ${profileUser.last_name}`}</h3>
+    <div className='flex justify-between'>
+      <div className='flex w-full -translate-y-[50px] flex-col space-y-5'>
+        <ProfilePicture url={profileUser.image} />
+        <div className='flex flex-col space-y-1'>
+          <h3 className='text-xl font-semibold'>{`${profileUser.first_name} ${profileUser.last_name}`}</h3>
+          <h4 className='font-medium text-neutral-400'>@{profileUser.nickname}</h4>
+          <p className='mt-5 text-sm'>{profileUser.about_me}</p>
+          <p className='mt-5 text-sm text-neutral-400'>{profileUser.privacy}</p>
+        </div>
+      </div>
 
-        {!isUserProfile && <FollowBtn user_id={profileUser.id} />}
-        {isUserProfile && <PrivacyBtn privacy_state={profileUser.privacy} />}
+      <div className='mt-2 flex'>
+        {!isUserProfile ? (
+          <FollowBtn user_id={profileUser.id} />
+        ) : (
+          <div className='flex space-x-2'>
+            <PrivacyBtn privacy_state={profileUser.privacy} />
+            <SettingsBtn />
+          </div>
+        )}
       </div>
     </div>
   );

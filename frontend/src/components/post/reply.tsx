@@ -16,6 +16,9 @@ import {
   useDeletePostReplyMutation,
   useDeleteReplyReactionMutation,
 } from '@/services/backend/actions/replies';
+import { ProfilePicture } from '@/app/(authenticated)/profile/[user]/_components/pfp';
+import Image from 'next/image';
+import { createKey } from 'next/dist/shared/lib/router/router';
 
 enum ReplyActionTypes {
   LIKE = 'LIKE',
@@ -25,10 +28,10 @@ enum ReplyActionTypes {
 }
 interface ReplyState {
   isLiked: boolean;
-  replyContent: string;
   reactions: number;
   isDeleted: boolean;
   editState: boolean;
+  reply: ReplyType;
 }
 
 const replyReducer = (state: ReplyState, action: { type: ReplyActionTypes; payload: any }) => {
@@ -48,12 +51,12 @@ const replyReducer = (state: ReplyState, action: { type: ReplyActionTypes; paylo
       return {
         ...state,
         editState: false,
-        replyContent: action.payload,
+        reply: action.payload,
       };
     case ReplyActionTypes.EDIT:
       return {
         ...state,
-        editState: true,
+        editState: action.payload,
       };
   }
 };
@@ -65,10 +68,10 @@ export const Reply = ({ postId, reply, isAuthor }: { postId: string; reply: Repl
 
   const [state, dispatch] = useReducer(replyReducer, {
     isLiked: reply.reaction.id ? true : false,
-    replyContent: reply.content,
     reactions: reply.reactions,
     isDeleted: false,
     editState: false,
+    reply,
   });
 
   const replyRef = useRef(reply);
@@ -114,8 +117,10 @@ export const Reply = ({ postId, reply, isAuthor }: { postId: string; reply: Repl
     }
   };
 
-  const onReplyEdit = (data: any) => {
-    dispatch({ type: ReplyActionTypes.SUBMIT_EDIT, payload: data.content });
+  const onReplyEdit = (reply: ReplyType, type: 'create' | 'edit') => {
+    if (type === 'edit') {
+      dispatch({ type: ReplyActionTypes.SUBMIT_EDIT, payload: reply });
+    }
   };
 
   const onReplyEditCancel = () => {
@@ -132,12 +137,24 @@ export const Reply = ({ postId, reply, isAuthor }: { postId: string; reply: Repl
 
   return (
     <div key={reply.id} className='group flex w-full space-x-6 '>
-      <div id='pfp' className='size-[40px] flex-none rounded-full bg-secondary ' />
+      <ProfilePicture url={reply.user.image} className='size-[40px]' />
       <div className='flex w-max max-w-[calc(100%-110px)] flex-col space-y-1'>
         <div className='relative flex space-x-3'>
           <div className='flex w-max min-w-[250px] flex-col rounded-xl bg-secondary p-2'>
             <h1 className='font-medium capitalize'>{`${reply.user.first_name} ${reply.user.last_name}`}</h1>
-            <p className='break-all'>{state.replyContent}</p>
+            <p className='break-all'>{state.reply.content}</p>
+            <div className='h-max w-max'>
+              {state.reply.image && (
+                <Image
+                  alt='reply pilt'
+                  className='rounded-md'
+                  src={`http://localhost:4000${state.reply.image}`}
+                  width={300}
+                  height={300}
+                  unoptimized
+                />
+              )}
+            </div>
           </div>
           {isAuthor && (
             <ReplyOptions

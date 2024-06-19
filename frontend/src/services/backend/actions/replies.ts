@@ -8,7 +8,7 @@ const extendedRepliesApi = backendApi.injectEndpoints({
     getPostReplies: builder.query<any, string>({
       query: (postId) => `posts/${postId}/reply`,
     }),
-    createPostReply: builder.mutation<{ reply: ReplyType }, ReplyFormProps>({
+    createPostReply: builder.mutation<{ reply: ReplyType }, Omit<ReplyFormProps, 'images'>>({
       query: (values) => {
         const { postId, ...rest } = values;
         return {
@@ -24,7 +24,7 @@ const extendedRepliesApi = backendApi.injectEndpoints({
         method: 'POST',
       }),
     }),
-    updatePostReply: builder.mutation<{ reply: ReplyType }, ReplyFormProps>({
+    updatePostReply: builder.mutation<{ reply: ReplyType }, Omit<ReplyFormProps, 'images'>>({
       query: (values) => {
         const { postId, replyId, ...rest } = values;
         return {

@@ -7,6 +7,10 @@ import { ReplyInput } from './reply-input';
 import { PostOptions } from './post-options';
 import { formatDistanceToNowStrict } from 'date-fns';
 import { Globe, Lock } from 'lucide-react';
+import Image from 'next/image';
+import { ProfilePicture } from '@/app/(authenticated)/profile/[user]/_components/pfp';
+import Link from 'next/link';
+import { PostReply } from '@/components/post/post-reply';
 
 interface Reaction {
   id: string;
@@ -28,9 +32,8 @@ export interface PostType {
   reactions: number;
 }
 
-export const Post = ({ postData, isLoading }: { postData?: PostType; isLoading: boolean }) => {
+export const Post = ({ isAuthor, postData, isLoading }: { isAuthor: boolean; postData?: PostType; isLoading: boolean }) => {
   const [post, setPost] = useState<PostType | undefined>(postData);
-  const [newReply, setNewReply] = useState<ReplyType | null>(null);
   const [showComments, setShowComments] = useState(false);
 
   if (isLoading) {
@@ -45,34 +48,31 @@ export const Post = ({ postData, isLoading }: { postData?: PostType; isLoading: 
   const privacyIcon = post.privacy === 'public' ? <Globe size={15} /> : <Lock size={15} />;
 
   return (
-    <div className='h-max w-full rounded-xl border border-border px-6 pt-6'>
+    <div id={post.id} className='h-max w-full rounded-xl border border-border px-6 pt-6'>
       <div className='mb-2 flex justify-between'>
         <div className='flex items-center space-x-2'>
-          <div className='aspect-square h-[50px] rounded-full bg-secondary' />
+          <ProfilePicture url={post.user.image} className='size-[50px]' />
           <div className='flex flex-col'>
-            <p className='capitalize'>
-              {post.user.first_name} {post.user.last_name}{' '}
-            </p>
+            <Link href={`/profile/${post.user.nickname}`} className='capitalize underline-offset-2 hover:underline'>
+              {post.user.first_name} {post.user.last_name}
+            </Link>
             <div className='flex items-center space-x-1 text-neutral-400'>
               <p className='text-sm '>{formatDistanceToNowStrict(new Date(post.updated_at), { addSuffix: true })}</p>
               {privacyIcon}
             </div>
           </div>
         </div>
-        <PostOptions post={post} setPost={setPost} />
+        {isAuthor && <PostOptions post={post} setPost={setPost} />}
       </div>
       <p className='ml-1'>{post.content}</p>
+      {post.image && (
+        <Image className='mt-3 rounded-lg' alt='pilt' src={`http://localhost:4000${post.image}`} height={200} width={300} unoptimized />
+      )}
       <div className='mb-3 mt-10 flex justify-evenly border-y border-border'>
         <LikeButton reactions={post.reactions} likeStatus={likeStatus} type='post' postId={post.id} reactionId={post.reaction.id} />
-        <CommentButton onClick={async () => setShowComments(!showComments)} />
-        <ShareButton link='' />
+        <CommentButton onClick={() => setShowComments(!showComments)} />
       </div>
-      {showComments && (
-        <>
-          <Replies post_id={post.id} newReply={newReply} />
-          <ReplyInput postId={post.id} setNewReply={setNewReply} />
-        </>
-      )}
+      {showComments && <PostReply postId={post.id} />}
     </div>
   );
 };

@@ -56,7 +56,7 @@ export const AlmostPrivateView = ({}) => {
           {isLoading || !data ? (
             <p>Loading...</p>
           ) : (
-            data.followers.map((friend: any) => (
+            data.data.followers.map((friend: any) => (
               <Friend
                 key={friend.follower_id}
                 id={friend.follower_id}

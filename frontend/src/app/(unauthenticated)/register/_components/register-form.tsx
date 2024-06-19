@@ -47,17 +47,31 @@ export const RegisterForm = () => {
   const router = useRouter();
   const { toast } = useToast();
 
+  const capitalizeFirstCharacter = (value: string) => {
+    if (!value) return value; // Return the original string if it's empty
+    return value.charAt(0).toUpperCase() + value.slice(1);
+  };
+
   const onSubmit = (values: RegisterFormProps) => {
     register(values)
       .unwrap()
       .then(() => router.push('/home'))
-      .catch(() =>
+      .catch((err: any) => {
+        if (err.status === 422 && err.data) {
+          const { error } = err.data;
+          for (const [key, value] of Object.entries(error)) {
+            form.setError(key as 'email' | 'nickname' | 'first_name' | 'last_name' | 'date_of_birth' | 'password' | 'confirmPassword', {
+              type: '422',
+              message: capitalizeFirstCharacter(value as string),
+            });
+          }
+        }
         toast({
           title: 'Something went wrong!',
           description: 'Please try again.',
           variant: 'destructive',
-        })
-      );
+        });
+      });
   };
 
   return (
@@ -73,6 +87,7 @@ export const RegisterForm = () => {
               <FormControl>
                 <Input placeholder='email' {...field} />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -85,6 +100,7 @@ export const RegisterForm = () => {
               <FormControl>
                 <Input placeholder='Nickname' {...field} />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -97,6 +113,7 @@ export const RegisterForm = () => {
               <FormControl>
                 <Input placeholder='First Name' {...field} />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -109,6 +126,7 @@ export const RegisterForm = () => {
               <FormControl>
                 <Input placeholder='Last Name' {...field} />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -121,6 +139,7 @@ export const RegisterForm = () => {
               <FormControl>
                 <Input type='date' {...field} />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -133,6 +152,7 @@ export const RegisterForm = () => {
               <FormControl>
                 <Input type='password' {...field} />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -145,6 +165,7 @@ export const RegisterForm = () => {
               <FormControl>
                 <Input type='password' {...field} />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />

@@ -1,3 +1,7 @@
 database.db
 
+images
+
 .env
+.docker
+.idea

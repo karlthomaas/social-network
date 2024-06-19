@@ -13,7 +13,12 @@ import { useState } from 'react';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { changeText, reset, setPrivacy } from '@/features/post/postSlice';
 
-import { useCreatePostMutation, useUpdatePostMutation, useCreateGroupPostMutation } from '@/services/backend/actions/posts';
+import {
+  useCreatePostMutation,
+  useUpdatePostMutation,
+  useCreateGroupPostMutation,
+  useUploadImageMutation,
+} from '@/services/backend/actions/posts';
 import { toast } from '@/components/ui/use-toast';
 
 export const CreatePost = memo(
@@ -30,11 +35,12 @@ export const CreatePost = memo(
     callback: (response: PostType, action: 'update' | 'create') => void;
   }) => {
     const [open, setOpen] = useState(false);
-
     const dispatch = useAppDispatch();
     const [createPost] = useCreatePostMutation();
     const [updatePost] = useUpdatePostMutation();
+    const [uploadImage] = useUploadImageMutation();
     const [createGroupPost] = useCreateGroupPostMutation();
+
     const postSelector = useAppSelector((state) => state.post);
     const userSelector = useAppSelector((state) => state.auth.user);
 
@@ -45,61 +51,86 @@ export const CreatePost = memo(
       }
     }, [post, open, dispatch]);
 
-    const handleSubmit = useCallback(async () => {
-      const body = {
-        content: postSelector.postText,
-        privacy: postSelector.privacy.value === 'almost private' ? 'almost_private' : postSelector.privacy.value,
-        visible_to: postSelector.privacy.visibleTo,
-      };
-
-      let newPost: PostType;
-      try {
-        if (groupId) {
-          const response = await createGroupPost({ groupId, ...body }).unwrap();
-          newPost = { ...response.post };
-        } else if (post) {
-          const response = await updatePost({ id: post.id, ...body }).unwrap();
-          newPost = { ...response.post };
-        } else {
-          const response = await createPost(body).unwrap();
-          newPost = { ...response.post };
-        }
-
-        // add user field because backend doesn't
-        if (userSelector) {
-          newPost.user = userSelector;
-        }
-
-        callback(newPost, post ? 'update' : 'create');
-        setOpen(false);
-
-        toast({
-          title: post ? 'Post updated' : 'Post created',
-          description: post ? 'Your post has been updated' : 'Your post has been created',
-        });
-      } catch (err) {
-        toast({
-          title: 'Something went wrong...',
-          description: 'Please try again later',
-          variant: 'destructive',
-        });
-      }
-    }, [
-      createGroupPost,
-      createPost,
-      groupId,
-      post,
-      postSelector.postText,
-      postSelector.privacy.value,
-      postSelector.privacy.visibleTo,
-      userSelector,
-      updatePost,
-      callback,
-    ]);
-
-    const resetStores = () => {
-      dispatch(reset());
+    const createImageForm = (file: File) => {
+      const formData = new FormData();
+      formData.append('images', file as File);
+      return formData;
     };
+
+    const resetStores = useCallback(() => {
+      dispatch(reset());
+    }, [dispatch]);
+
+    const handleSubmit = useCallback(
+      async (file: File | null) => {
+        const body = {
+          content: postSelector.postText,
+          privacy: postSelector.privacy.value === 'almost private' ? 'almost_private' : postSelector.privacy.value,
+          visible_to: postSelector.privacy.visibleTo,
+        };
+
+        let newPost: PostType;
+        try {
+          if (groupId) {
+            const response = await createGroupPost({ groupId, ...body }).unwrap();
+            newPost = { ...response.post };
+          } else if (post) {
+            const response = await updatePost({ id: post.id, ...body }).unwrap();
+            newPost = { ...response.post };
+          } else {
+            const response = await createPost(body).unwrap();
+            newPost = { ...response.post };
+          }
+
+          if (file) {
+            try {
+              const data = createImageForm(file);
+              const { images } = await uploadImage({ option: 'posts', id: newPost.id, data }).unwrap();
+              newPost.image = images[0].split(',')[0];
+            } catch (err) {
+              toast({
+                title: 'Error uploading image...',
+                description: 'Please try again later',
+                variant: 'destructive',
+              });
+            }
+          }
+
+          // add user field because backend doesn't
+          if (userSelector) {
+            newPost.user = userSelector;
+          }
+
+          callback(newPost, post ? 'update' : 'create');
+          setOpen(false);
+          resetStores();
+          toast({
+            title: post ? 'Post updated' : 'Post created',
+            description: post ? 'Your post has been updated' : 'Your post has been created',
+          });
+        } catch (err) {
+          toast({
+            title: 'Something went wrong...',
+            description: 'Please try again later',
+            variant: 'destructive',
+          });
+        }
+      },
+      [
+        createGroupPost,
+        createPost,
+        groupId,
+        post,
+        postSelector.postText,
+        postSelector.privacy.value,
+        postSelector.privacy.visibleTo,
+        userSelector,
+        updatePost,
+        callback,
+        uploadImage,
+        resetStores,
+      ]
+    );
 
     const handleModalState = (state: boolean) => {
       if (post) {

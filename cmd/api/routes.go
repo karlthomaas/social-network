@@ -7,19 +7,27 @@ import (
 func (app *application) routes() http.Handler {
 	router := http.NewServeMux()
 
+	filesDir := http.FileServer(http.Dir("internal/images"))
+	router.Handle("/api/images/", http.StripPrefix("/api/images/", filesDir))
+
 	router.HandleFunc("GET /api/healthcheck",
 		app.healthCheckHandler)
-
 	router.Handle("GET /api/posts/feed",
 		app.ValidateJwt(app.getFeedPostsHandlder))
 	router.HandleFunc("GET /api/users/me",
 		app.ValidateJwt(app.getSessionUserHandler))
+	router.HandleFunc("GET /api/users",
+		app.ValidateJwt(app.findUsersHandler))
+	router.HandleFunc("DELETE /api/users/{userID}",
+		app.ValidateJwt(app.deleteUserHandler))
 	router.HandleFunc("PATCH /api/users/me",
 		app.ValidateJwt(app.updateUserHandler))
 	router.HandleFunc("GET /api/users/{nickname}",
 		app.ValidateJwt(app.showUserHandler))
 	router.HandleFunc("GET /api/users/{nickname}/followers",
 		app.ValidateJwt(app.getUserFollowersHandler))
+	router.HandleFunc("GET /api/users/{nickname}/following",
+		app.ValidateJwt(app.getUserFollowingHandler))
 	router.HandleFunc("GET /api/users/{id}/follow_status",
 		app.ValidateJwt(app.checkFollowPermissionsHandler),
 	)
@@ -158,7 +166,7 @@ func (app *application) routes() http.Handler {
 	router.HandleFunc("DELETE /api/notifications/{id}",
 		app.ValidateJwt(app.deleteNotificationHandler))
 
-	router.HandleFunc("GET /api/contacts/{userID}",
+	router.HandleFunc("GET /api/contacts/me",
 		app.ValidateJwt(app.getContacts))
 
 	router.HandleFunc("/ws", app.ValidateJwt(app.wsHandler))

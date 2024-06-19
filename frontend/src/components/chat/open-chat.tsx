@@ -9,12 +9,12 @@ import { ChatBox } from '@/components/chat/chat-box';
 import { MessageType } from '@/components/chat/message';
 
 import { useAppDispatch } from '@/lib/hooks';
-import type { WebSocketMessage } from '@/middleware/socket';
+import type { WSPayload } from '@/middleware/socket';
 
 import { useGetChatMessagesQuery, useGetGroupMessagesQuery } from '@/services/backend/actions/messages';
 import { ChatType, closeChat, minimizeChat } from '@/features/chats/chatsSlice';
 
-export const OpenChat = React.memo(({ chat, sendMessage }: { chat: ChatType; sendMessage: (message: WebSocketMessage) => void }) => {
+export const OpenChat = React.memo(({ chat, authorImage, sendMessage }: { chat: ChatType; authorImage?: string | null, sendMessage: (message: WSPayload) => void }) => {
   const [messages, setMessages] = useState<MessageType[]>([]);
   const [input, setInput] = useState('');
 
@@ -36,8 +36,10 @@ export const OpenChat = React.memo(({ chat, sendMessage }: { chat: ChatType; sen
   const handleSendMessage = () => {
     sendMessage({
       receiver: chat.type === 'private' ? chat.id : '',
-      message: input,
       group_id: chat.type === 'group' ? chat.id : '',
+      message: input,
+      name: chat.name,
+      image: authorImage ? authorImage : undefined,
       type: chat.type === 'private' ? 'private_message' : 'group_message',
     });
 

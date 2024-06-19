@@ -35,6 +35,7 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 		Content:   input.Content,
 		GroupID:   "",
 		Privacy:   input.Privacy,
+		User:      *user,
 		UpdatedAt: time.Now().Truncate(time.Second),
 	}
 
@@ -50,8 +51,6 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 		app.serverErrorResponse(w, r, err)
 		return
 	}
-
-	// notifyWithWebhook(post)
 
 	if post.Privacy == "almost_private" && len(input.VisibleTo) > 0 {
 		err := app.models.Posts.AddPostVisibilities(postID, input.VisibleTo)
@@ -177,6 +176,8 @@ func (app *application) showPostHandler(w http.ResponseWriter, r *http.Request) 
 }
 
 func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request) {
+	user := app.contextGetUser(r)
+
 	id, err := app.readParam(r, "id")
 	if err != nil {
 		app.notFoundResponse(w, r)
@@ -194,9 +195,14 @@ func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	if post.UserID != user.ID {
+		app.unAuthorizedResponse(w, r)
+		return
+	}
+
 	var input struct {
 		Content   *string  `json:"content"`
-		Image     *[]byte  `json:"image"`
+		Image     []byte   `json:"image"`
 		Privacy   *string  `json:"privacy"`
 		VisibleTo []string `json:"visible_to"`
 	}
@@ -209,10 +215,6 @@ func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request
 
 	if input.Content != nil {
 		post.Content = *input.Content
-	}
-
-	if input.Image != nil {
-		post.Image = *input.Image
 	}
 
 	if input.Privacy != nil {

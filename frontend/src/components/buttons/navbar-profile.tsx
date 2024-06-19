@@ -13,6 +13,7 @@ import { toast } from '../ui/use-toast';
 import { useRouter } from 'next/navigation';
 import { useLogoutMutation } from '@/services/backend/actions/auth';
 import { useAppSelector, useAppDispatch } from '@/lib/hooks';
+import { ProfilePicture } from '@/app/(authenticated)/profile/[user]/_components/pfp';
 
 export const NavbarProfile = () => {
   const { user } = useAppSelector((state) => state.auth);
@@ -43,7 +44,7 @@ export const NavbarProfile = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger>
-        <div className='aspect-square h-[40px] rounded-full bg-secondary' />
+        <ProfilePicture url={user.image} className='size-[40px] rounded-full bg-secondary' />
       </DropdownMenuTrigger>
       <DropdownMenuContent>
         <DropdownMenuLabel>My Account</DropdownMenuLabel>
@@ -53,9 +54,6 @@ export const NavbarProfile = () => {
         </DropdownMenuItem>
         <DropdownMenuItem>
           <Link href='/groups'>Groups</Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem>
-          <Link href='/settings'>Settings</Link>
         </DropdownMenuItem>
         <DropdownMenuItem className='hover:cursor-pointer' onClick={() => handleLogout()}>
           Logout
