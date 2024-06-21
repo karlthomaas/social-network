@@ -40,9 +40,9 @@ export default function Navbar() {
       return (
         <>
           <div className='hidden items-center space-x-5 lg:flex'>
+            <ModeToggle />
             <NotificationBtn />
             <NavbarProfile />
-            <ModeToggle />
           </div>
           <Button size='sm' variant='ghost' className='lg:hidden' onClick={() => setSidebarOpen(!sidebarOpen)}>
             <Menu size={25} />
@@ -56,7 +56,7 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className='h-[65px] w-full border-b-[1px] '>
+      <nav className='h-[65px] w-full border-b-[1px] bg-card '>
         <ul className='mx-auto flex h-full max-w-screen-md items-center justify-between p-4 lg:max-w-screen-2xl'>
           <li>
             <Link href='/home' className='flex items-center space-x-4'>

@@ -1,16 +1,15 @@
 'use client';
 
 import { Contact } from './contact';
-import { useAppSelector } from '@/lib/hooks';
 import { useGetSessionUserGroupsQuery } from '@/services/backend/actions/groups';
-import { useGetContactsQuery, useGetUserFollowersQuery } from '@/services/backend/actions/user';
+import { useGetContactsQuery } from '@/services/backend/actions/user';
 
 export const ContactList = () => {
   const groupsQuery = useGetSessionUserGroupsQuery();
   const contactsQuery = useGetContactsQuery();
 
   return (
-    <div className='hidden h-max w-full flex-col space-y-6 rounded-lg border py-4 lg:flex'>
+    <div className='hidden h-max w-full flex-col space-y-6 rounded-lg border bg-card py-4 lg:flex'>
       <h1 className='pl-4 font-medium'>Contacts</h1>
       {contactsQuery.isLoading || !contactsQuery.data ? (
         [1, 2, 3, 4, 5].map((item) => <div key={item} className='mx-auto h-[40px] w-[90%] animate-pulse rounded-lg bg-secondary' />)

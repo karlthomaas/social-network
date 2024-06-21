@@ -13,7 +13,10 @@ export const Menu = () => {
 
 const MenuItem = ({ name, Icon, link }: { name: string; Icon: LucideIcon; link: string }) => {
   return (
-    <Link href={link} className='flex h-[60px] items-center rounded-lg p-2 pl-4 hover:cursor-pointer hover:bg-secondary/50'>
+    <Link
+      href={link}
+      className='in flex h-[60px] items-center rounded-lg p-2 pl-4 transition-all duration-100 hover:cursor-pointer hover:bg-neutral-200 dark:hover:bg-secondary/50'
+    >
       <Icon className='mr-2' />
       <span>{name}</span>
     </Link>

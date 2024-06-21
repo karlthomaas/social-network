@@ -45,12 +45,12 @@ export const SubmitView = memo(
     }, []);
 
     return (
-      <DialogContent className='min-h-[325px]'>
+      <DialogContent className='min-h-[325px] bg-card'>
         <DialogHeader className='text-left'>
           <DialogTitle className='text-lg'>Create Post</DialogTitle>
           {showPrivacyOptions && (
             <DialogDescription>
-              <Button onClick={() => dispatch(increment())} className='mt-2' variant='outline' size='sm'>
+              <Button onClick={() => dispatch(increment())} className='mt-2 ' variant='outline' size='sm'>
                 {capitalize(postPrivacyValue === 'almost_private' ? 'Almost private' : postPrivacyValue)}
               </Button>
             </DialogDescription>

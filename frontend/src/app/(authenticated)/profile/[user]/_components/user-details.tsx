@@ -29,7 +29,7 @@ export const UserDetails = ({ username }: { username: string }) => {
         </div>
       </div>
 
-      <div className='mt-2 flex'>
+      <div className='mr-4 mt-2 flex'>
         {!isUserProfile ? (
           <FollowBtn user_id={profileUser.id} />
         ) : (

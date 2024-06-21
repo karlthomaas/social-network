@@ -12,7 +12,7 @@ export const CreatePostBar = ({
   callback: (response: PostType, action: 'update' | 'create') => void;
 }) => {
   return (
-    <div className='flex h-[80px] w-full items-center rounded-xl border  bg-background px-6'>
+    <div className='flex h-[80px] w-full items-center rounded-xl border  bg-card px-6'>
       <ProfilePicture url={image} className='size-[45px] rounded-full' />
       <CreatePost callback={callback}>
         <DialogTrigger asChild>

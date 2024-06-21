@@ -1,5 +1,5 @@
 import { ArrowLeftIcon } from 'lucide-react';
-import { useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { deincrement, setPrivacy, setPrivacyVisibleTo } from '@/features/post/postSlice';
 import { useGetUserFollowersQuery } from '@/services/backend/actions/user';
@@ -12,6 +12,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { FollowerType } from '@/services/backend/types';
+import { ProfilePicture } from '@/app/(authenticated)/profile/[user]/_components/pfp';
 
 export const AlmostPrivateView = ({}) => {
   const dispatch = useAppDispatch();
@@ -19,8 +21,16 @@ export const AlmostPrivateView = ({}) => {
   const { user } = useAppSelector((state) => state.auth);
   const { isLoading, data } = useGetUserFollowersQuery(user?.nickname ?? skipToken, { skip: !user });
 
+  const [followers, setFollowers] = useState<FollowerType[]>([]);
+
+  useEffect(() => {
+    if (data && data.data.followers) {
+      setFollowers(data.data.followers);
+    }
+  }, [data, data?.data.followers]);
+
   const handleSave = () => {
-    dispatch(setPrivacy('almost private'))
+    dispatch(setPrivacy('almost private'));
     dispatch(setPrivacyVisibleTo(visibleTo));
     dispatch(deincrement());
   };
@@ -41,8 +51,21 @@ export const AlmostPrivateView = ({}) => {
     [dispatch, visibleTo]
   );
 
+  const handleSearchFriends = (name: string) => {
+    if (!data) {
+      return;
+    }
+
+    if (!name) {
+      setFollowers(data.data.followers);
+    }
+    setFollowers(
+      data.data.followers.filter((follower) => follower.user.first_name.startsWith(name) || follower.user.last_name.startsWith(name))
+    );
+  };
+
   return (
-    <DialogContent>
+    <DialogContent className='bg-card'>
       <DialogTitle className='flex items-center space-x-5'>
         <Button size='icon' variant='outline'>
           <ArrowLeftIcon onClick={() => dispatch(deincrement())} />
@@ -50,19 +73,18 @@ export const AlmostPrivateView = ({}) => {
         <p>Specific Friends</p>
       </DialogTitle>
       <div className='flex flex-col space-y-3'>
-        <Input type='text' placeholder='Search for friends' />
+        <Input type='text' onChange={(e) => handleSearchFriends(e.target.value)} placeholder='Search for friends' />
         <h2 className='text-lg'>Friends</h2>
         <RadioGroup>
           {isLoading || !data ? (
             <p>Loading...</p>
+          ) : followers.length === 0 ? (
+            <p className='text-neutral-400 dark:text-slate-400 '>No friends found</p>
           ) : (
-            data.data.followers.map((friend: any) => (
+            followers.map((friend) => (
               <Friend
                 key={friend.follower_id}
-                id={friend.follower_id}
-                firstname={friend.user.first_name}
-                lastname={friend.user.last_name}
-                avatar={friend.image}
+                follower={friend}
                 isToggled={visibleTo.includes(friend.follower_id)}
                 callback={handleSelect}
               />
@@ -82,29 +104,17 @@ export const AlmostPrivateView = ({}) => {
   );
 };
 
-const Friend = ({
-  id,
-  firstname,
-  lastname,
-  avatar,
-  isToggled,
-  callback,
-}: {
-  id: string;
-  firstname: string;
-  lastname: string;
-  avatar: string;
-  isToggled: boolean;
-  callback: (id: string) => void;
-}) => {
-
+const Friend = ({ follower, isToggled, callback }: { follower: FollowerType; isToggled: boolean; callback: (id: string) => void }) => {
   return (
-    <div className='flex items-center'>
-      <div className='h-[40px] w-[40px] rounded-full bg-blue-900' />
-      <Label htmlFor='' className='ml-3'>
-        {firstname} {lastname}
+    <div
+      className='flex items-center rounded-lg border p-4 hover:cursor-pointer hover:bg-neutral-50 dark:hover:bg-slate-700'
+      onClick={() => callback(follower.follower_id)}
+    >
+      <ProfilePicture url={follower.user.image} className='size-[40px]' />
+      <Label className='ml-3'>
+        {follower.user.first_name} {follower.user.first_name}
       </Label>
-      <Checkbox checked={isToggled} onCheckedChange={() => callback(id)} className='ml-auto' />
+      <Checkbox checked={isToggled} className='ml-auto size-5' />
     </div>
   );
 };

@@ -29,15 +29,15 @@ export const ChatMessage = ({ message, isMine, showHandle = false }: ChatMessage
     <div
       className={clsx('my-2 max-w-[90%]', {
         'mt-3 flex flex-col space-y-1': showHandle,
-        'ml-auto' : isMine,
+        'ml-auto': isMine,
         'mr-auto': !isMine,
       })}
     >
       {handle}
       <div
-        className={clsx('p-3 rounded-lg', {
-          'bg-primary rounded-r-none': isMine,
-          'bg-secondary rounded-l-none': !isMine,
+        className={clsx('rounded-lg p-3', {
+          'rounded-r-none bg-primary/90 text-white dark:bg-primary': isMine,
+          'rounded-l-none bg-secondary': !isMine,
         })}
       >
         {message.message}

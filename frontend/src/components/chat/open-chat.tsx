@@ -13,6 +13,7 @@ import type { WSPayload } from '@/middleware/socket';
 
 import { useGetChatMessagesQuery, useGetGroupMessagesQuery } from '@/services/backend/actions/messages';
 import { ChatType, closeChat, minimizeChat } from '@/features/chats/chatsSlice';
+import { cn } from '@/lib/utils';
 
 export const OpenChat = React.memo(
   ({ chat, authorImage, sendMessage }: { chat: ChatType; authorImage?: string | null; sendMessage: (message: WSPayload) => void }) => {
@@ -55,8 +56,8 @@ export const OpenChat = React.memo(
     };
 
     return (
-      <div className='h-[350px] w-[300px] rounded-lg rounded-b-none border  bg-background'>
-        <div className='flex h-[50px] w-full items-center justify-between border-b  px-2 '>
+      <div className='h-[350px] w-[300px] rounded-lg rounded-b-none border bg-card'>
+        <div className='flex h-[50px] w-full items-center justify-between border-b  px-2 drop-shadow-sm'>
           <h3>{chat.name}</h3>
           <div>
             <Button size='icon' variant='ghost' onClick={() => dispatch(minimizeChat(chat.id))}>
@@ -81,7 +82,7 @@ export const OpenChat = React.memo(
             />
           </div>
           <Button onClick={handleSendMessage} disabled={input.length === 0} size='icon' variant='ghost'>
-            <SendHorizonal />
+            <SendHorizonal stroke='hsl(var(--primary))' />
           </Button>
         </div>
       </div>

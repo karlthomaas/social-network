@@ -33,12 +33,14 @@ export default function Profile({ params }: { params: { user: string } }) {
 
   return (
     <div>
-      <Banner />
-      <div className='ml-5'>
-        <UserDetails username={params.user} />
-        <div className='flex space-x-4'>
-          <FollowersCount username={params.user} />
-          <FollowingList username={params.user} />
+      <div className='rounded-b-xl border bg-card pb-4'>
+        <Banner />
+        <div className='ml-5'>
+          <UserDetails username={params.user} />
+          <div className='flex space-x-4 text-card-foreground'>
+            <FollowersCount username={params.user} />
+            <FollowingList username={params.user} />
+          </div>
         </div>
       </div>
       <div className='mt-10 flex flex-col space-y-3'>

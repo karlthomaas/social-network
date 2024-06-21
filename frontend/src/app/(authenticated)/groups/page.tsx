@@ -26,8 +26,8 @@ export default function GroupsPage() {
   };
 
   return (
-    <div className='flex flex-col '>
-      <div className='flex space-x-2'>
+    <div className='flex flex-col space-y-5'>
+      <div className='flex h-max space-x-2 rounded-lg border bg-card p-4 dark:border-0'>
         <Input onChange={handleGroupSearch} placeholder='Search for groups' />
         <CreateGroupBtn />
       </div>

@@ -13,14 +13,14 @@ export const FollowingList = ({ username }: { username: string }) => {
   return (
     <Dialog>
       <DialogTrigger>
-        <h3 className='-mt-7 text-white'>
-          {data?.data.following.length || 0} <span className='text-neutral-400'>Following</span>
+        <h3 className='-mt-7 text-black dark:text-white'>
+          {data?.data.following.length || 0} <span className='text-neutral-500 dark:text-neutral-400'>Following</span>
         </h3>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className='bg-card'>
         <DialogTitle>Following list</DialogTitle>
         {data?.data.following.length === 0 ? (
-          <p className='text-neutral-400'>User doesn't follow anybody</p>
+          <p className='text-neutral-500 dark:text-neutral-400'>User doesn't follow anybody</p>
         ) : (
           data?.data.following.map((user) => <FollowListItem key={user.follower_id} follower={user} />)
         )}
