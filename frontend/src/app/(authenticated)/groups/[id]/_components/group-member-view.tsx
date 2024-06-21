@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 import { useAppSelector } from '@/lib/hooks';
 import { useGetGroupPostsQuery } from '@/services/backend/actions/posts';
 import { CreatePostBar } from '@/components/post/create-post-bar';
+import { PostFeedSkeleton } from '@/components/skeletons/post-feed';
 
 export const GroupMemberView = ({ id }: { id: string }) => {
   const group = useAppSelector((state) => state.groups.groups[id]);
@@ -18,7 +19,7 @@ export const GroupMemberView = ({ id }: { id: string }) => {
   const isOwner = group.group.user_id === user?.id;
 
   const [posts, setPosts] = useState<PostType[]>([]);
-  const { data } = useGetGroupPostsQuery(groupId);
+  const { data, isLoading } = useGetGroupPostsQuery(groupId);
 
   useEffect(() => {
     if (data?.group_posts) {
@@ -44,9 +45,7 @@ export const GroupMemberView = ({ id }: { id: string }) => {
         {isOwner && <GroupJoinRequests id={groupId} />}
       </div>
       <CreatePostBar image={user?.image} callback={updatePosts} />
-      <div>
-        <GroupFeed userId={user?.id} posts={posts} groupId={groupId} />
-      </div>
+      <div>{isLoading ? <PostFeedSkeleton /> : <GroupFeed userId={user?.id} posts={posts} groupId={groupId} />}</div>
     </>
   );
 };

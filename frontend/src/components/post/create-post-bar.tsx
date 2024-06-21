@@ -16,7 +16,7 @@ export const CreatePostBar = ({
       <ProfilePicture url={image} className='size-[45px] rounded-full' />
       <CreatePost callback={callback}>
         <DialogTrigger asChild>
-          <Button className='ml-3 w-full justify-start' variant='outline'>
+          <Button className='ml-3 w-full justify-start text-muted-foreground hover:text-muted-foreground' variant='outline'>
             What's on your mind?
           </Button>
         </DialogTrigger>

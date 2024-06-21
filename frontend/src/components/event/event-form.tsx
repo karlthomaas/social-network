@@ -20,7 +20,7 @@ const formSchema = z.object({
 
 export type EventFormProps = z.infer<typeof formSchema>;
 
-export const EventForm = ({ groupId, onSuccess }: { groupId: string, onSuccess: () => void }) => {
+export const EventForm = ({ groupId, onSuccess }: { groupId: string; onSuccess: () => void }) => {
   const dispatch = useAppDispatch();
   const [createEvent, { isLoading, isSuccess }] = useCreateGroupEventMutation();
 
@@ -42,7 +42,7 @@ export const EventForm = ({ groupId, onSuccess }: { groupId: string, onSuccess: 
         title: 'Success',
         description: 'Event created',
       });
- 
+
       dispatch({
         type: 'socket/send_message',
         payload: {
@@ -65,7 +65,7 @@ export const EventForm = ({ groupId, onSuccess }: { groupId: string, onSuccess: 
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-2'>
+      <form onSubmit={form.handleSubmit(onSubmit)} className='flex flex-col space-y-3'>
         <FormField
           control={form.control}
           name='title'

@@ -7,7 +7,7 @@ export const FollowersCount = ({ username }: { username: string }) => {
   const { data, isLoading } = useGetUserFollowersQuery(username);
 
   if (isLoading) {
-    return <Skeleton className='-mt-7 h-[40px] w-[150px]' />;
+    return <Skeleton className='h-[30px] w-[100px]' />;
   }
 
   return (

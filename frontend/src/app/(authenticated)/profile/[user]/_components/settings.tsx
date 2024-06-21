@@ -11,11 +11,10 @@ export const SettingsBtn = () => {
       <DialogTrigger asChild>
         <Button variant='outline'>Settings</Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className='bg-card'>
         <DialogTitle>Profile Settings</DialogTitle>
         <SettingsForm setIsOpen={setIsOpen} />
       </DialogContent>
     </Dialog>
   );
 };
-

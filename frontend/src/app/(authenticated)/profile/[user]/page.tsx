@@ -10,6 +10,8 @@ import { useEffect, useState } from 'react';
 import { useGetUserPostsQuery } from '@/services/backend/actions/posts';
 import { FollowingList } from '@/app/(authenticated)/profile/[user]/_components/following-list';
 import { CreatePostBar } from '@/components/post/create-post-bar';
+import { PostFeedSkeleton } from '@/components/skeletons/post-feed';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Profile({ params }: { params: { user: string } }) {
   const { isLoading, data } = useGetUserPostsQuery(params.user);
@@ -37,14 +39,18 @@ export default function Profile({ params }: { params: { user: string } }) {
         <Banner />
         <div className='ml-5'>
           <UserDetails username={params.user} />
-          <div className='flex space-x-4 text-card-foreground'>
+          <div className='relative flex space-x-4 text-card-foreground'>
             <FollowersCount username={params.user} />
             <FollowingList username={params.user} />
           </div>
         </div>
       </div>
-      <div className='mt-10 flex flex-col space-y-3'>
-        {user?.nickname === params.user && <CreatePostBar callback={updatePosts} image={user.image} />}
+      <div className='mt-5 flex flex-col space-y-3'>
+        {user?.nickname === params.user ? (
+          <CreatePostBar callback={updatePosts} image={user.image} />
+        ) : (
+          <Skeleton className='h-[80px] w-full rounded-xl ' />
+        )}
         <ProfilePosts posts={posts} isAuthor={user?.nickname === params.user} isLoading={isLoading} />
       </div>
     </div>

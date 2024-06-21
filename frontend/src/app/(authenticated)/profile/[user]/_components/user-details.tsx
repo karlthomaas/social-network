@@ -4,14 +4,21 @@ import { PrivacyBtn } from './privacy';
 import { useGetUserDetailsQuery } from '@/services/backend/actions/user';
 import { useAppSelector } from '@/lib/hooks';
 import { SettingsBtn } from '@/app/(authenticated)/profile/[user]/_components/settings';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export const UserDetails = ({ username }: { username: string }) => {
   const { user } = useAppSelector((state) => state.auth);
   const { data, isLoading } = useGetUserDetailsQuery(username);
 
   if (isLoading || !data || !data.user) {
-    // todo add loading state
-    return null;
+    return (
+      <div className='flex -translate-y-[50px] flex-col  space-y-3'>
+        <Skeleton className='z-20 mb-5 size-[126px] rounded-full' />
+        <Skeleton className='h-[25px] w-[100px]' />
+        <Skeleton className='h-[25px] w-[120px]' />
+        <Skeleton className='h-[25px] w-[90px]' />
+      </div>
+    );
   }
 
   const profileUser = data.user;

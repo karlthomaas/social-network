@@ -39,7 +39,7 @@ export const EventsModal = ({ group }: { group: GroupType }) => {
       <DialogTrigger asChild>
         <Button>View Events</Button>
       </DialogTrigger>
-      <DialogContent className='w-full max-w-screen-md'>
+      <DialogContent className='w-full max-w-screen-md bg-card'>
         <DialogHeader></DialogHeader>
         <DialogTitle>Group events</DialogTitle>
         <div className='flex flex-col space-y-3'>

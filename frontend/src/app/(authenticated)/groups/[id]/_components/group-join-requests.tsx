@@ -35,11 +35,11 @@ export const GroupJoinRequests = ({ id }: { id: string }) => {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant='outline' className='w-[250px]' onClick={() => refetch()}>
+        <Button className='w-[250px]' onClick={() => refetch()}>
           View join requests
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className='bg-card'>
         <DialogHeader>Group join requests</DialogHeader>
         {content}
       </DialogContent>

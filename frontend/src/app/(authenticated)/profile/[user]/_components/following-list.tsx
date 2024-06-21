@@ -7,7 +7,7 @@ export const FollowingList = ({ username }: { username: string }) => {
   const { data, isLoading } = useGetUserFollowingQuery(username);
 
   if (isLoading) {
-    return <Skeleton className='-mt-7 h-[40px] w-[150px]' />;
+    return <Skeleton className='h-[30px] w-[100px]' />;
   }
 
   return (

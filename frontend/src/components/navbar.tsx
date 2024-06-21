@@ -5,7 +5,6 @@ import { Button } from './ui/button';
 import Link from 'next/link';
 import { NavbarProfile } from './buttons/navbar-profile';
 import { LoginButton } from './buttons/login-btn';
-import { FriendRequestsBtn } from './buttons/friend-requests-btn';
 import { NotificationBtn } from './buttons/notifications-btn';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { useEffect, useState } from 'react';
