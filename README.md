@@ -59,8 +59,8 @@ The backend of the Social Network project is developed using Go (Golang), provid
 - **RESTful API**: Offers a RESTful API for the frontend to interact with, facilitating operations like CRUD actions on posts, user profiles, and more.
 - **WebSocket Support**: Implements Gorilla WebSockets for real-time communication features such as chat and notifications.
 - **Database Integration**: Utilizes SQLite for data storage, with the flexibility to switch to more scalable solutions as needed.
+- **Database migrations**: Utilize migrations to manage and version database schema changes efficiently, ensuring consistency and facilitating updates across different environments.
 - **Authentication and Authorization**: Manages user sessions and permissions securely.
-
 ### Development:
 - **Go Modules**: Leverages Go modules for dependency management, ensuring easy project setup and reproducible builds.
 - **Docker**: The backend is also containerized with Docker, streamlining the development and deployment process.
