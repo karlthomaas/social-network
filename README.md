@@ -1,92 +1,93 @@
 # Social Network Project
 
+This README provides an overview of the frontend and backend components of the Social Network project. The project is designed as a modern web application that mimics the core functionalities of popular social networking platforms.
 
+## Features
+
+### Followers
+- Follow/unfollow users
+- Send follow requests
+- Accept/decline follow requests
+
+### Profile
+- View user information, activity, and posts
+- Manage public and private profile settings
+- Display followers and following lists
+
+### Posts
+- Create and comment on posts
+- Include images or GIFs in posts
+- Set post privacy: public, private, or almost private
+
+### Groups
+- Create and manage groups
+- Invite users and handle group requests
+- Post and comment within groups
+- Create and manage group events
+
+### Notifications
+- Receive notifications for follow requests, group invitations, and group events
+- Differentiate between new notifications and private messages
+
+### Chats
+- Private messaging with followers
+- Group messaging with members
+- Real-time messaging using WebSockets
+
+## Frontend
+
+The frontend of the Social Network project is built using Next.js.
+
+### Key Features:
+- **User Interface**: Modern and responsive design for an engaging user experience.
+- **Routing**: Utilizes Next.js routing to manage navigation within the application.
+- **State Management**: Manages state using Redux.
+- **API Calls**: Communicates with the backend services to fetch and display data using RTK Query.
+- **Authentication**: Handles user authentication, allowing for secure access to the application.
+
+### Development:
+- **Node.js**: The frontend is developed with Node.js, ensuring a fast and scalable environment.
+- **Docker**: Containerized using Docker to simplify deployment and ensure consistency across different environments.
+
+Refer to the frontend [Dockerfile-frontend](frontend/Dockerfile-frontend) for the container setup and the [package.json](frontend/package.json) file for the list of dependencies and available scripts.
+
+## Backend
+
+The backend of the Social Network project is developed using Go (Golang), providing a robust and efficient server-side solution.
+
+### Key Features:
+- **RESTful API**: Offers a RESTful API for the frontend to interact with, facilitating operations like CRUD actions on posts, user profiles, and more.
+- **WebSocket Support**: Implements Gorilla WebSockets for real-time communication features such as chat and notifications.
+- **Database Integration**: Utilizes SQLite for data storage, with the flexibility to switch to more scalable solutions as needed.
+- **Authentication and Authorization**: Manages user sessions and permissions securely.
+
+### Development:
+- **Go Modules**: Leverages Go modules for dependency management, ensuring easy project setup and reproducible builds.
+- **Docker**: The backend is also containerized with Docker, streamlining the development and deployment process.
+
+For more details on the backend setup, refer to the [Dockerfile-backend](Dockerfile-backend) and the Go module file [go.mod](go.mod).
 
 ## Getting Started
 
 ### Prerequisites
 
-<ul><li>Docker should be installed on your system. <a href="https://www.docker.com/get-started/" target="_new">Get Docker</a></li><li>Go should be installed on your system. <a href="https://go.dev/doc/install" target="_new">Install Go</a></li></ul>
-Clone the Repository
+Docker should be installed on your system [Get Docker](https://www.docker.com/get-started/)
 
+**Clone project**
 ```bash
-git clone 
+git clone https://github.com/karlthomaas/social-network.git
 cd social-network
 ```
 
-
-Build Docker Images
-Setting Up the Project
-
+**Build project**
 ```bash
 make docker
-make migrateup
 ```
 
 
-
-## Overview
-
-This project is a Facebook-like social network application designed to support several essential features such as Followers, Profile, Posts, Groups, Notifications, and Chats. It is built using modern web technologies with a separation of concerns between the frontend and backend. The project is containerized using Docker for ease of deployment and scalability.
-
-## Features
-
-<strong>Followers</strong>
-Follow/unfollow users
-Send follow requests and accept/decline them
-
-<strong>Profile</strong>
-View user information, activity, and posts
-Public and private profile settings
-Followers and following lists
-
-<strong>Posts</strong>
-Create and comment on posts
-Include images or GIFs
-Privacy settings: public, private, and almost private
-
-<strong>Groups</strong>
-Create and manage groups
-Invite users and accept/decline group requests
-Create posts and comments within groups
-Create and manage events in groups
-
-<strong>Notifications</strong>
-Notifications for follow requests, group invitations, and group events
-Differentiate between new notifications and private messages
-
-<strong>Chats</strong>
-Private messaging with followers
-Real-time messaging with WebSockets
-
-## Frontend
-##### SvelteKit
-## Backend
-
-###### Technologies
-
-Golang
-Gorilla WebSockets
-SQLite
-
-## Docker
-
-Containers
-- social-network-backend
-- social-network-frontend
-
-
-
 ## Authors
-<div align="center">
-  <table>
-    <tr>
-        <td align="center"><a href="https://01.kood.tech/git/kveber"><img src="https://01.kood.tech/git/avatars/3dc29a90b6669d5d43b4c1cb57f84ef6?size=870" alt="kveber" width="100"></a></td>
-        <td align="center"><a href="https://01.kood.tech/git/Karl-Thomas"><img src="https://01.kood.tech/git/avatars/1a0705a2bf733df12b22a69273e2c7b3?size=870" alt="Karl-Thomas" width="100"></a></td>
-    </tr>
-    <tr>
-       <td align="center">kveber</td>
-       <td align="center">Karl-Thomas</td>
-    </tr>
-  </table>
-</div>
+
+- **kveber**: Frontend and backend development.
+- **Karl-Thomas**: Backend development and database management.
+
+This project is a collaborative effort aimed at creating a comprehensive social networking platform using modern web technologies.
