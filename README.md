@@ -87,7 +87,7 @@ make docker
 
 ## Authors
 
-- **kveber**: Frontend and backend development.
-- **Karl-Thomas**: Backend development and database management.
+- **Karl-Thomas**: Frontend and backend development.
+- **kveber**: Backend development and database management.
 
 This project is a collaborative effort aimed at creating a comprehensive social networking platform using modern web technologies.
