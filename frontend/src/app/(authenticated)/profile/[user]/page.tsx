@@ -46,11 +46,7 @@ export default function Profile({ params }: { params: { user: string } }) {
         </div>
       </div>
       <div className='mt-5 flex flex-col space-y-3'>
-        {user?.nickname === params.user ? (
-          <CreatePostBar callback={updatePosts} image={user.image} />
-        ) : (
-          <Skeleton className='h-[80px] w-full rounded-xl ' />
-        )}
+        {user?.nickname === params.user && !isLoading && <CreatePostBar callback={updatePosts} image={user.image} />}
         <ProfilePosts posts={posts} isAuthor={user?.nickname === params.user} isLoading={isLoading} />
       </div>
     </div>

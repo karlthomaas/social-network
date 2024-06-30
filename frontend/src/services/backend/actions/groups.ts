@@ -119,6 +119,7 @@ export const extendedGroupsApi = backendApi.injectEndpoints({
         url: `groups/${groupId}/group_invitations`,
         method: 'POST',
       }),
+      invalidatesTags: ['Groups'],
     }),
     leaveGroup: builder.mutation<any, { groupId: string; userId: string }>({
       query: ({ groupId, userId }) => ({

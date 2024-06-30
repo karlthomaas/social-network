@@ -41,7 +41,7 @@ export const NotificationBtn = () => {
             <Bell size={24} />
           </Button>
           <div
-            className={clsx('absolute -right-2 -top-2 h-[20px] w-[20px] rounded-full bg-red-600', {
+            className={clsx('absolute -right-2 -top-2 h-[20px] w-[20px] rounded-full bg-red-600 text-white ', {
               block: notifications.length !== 0,
               hidden: notifications.length === 0,
             })}

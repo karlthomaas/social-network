@@ -14,9 +14,10 @@ import type { WSPayload } from '@/middleware/socket';
 import { useGetChatMessagesQuery, useGetGroupMessagesQuery } from '@/services/backend/actions/messages';
 import { ChatType, closeChat, minimizeChat } from '@/features/chats/chatsSlice';
 import { cn } from '@/lib/utils';
+import { UserType } from '@/features/auth/types';
 
 export const OpenChat = React.memo(
-  ({ chat, authorImage, sendMessage }: { chat: ChatType; authorImage?: string | null; sendMessage: (message: WSPayload) => void }) => {
+  ({ chat, author, sendMessage }: { chat: ChatType; author: UserType | null; sendMessage: (message: WSPayload) => void }) => {
     const [messages, setMessages] = useState<MessageType[]>([]);
     const [input, setInput] = useState('');
 
@@ -40,8 +41,8 @@ export const OpenChat = React.memo(
         receiver: chat.type === 'private' ? chat.id : '',
         group_id: chat.type === 'group' ? chat.id : '',
         message: input,
-        name: chat.name,
-        image: authorImage ? authorImage : undefined,
+        name: author ? `${author.first_name} ${author.last_name}` : chat.name,
+        image: author.image ? author.image : undefined,
         type: chat.type === 'private' ? 'private_message' : 'group_message',
       });
 

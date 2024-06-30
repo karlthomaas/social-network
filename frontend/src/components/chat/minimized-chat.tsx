@@ -26,14 +26,14 @@ export const MinimizedChat = React.memo(({ chat }: { chat: ChatType }) => {
       ) : (
         <div
           onClick={() => dispatch(reOpenChat(chat.id))}
-          className='flex size-16 items-center justify-center rounded-full border  bg-secondary/70 hover:cursor-pointer hover:bg-secondary'
+          className='flex size-16 items-center justify-center rounded-full border bg-indigo-400 text-white hover:cursor-pointer'
         >
           {chatName.toUpperCase()}
         </div>
       )}
       <div
         onClick={() => dispatch(closeChat(chat.id))}
-        className='absolute -right-1 -top-2 z-20 hidden h-[25px] w-[25px] items-center justify-center rounded-full bg-secondary hover:cursor-pointer hover:bg-primary group-hover:flex'
+        className='absolute -right-1 -top-2 z-20 hidden h-[25px] w-[25px] items-center justify-center rounded-full border bg-secondary hover:cursor-pointer hover:bg-neutral-400 hover:bg-primary group-hover:flex'
       >
         <X size={15} />
       </div>

@@ -58,8 +58,8 @@ export const EventsModalEvent = ({ event, isActive }: { event: EventType; isActi
     <div className='flex h-max min-h-[75px] justify-between rounded-xl border  p-2'>
       <div className='flex basis-[80%] flex-col'>
         <h1 className='text-lg font-medium'>{event.title}</h1>
-        <p className='text-neutral-300'>{event.description}</p>
-        <p className='text-neutral-300'>{attendanceCount} members are attending</p>
+        <p className='text-neutral-600 dark:text-neutral-300'>{event.description}</p>
+        <p className='text-neutral-600 dark:text-neutral-300'>{attendanceCount} members are attending</p>
       </div>
       <div className='my-auto'>
         <Select value={attendance.current} onValueChange={handleSelect}>

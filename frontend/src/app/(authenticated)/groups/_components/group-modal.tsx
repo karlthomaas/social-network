@@ -52,8 +52,8 @@ export const GroupModal = ({ children }: { children: React.ReactNode }) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       {children}
-      <DialogContent>
-        <DialogHeader>Create group</DialogHeader>
+      <DialogContent className='bg-card'>
+        <DialogHeader className='text-lg font-semibold'>Create group</DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className='form-control space-y-3'>
             <FormField

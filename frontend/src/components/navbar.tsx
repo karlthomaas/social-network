@@ -39,7 +39,6 @@ export default function Navbar() {
       return (
         <>
           <div className='hidden items-center space-x-5 lg:flex'>
-            <ModeToggle />
             <NotificationBtn />
             <NavbarProfile />
           </div>
@@ -63,7 +62,10 @@ export default function Navbar() {
               <p className='text-lg'>Social Network</p>
             </Link>
           </li>
-          {navButtons()}
+          <div className='flex space-x-2 lg:space-x-5'>
+            <ModeToggle />
+            {navButtons()}
+          </div>
         </ul>
       </nav>
       <Sidebar handleClose={handleCloseSidebar} isOpen={sidebarOpen}>

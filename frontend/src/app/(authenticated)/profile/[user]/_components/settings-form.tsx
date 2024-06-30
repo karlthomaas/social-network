@@ -83,6 +83,12 @@ export const SettingsForm = ({ setIsOpen }: { setIsOpen: (state: boolean) => voi
 
     if (!hasError) {
       closeDialog();
+    } else {
+      toast({
+        title: 'Something went wrong',
+        description: 'Please try again later',
+        variant: 'destructive',
+      });
     }
   };
 

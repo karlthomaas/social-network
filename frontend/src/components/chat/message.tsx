@@ -35,7 +35,7 @@ export const ChatMessage = ({ message, isMine, showHandle = false }: ChatMessage
     >
       {handle}
       <div
-        className={clsx('rounded-lg p-3', {
+        className={clsx('text-wrap break-all rounded-lg p-3', {
           'rounded-r-none bg-primary/90 text-white dark:bg-primary': isMine,
           'rounded-l-none bg-secondary': !isMine,
         })}

@@ -10,6 +10,7 @@ import { useGetGroupMemberStatusQuery, useGetGroupDetailsQuery } from '@/service
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { skipToken } from '@reduxjs/toolkit/query/react';
 import { selectRole, setRole } from '@/features/groups/groupsSlice';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function GroupPage({ params }: { params: { id: string } }) {
   const dispatch = useAppDispatch();
@@ -32,7 +33,12 @@ export default function GroupPage({ params }: { params: { id: string } }) {
   }, [groupQuery.data, params.id, dispatch, user?.id]);
 
   if (groupQuery.isLoading || isMemberQuery.isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className='flex w-full flex-col space-y-5'>
+        <Skeleton className='h-[150px] w-full rounded-xl' />
+        <Skeleton className='h-[80px] w-full rounded-xl' />
+      </div>
+    );
   }
 
   if (!groupQuery.data) {
