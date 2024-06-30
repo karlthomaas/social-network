@@ -42,8 +42,10 @@ export const chatsSlice = createSlice({
     },
     notifyChat: (state, action: PayloadAction<ChatType>) => {
       if (Object.keys(state.chats).includes(action.payload.id) && state.chats[action.payload.id].state === 'minimized') {
+        // when chat is minimized, increment unread messages
         state.chats[action.payload.id].unreadMessages += 1;
-      } else {
+      } else if (!Object.keys(state.chats).includes(action.payload.id)) {
+        // when chat is closed, open chat and increment unread messages
         state.chats[action.payload.id] = action.payload;
       }
     },

@@ -15,9 +15,9 @@ export const CreateEvent = ({ groupId }: { groupId: string }) => {
       <DialogTrigger asChild>
         <Button>Create Event</Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className='bg-card'>
         <DialogHeader>Create Event</DialogHeader>
-        <EventForm groupId={groupId} onSuccess={closeDialog}/>
+        <EventForm groupId={groupId} onSuccess={closeDialog} />
       </DialogContent>
     </Dialog>
   );

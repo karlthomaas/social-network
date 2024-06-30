@@ -17,7 +17,7 @@ export const GroupInvite = ({ groupId }: { groupId: string }) => {
       <DialogTrigger asChild>
         <Button>Invite followers</Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className='bg-card'>
         <DialogHeader>Invite friends to Group</DialogHeader>
         <GroupInviteContent groupId={groupId} />
       </DialogContent>

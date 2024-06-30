@@ -5,7 +5,6 @@ import { Button } from './ui/button';
 import Link from 'next/link';
 import { NavbarProfile } from './buttons/navbar-profile';
 import { LoginButton } from './buttons/login-btn';
-import { FriendRequestsBtn } from './buttons/friend-requests-btn';
 import { NotificationBtn } from './buttons/notifications-btn';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { useEffect, useState } from 'react';
@@ -42,7 +41,6 @@ export default function Navbar() {
           <div className='hidden items-center space-x-5 lg:flex'>
             <NotificationBtn />
             <NavbarProfile />
-            <ModeToggle />
           </div>
           <Button size='sm' variant='ghost' className='lg:hidden' onClick={() => setSidebarOpen(!sidebarOpen)}>
             <Menu size={25} />
@@ -56,7 +54,7 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className='h-[65px] w-full border-b-[1px] '>
+      <nav className='h-[65px] w-full border-b-[1px] bg-card '>
         <ul className='mx-auto flex h-full max-w-screen-md items-center justify-between p-4 lg:max-w-screen-2xl'>
           <li>
             <Link href='/home' className='flex items-center space-x-4'>
@@ -64,7 +62,10 @@ export default function Navbar() {
               <p className='text-lg'>Social Network</p>
             </Link>
           </li>
-          {navButtons()}
+          <div className='flex space-x-2 lg:space-x-5'>
+            <ModeToggle />
+            {navButtons()}
+          </div>
         </ul>
       </nav>
       <Sidebar handleClose={handleCloseSidebar} isOpen={sidebarOpen}>

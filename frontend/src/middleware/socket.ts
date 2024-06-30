@@ -59,7 +59,7 @@ const handleSocketRecieve = (message: MessageEvent, dispatch: any) => {
         name: data.name,
         state: 'minimized',
         type: data.group_id ? 'group' : 'private',
-        image: data.image,
+        image: !data.group_id ? data.image : '',
         unreadMessages: 1,
       })
     );

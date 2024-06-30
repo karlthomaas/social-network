@@ -1,14 +1,9 @@
 import { Post, PostType } from '@/components/post/post';
+import { PostFeedSkeleton } from '@/components/skeletons/post-feed';
 
 export const ProfilePosts = ({ posts, isAuthor, isLoading }: { posts: PostType[]; isAuthor: boolean; isLoading: boolean }) => {
   if (isLoading) {
-    return (
-      <div className='flex flex-col space-y-5'>
-        <Post isLoading={true} isAuthor />
-        <Post isLoading={true} isAuthor />
-        <Post isLoading={true} isAuthor />
-      </div>
-    );
+    return <PostFeedSkeleton showCreatePostBar={false} />;
   }
 
   if (posts) {

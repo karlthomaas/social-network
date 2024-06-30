@@ -6,6 +6,8 @@ import { useEffect, useState } from 'react';
 import { useGetFeedPostsQuery } from '@/services/backend/actions/posts';
 import { useAppSelector } from '@/lib/hooks';
 import { CreatePostBar } from '@/components/post/create-post-bar';
+import { Skeleton } from '@/components/ui/skeleton';
+import { PostFeedSkeleton } from '@/components/skeletons/post-feed';
 
 export default function Home() {
   const { user } = useAppSelector((state) => state.auth);
@@ -25,14 +27,9 @@ export default function Home() {
       setPosts((posts) => [response, ...posts]);
     }
   };
+
   if (isLoading) {
-    return (
-      <div className='flex flex-col space-y-5'>
-        <Post isLoading={true} isAuthor={false} />
-        <Post isLoading={true} isAuthor={false} />
-        <Post isLoading={true} isAuthor={false} />
-      </div>
-    );
+    return <PostFeedSkeleton />;
   }
 
   return (

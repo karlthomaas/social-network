@@ -48,11 +48,11 @@ export const Post = ({ isAuthor, postData, isLoading }: { isAuthor: boolean; pos
   const privacyIcon = post.privacy === 'public' ? <Globe size={15} /> : <Lock size={15} />;
 
   return (
-    <div id={post.id} className='h-max w-full rounded-xl border  px-6 pt-6'>
+    <div id={post.id} className='h-max w-full rounded-xl border bg-card px-6 pt-6 text-card-foreground drop-shadow-sm'>
       <div className='mb-2 flex justify-between'>
         <div className='flex items-center space-x-2'>
           <ProfilePicture url={post.user.image} className='size-[50px]' />
-          <div className='flex flex-col'>
+          <div className='flex flex-col font-medium'>
             <Link href={`/profile/${post.user.nickname}`} className='capitalize underline-offset-2 hover:underline'>
               {post.user.first_name} {post.user.last_name}
             </Link>

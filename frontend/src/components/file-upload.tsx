@@ -18,8 +18,8 @@ export const FileUpload = memo(({ callback }: { callback: (files: File[]) => voi
     <div {...getRootProps()}>
       <div className='flex h-[100px] w-full flex-col space-y-3'>
         <div
-          className='hover:bg-background-100 mt-2 flex h-full cursor-pointer
-              items-center justify-center rounded-lg border-2 border-dashed border-input hover:brightness-150 text-muted-foreground'
+          className='mt-2 flex h-full cursor-pointer items-center
+              justify-center rounded-lg border-2 border-dashed border-input text-muted-foreground hover:bg-input hover:brightness-90 dark:hover:brightness-150'
           {...getRootProps()}
         >
           <Input {...getInputProps()} />

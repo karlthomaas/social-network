@@ -7,12 +7,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
+
 import { Bell } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
-import clsx from 'clsx';
 import { useGetUserNotificationsQuery } from '@/services/backend/actions/user';
 import { Notification } from '@/components/notifications/notification';
 import type { NotificationType } from '@/services/backend/types';
+import { clsx } from 'clsx';
 
 export const NotificationBtn = () => {
   const [notifications, setNotifications] = useState<NotificationType[]>([]);
@@ -33,18 +35,20 @@ export const NotificationBtn = () => {
 
   return (
     <DropdownMenu onOpenChange={() => refetch()}>
-      <DropdownMenuTrigger>
-        <div className='relative'>
-          <Bell size={24} />
+      <DropdownMenuTrigger className='relative'>
+        <>
+          <Button variant='ghost' size='icon'>
+            <Bell size={24} />
+          </Button>
           <div
-            className={clsx('absolute -right-2 -top-2 h-[20px] w-[20px] rounded-full bg-red-600', {
+            className={clsx('absolute -right-2 -top-2 h-[20px] w-[20px] rounded-full bg-red-600 text-white ', {
               block: notifications.length !== 0,
               hidden: notifications.length === 0,
             })}
           >
             {notifications.length}
           </div>
-        </div>
+        </>
       </DropdownMenuTrigger>
       <DropdownMenuContent className='w-[400px]'>
         <DropdownMenuLabel>Notifications</DropdownMenuLabel>

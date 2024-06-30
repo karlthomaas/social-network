@@ -3,6 +3,7 @@ import { ThumbsUp, MessageSquare, Forward } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { toast, useToast } from '../ui/use-toast';
 import { useCreatePostReactionMutation, useDeletePostReactionMutation } from '@/services/backend/actions/posts';
+import { useTheme } from 'next-themes';
 
 interface LikeButtonProps {
   postId: string;
@@ -13,6 +14,8 @@ interface LikeButtonProps {
 }
 
 export const LikeButton = ({ reactions, postId, reactionId, likeStatus }: LikeButtonProps) => {
+  const { theme } = useTheme();
+
   const [createReaction] = useCreatePostReactionMutation();
   const [deleteReaction] = useDeletePostReactionMutation();
 
@@ -45,7 +48,7 @@ export const LikeButton = ({ reactions, postId, reactionId, likeStatus }: LikeBu
 
   return (
     <Button variant='ghost' className='flex w-full items-center space-x-2' onClick={handleReaction}>
-      <ThumbsUp className='inline-flex' fill={liked ? '#3b82f6' : ''} stroke={liked ? '#3b82f6#' : 'white'} />
+      <ThumbsUp className='inline-flex' stroke={liked ? '#3b82f6' : theme === 'dark' ? 'white' : '#404040'} />
       {likes ? <span>{likes}</span> : null}
     </Button>
   );

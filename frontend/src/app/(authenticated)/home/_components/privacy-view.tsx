@@ -37,7 +37,7 @@ export const PrivacyView = ({}: {}) => {
   };
 
   return (
-    <DialogContent>
+    <DialogContent className='bg-card'>
       <DialogHeader>
         <DialogTitle className='flex items-center space-x-5'>
           <Button size='icon' variant='outline'>
@@ -83,12 +83,12 @@ const PrivacyItem = ({
   return (
     <div
       onClick={() => callback(value)}
-      className='broder flex h-[80px] w-full items-center justify-between rounded-xl  bg-background transition-colors duration-150 ease-in hover:cursor-pointer hover:bg-slate-700'
+      className='flex h-[80px] w-full items-center justify-between rounded-xl border transition-colors duration-150 ease-in hover:cursor-pointer hover:bg-neutral-50 hover:dark:bg-slate-700'
     >
       <Icon size={35} className='basis-1/6' />
-      <div id='content' className='basis-4/6'>
-        <Label htmlFor={value}>{title}</Label>
-        <p className='text-sm text-neutral-300'>{description}</p>
+      <div id='content' className='basis-4/6 hover:cursor-pointer'>
+        <h1>{title}</h1>
+        <p className='text-sm text-neutral-500 dark:text-neutral-300'>{description}</p>
       </div>
       <RadioGroupItem value={value.toLowerCase()} id={value.toLowerCase()} className='mr-5' />
     </div>
